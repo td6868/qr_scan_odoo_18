@@ -1,0 +1,63 @@
+.o_stock_picking_qr_scanner .qr-reader-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.o_stock_picking_qr_scanner .camera-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.o_stock_picking_qr_scanner .camera-preview {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    margin-bottom: 15px;
+}
+
+.o_stock_picking_qr_scanner .camera-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.o_stock_picking_qr_scanner .camera-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.o_stock_picking_qr_scanner .captured-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.o_stock_picking_qr_scanner .note-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.o_stock_picking_qr_scanner .shipping-type-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.o_stock_picking_qr_scanner .shipping-options {
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.o_stock_picking_qr_scanner .form-check {
+    margin-bottom: 10px;
+}
+
+.o_stock_picking_qr_scanner .form-check-label {
+    font-weight: 500;
+}
+
