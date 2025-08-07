@@ -172,24 +172,24 @@
                                         <div class="row g-3 g-md-4">
                                             <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                 <div class="col-12 col-sm-6 col-lg-4">
-                                                    <div t-attf-class="card shadow-sm h-100 border-0 position-relative {{ line.is_confirmed and 'bg-success-subtle' or 'bg-white' }}">
+                                                    <div t-attf-class="card shadow-sm h-100 border-0 position-relative {{'bg-white' }}">
                                                         <!-- Status indicator bar -->
-                                                        <div t-attf-class="position-absolute top-0 start-0 w-100 {{ line.is_confirmed and 'bg-success' or 'bg-warning' }}" style="height: 3px;"></div>
+                                                        <div t-attf-class="position-absolute top-0 start-0 w-100 {{ 'bg-success' or 'bg-warning' }}" style="height: 3px;"></div>
                                                         
-                                                        <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 {{ line.is_confirmed and 'bg-success-subtle' or 'bg-light' }}">
+                                                        <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 {{ 'bg-success-subtle' or 'bg-light' }}">
                                                             <div class="d-flex align-items-center flex-grow-1">
-                                                                <i t-attf-class="fa fa-box me-2 {{ line.is_confirmed and 'text-success' or 'text-muted' }}"/>
+                                                                <i t-attf-class="fa fa-box me-2 {{ 'text-success' or 'text-muted' }}"/>
                                                                 <div>
                                                                     <h6 class="card-title mb-1 fw-semibold">
                                                                         <t t-esc="line.product_name" />
                                                                     </h6>
-                                                                    <span t-attf-class="badge rounded-pill {{ line.is_confirmed and 'bg-success text-white' or 'bg-warning text-dark' }}" style="font-size: 0.7rem;">
+                                                                    <!-- <span t-attf-class="badge rounded-pill {{ line.is_confirmed and 'bg-success text-white' or 'bg-warning text-dark' }}" style="font-size: 0.7rem;">
                                                                         <t t-if="line.is_confirmed">Đã xác nhận</t>
                                                                         <t t-else="">Chưa xác nhận</t>
-                                                                    </span>
+                                                                    </span> -->
                                                                 </div>
                                                             </div>
-                                                            <div class="form-check form-switch">
+                                                            <!-- <div class="form-check form-switch">
                                                                 <input
                                                                     class="form-check-input"
                                                                     type="checkbox"
@@ -198,7 +198,7 @@
                                                                     t-att-checked="line.is_confirmed"
                                                                     t-on-change="ev => onConfirmCheckboxChange(ev, line_index)"
                                                                 />
-                                                            </div>
+                                                            </div> -->
                                                         </div>
 
                                                         <div class="card-body d-flex flex-column gap-3">
@@ -223,12 +223,12 @@
                                                                     </span>
                                                                 </div>
                                                                 <!-- Quantity difference indicator -->
-                                                                <t t-if="line.quantity_confirmed != line.quantity">
+                                                                <!-- <t t-if="line.quantity_confirmed != line.quantity">
                                                                     <small t-attf-class="mt-1 d-block {{ line.quantity_confirmed &lt; line.quantity and 'text-warning' or 'text-info' }}">
                                                                         <i class="fa fa-exclamation-triangle me-1"></i>
                                                                         Chênh lệch: <t t-esc="line.quantity_confirmed - line.quantity" /> <t t-esc="line.uom" />
                                                                     </small>
-                                                                </t>
+                                                                </t> -->
                                                             </div>
                                                                                 
                                                             <div>

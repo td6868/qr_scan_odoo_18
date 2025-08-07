@@ -3,10 +3,12 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { Component, useRef, onMounted, useState } from "@odoo/owl";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
 export class StockPickingQrScanner extends Component {
     setup() {
         super.setup();
+        this.dialogService = useService("dialog");
         this.result = useRef("result");
         this.reader = useRef("reader");
         this.video = useRef("video");
@@ -99,9 +101,9 @@ export class StockPickingQrScanner extends Component {
             this.updateProductConfirm(index, "quantity_confirmed", value);
         };
 
-        this.onConfirmCheckboxChange = (ev, index) => {
-            this.updateProductConfirm(index, "is_confirmed", ev.target.checked);
-        };
+        // this.onConfirmCheckboxChange = (ev, index) => {
+        //     this.updateProductConfirm(index, "is_confirmed", ev.target.checked);
+        // };
 
         this.onConfirmNoteInput = (ev, index) => {
             this.updateProductConfirm(index, "confirm_note", ev.target.value);
@@ -556,6 +558,7 @@ export class StockPickingQrScanner extends Component {
                 "product_uom_qty",
                 "picking_id",
                 "name",
+                "quantity",
             ];
             
             // Lấy tất cả stock.move của picking
@@ -569,7 +572,7 @@ export class StockPickingQrScanner extends Component {
                 product_name: move.product_id[1],
                 quantity: move.product_uom_qty, // Số lượng nhu cầu
                 uom: move.product_uom[1],
-                is_confirmed: false,
+                // is_confirmed: false,
                 quantity_confirmed: move.product_uom_qty,
                 confirm_note: ""
             }));
@@ -620,53 +623,62 @@ export class StockPickingQrScanner extends Component {
             this._showNotification("Không có thông tin sản phẩm để xác nhận.", "danger");
             return;
         }
-        
-        try {
-            // Lưu thông tin QR và ảnh trước
-            const base64Image = this.state.capturedImage.split(',')[1];
-            const note = this.state.scanNoteValue;
-            
-            await this.orm.call(
-                this.model,
-                'update_scan_info',
-                [this.state.scannedPickingId, base64Image, note, this.state.moveLines]
-            );
-            
-            // Sau đó mới lưu thông tin xác nhận sản phẩm
-            // THAY ĐỔI: Loại bỏ tham số picking_id nếu dùng phiên bản đơn giản
-            await this.orm.call(
-                this.model,
-                'update_move_line_confirm',
-                [[this.state.scannedPickingId], this.state.moveLines]
-            );
-            
-            this._showNotification("Đã lưu tất cả thông tin thành công!", "success");
-            
-            if (this.videoStream) {
-                this.videoStream.getTracks().forEach(track => track.stop());
+        this.dialogService.add(ConfirmationDialog, {
+            title: "Xác nhận lưu",
+            body: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
+            confirm: async () => {
+            try {
+                // Lưu thông tin QR và ảnh trước
+                const base64Image = this.state.capturedImage.split(',')[1];
+                const note = this.state.scanNoteValue;
+                
+                await this.orm.call(
+                    this.model,
+                    'update_scan_info',
+                    [this.state.scannedPickingId, base64Image, note, this.state.moveLines]
+                );
+                
+                // Sau đó mới lưu thông tin xác nhận sản phẩm
+                // THAY ĐỔI: Loại bỏ tham số picking_id nếu dùng phiên bản đơn giản
+                await this.orm.call(
+                    this.model,
+                    'update_move_line_confirm',
+                    [[this.state.scannedPickingId], this.state.moveLines]
+                );
+                
+                this._showNotification("Đã lưu tất cả thông tin thành công!", "success");
+                
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(track => track.stop());
+                }
+                
+                this.result.el.innerHTML = `
+                    <div class="alert alert-success">
+                        <h4><i class="fa fa-check-circle me-2"></i>Đã lưu thành công!</h4>
+                        <p>Thông tin quét QR, ảnh chụp và xác nhận sản phẩm đã được lưu.</p>
+                    </div>
+                    <button class="btn btn-primary mt-3" id="newScanButton">
+                        <i class="fa fa-qrcode me-2"></i>Quét mã QR mới
+                    </button>
+                `;
+                
+                this.state.showProductConfirmArea = false;
+
+                document.getElementById('newScanButton').addEventListener('click', () => {
+                    this.resetMode();
+                });
+                
+
+            } catch (error) {
+                console.error("Save product confirm error: ", error);
+                this._showNotification("Lỗi khi lưu thông tin: " + error, "danger");
             }
-            
-            this.result.el.innerHTML = `
-                <div class="alert alert-success">
-                    <h4><i class="fa fa-check-circle me-2"></i>Đã lưu thành công!</h4>
-                    <p>Thông tin quét QR, ảnh chụp và xác nhận sản phẩm đã được lưu.</p>
-                </div>
-                <button class="btn btn-primary mt-3" id="newScanButton">
-                    <i class="fa fa-qrcode me-2"></i>Quét mã QR mới
-                </button>
-            `;
-            
-            this.state.showProductConfirmArea = false;
-
-            document.getElementById('newScanButton').addEventListener('click', () => {
-                this.resetMode();
-            });
-            
-
-        } catch (error) {
-            console.error("Save product confirm error: ", error);
-            this._showNotification("Lỗi khi lưu thông tin: " + error, "danger");
-        }
+        },
+            cancel: () => {
+                // Logic sẽ chạy khi người dùng nhấn "Cancel" hoặc đóng dialog
+                console.log("Người dùng đã hủy bỏ.");
+            },
+        });
     }
 
     // ===== SHIPPING MODE METHODS (new) =====
@@ -701,43 +713,59 @@ export class StockPickingQrScanner extends Component {
         if (this.state.shippingCapturedImage) {
             shippingImage = this.state.shippingCapturedImage.split(',')[1];
         }
-        
-        try {
-            await this.orm.call(
-                this.model,
-                'update_scan_info',
-                [this.state.scannedPickingId, null, null, this.state.selectedShippingType, shippingImage, shippingNote, shippingPhone, shippingCompany]
-            );
-            
-            this._showNotification("Đã lưu thông tin vận chuyển thành công!", "success");
-            
-            if (this.videoStream) {
-                this.videoStream.getTracks().forEach(track => track.stop());
-            }
-            
-            const shippingTypeText = this.state.selectedShippingType === 'pickup' ? 'Khách đến lấy hàng' : 'Đặt ship';
-            this.result.el.innerHTML = `
-                <div class="alert alert-success">
-                    <h4><i class="fa fa-check-circle me-2"></i>Đã lưu thành công!</h4>
-                    <p>Thông tin vận chuyển đã được lưu.</p>
-                    <p><strong>Loại vận chuyển:</strong> ${shippingTypeText}</p>
-                    <p><strong>Phiếu xuất kho:</strong> ${this.state.scannedPickingName}</p>
-                </div>
-                <button class="btn btn-primary mt-3" id="newShippingScanButton">
-                    <i class="fa fa-truck me-2"></i>Quét QR mới
-                </button>
-            `;
-            
-            this.state.showShippingNoteArea = false;
-            
-            document.getElementById('newShippingScanButton').addEventListener('click', () => {
-                this.resetMode();
-            });
-            
-        } catch (error) {
-            console.error("Save shipping data error: ", error);
-            this._showNotification("Lỗi khi lưu thông tin vận chuyển: " + error, "danger");
-        }
+        this.dialogService.add(ConfirmationDialog, {
+            title: "Xác nhận lưu",
+            body: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
+            confirm: async () => {
+                try {
+                    await this.orm.call(
+                        this.model,               // 'stock.picking'
+                        'update_scan_info',       // tên method
+                        [[this.state.scannedPickingId]], // args: danh sách record id (self)
+                        {
+                            shipping_type: this.state.selectedShippingType,
+                            shipping_image: shippingImage,
+                            shipping_note: shippingNote,
+                            shipping_phone: shippingPhone,
+                            shipping_company: shippingCompany,
+                        }
+                    );
+                    
+                    this._showNotification("Đã lưu thông tin vận chuyển thành công!", "success");
+                    
+                    if (this.videoStream) {
+                        this.videoStream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    const shippingTypeText = this.state.selectedShippingType === 'pickup' ? 'Khách đến lấy hàng' : 'Đặt ship';
+                    this.result.el.innerHTML = `
+                        <div class="alert alert-success">
+                            <h4><i class="fa fa-check-circle me-2"></i>Đã lưu thành công!</h4>
+                            <p>Thông tin vận chuyển đã được lưu.</p>
+                            <p><strong>Loại vận chuyển:</strong> ${shippingTypeText}</p>
+                            <p><strong>Phiếu xuất kho:</strong> ${this.state.scannedPickingName}</p>
+                        </div>
+                        <button class="btn btn-primary mt-3" id="newShippingScanButton">
+                            <i class="fa fa-truck me-2"></i>Quét QR mới
+                        </button>
+                    `;
+                    
+                    this.state.showShippingNoteArea = false;
+                    
+                    document.getElementById('newShippingScanButton').addEventListener('click', () => {
+                        this.resetMode();
+                    });
+                    
+                } catch (error) {
+                    console.error("Save shipping data error: ", error);
+                    this._showNotification("Lỗi khi lưu thông tin vận chuyển: " + error, "danger");
+                }
+            },
+            cancel: () => {
+                // Logic sẽ chạy khi người dùng nhấn "Cancel" hoặc đóng dialog
+                console.log("Người dùng đã hủy bỏ.");
+            },
+        });
     }
 }
 

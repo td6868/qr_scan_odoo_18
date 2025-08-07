@@ -37,7 +37,7 @@
                                             <field name="move_quantity" string="SL nhu cầu"/>
                                             <field name="quantity_confirmed"/>
                                             <field name="difference_quantity"/>
-                                            <field name="is_confirmed"/>
+                                            <!-- <field name="is_confirmed"/> -->
                                             <field name="confirm_note"/>
                                             <field name="confirm_date"/>
                                             <field name="confirm_user_id"/>
@@ -77,7 +77,7 @@
                 <field name="move_quantity" string="SL nhu cầu"/>
                 <field name="quantity_confirmed"/>
                 <field name="difference_quantity" string="Chênh lệch"/>
-                <field name="is_confirmed"/>
+                <!-- <field name="is_confirmed"/> -->
                 <field name="confirm_date"/>
                 <field name="confirm_user_id"/>
             </list>
@@ -91,7 +91,7 @@
         <field name="arch" type="xml">
             <form string="Xác nhận sản phẩm">
                 <header>
-                    <field name="is_confirmed" widget="boolean_button"/>
+                    <!-- <field name="is_confirmed" widget="boolean_button"/> -->
                 </header>
                 <sheet>
                     <group>
@@ -130,8 +130,8 @@
                 <field name="product_id"/>
                 <field name="move_id"/>
                 <field name="confirm_user_id"/>
-                <filter string="Đã xác nhận" name="confirmed" domain="[('is_confirmed', '=', True)]"/>
-                <filter string="Chưa xác nhận" name="not_confirmed" domain="[('is_confirmed', '=', False)]"/>
+                <!-- <filter string="Đã xác nhận" name="confirmed" domain="[('is_confirmed', '=', True)]"/> -->
+                <!-- <filter string="Chưa xác nhận" name="not_confirmed" domain="[('is_confirmed', '=', False)]"/> -->
                 <filter string="Có chênh lệch" name="has_difference" domain="[('difference_quantity', '!=', 0)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter string="Phiếu xuất kho" name="group_picking" domain="[]" context="{'group_by': 'picking_id'}"/>

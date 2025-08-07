@@ -170,15 +170,15 @@ class StockPicking(models.Model):
     def _create_move_line_confirms(self, scan_history_id, move_line_confirms):
         """Tạo xác nhận sản phẩm cho lần quét"""
         for confirm in move_line_confirms:
-            if not confirm.get('is_confirmed', False):
-                confirm['quantity_confirmed'] = 0
+            # if not confirm.get('is_confirmed', False):
+            #     confirm['quantity_confirmed'] = 0
             # Sử dụng move_id thay vì move_line_id
             self.env['stock.move.line.confirm'].create({
                 'scan_history_id': scan_history_id,
                 'move_id': confirm['move_id'],  # Thay đổi này
                 'product_id': confirm['product_id'],
                 'quantity_confirmed': confirm['quantity_confirmed'],
-                'is_confirmed': confirm['is_confirmed'],
+                # 'is_confirmed': confirm['is_confirmed'],
                 'confirm_note': confirm['confirm_note'],
                 
             })            
@@ -204,7 +204,7 @@ class StockPicking(models.Model):
             move_id = line.get('move_id')
             quantity = float(line.get('quantity_confirmed', 0.0))
             note = line.get('confirm_note', '')
-            is_confirmed = line.get('is_confirmed', False)
+            # is_confirmed = line.get('is_confirmed', False)
 
             move = moves.filtered(lambda m: m.id == move_id)
             if not move:
@@ -223,12 +223,12 @@ class StockPicking(models.Model):
                 'confirm_note': note,
                 'confirm_user_id': self.env.uid,
                 'confirm_date': fields.Datetime.now(),
-                'is_confirmed': is_confirmed,
+                # 'is_confirmed': is_confirmed,
             })
 
             # ✅ Cập nhật lại trường quantity nếu đã được confirm
-            if is_confirmed:
-                move.write({'quantity': quantity})
+            # if is_confirmed:
+            move.write({'quantity': quantity})
 
         if confirm_vals:
             self.env['stock.move.line.confirm'].create(confirm_vals)
@@ -261,7 +261,7 @@ class StockMoveLineConfirm(models.Model):
     move_id = fields.Many2one('stock.move', string="Sản phẩm", required=True, ondelete='cascade')  # Thay đổi chính
     product_id = fields.Many2one('product.product', string="Sản phẩm", required=True)
     quantity_confirmed = fields.Float("Số lượng xác nhận", default=0.0)
-    is_confirmed = fields.Boolean("Đã xác nhận", default=False)
+    # is_confirmed = fields.Boolean("Đã xác nhận", default=False)
     confirm_note = fields.Text("Ghi chú xác nhận")
     confirm_date = fields.Datetime("Ngày xác nhận", default=fields.Datetime.now)
     confirm_user_id = fields.Many2one('res.users', "Người xác nhận", default=lambda self: self.env.user.id)
