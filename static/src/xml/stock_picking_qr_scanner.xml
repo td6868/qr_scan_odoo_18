@@ -431,7 +431,7 @@
                                                 </div>
                                             </t>
                                             <t t-else="">
-                                                <div class="captured-image-container">
+                                               <div class="captured-image-container">
                                                     <img t-att-src="state.shippingCapturedImage" class="captured-image" />
                                                     <div class="mt-3 d-flex justify-content-center">
                                                         <button class="btn btn-secondary me-2" t-on-click="retakeImage">

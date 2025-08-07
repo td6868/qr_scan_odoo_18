@@ -555,41 +555,61 @@ export class StockPickingQrScanner extends Component {
     async _loadMoveLines(pickingId) {
         try {
             const domain = [["picking_id", "=", pickingId]];
-            const fields = ["product_id", "qty_done", "quantity", "product_uom_id", "picking_id"];
-            const moveLines = await this.orm.call(
-                "stock.move.line",
-                "search_read",
-                [domain, fields]
-            );
+            const fields = [
+                "product_id",
+                "qty_done",
+                "product_uom_id",
+                "picking_id",
+                "move_id"
+            ];
             
+            const moveLines = await this.orm.call("stock.move.line", "search_read", [domain, fields]);
+
             if (!moveLines || moveLines.length === 0) {
                 console.warn("Không tìm thấy move lines cho picking ID:", pickingId);
                 this._showNotification("Phiếu xuất kho này không có sản phẩm nào!", "warning");
                 return;
             }
-            
-            this.state.moveLines = moveLines.map((line, index) => ({
+
+            // Lấy danh sách move_id duy nhất để truy xuất product_uom_qty
+            const moveIds = [...new Set(moveLines.map(line => line.move_id[0]))];
+
+            // Truy vấn stock.move để lấy product_uom_qty
+            const moves = await this.orm.call("stock.move", "search_read", [
+                [["id", "in", moveIds]],
+                ["id", "product_uom_qty"]
+            ]);
+
+            // Đưa về dạng map cho dễ truy xuất
+            const moveQtyMap = {};
+            moves.forEach(m => {
+                moveQtyMap[m.id] = m.product_uom_qty;
+            });
+
+            // Map dữ liệu cho giao diện
+            this.state.moveLines = moveLines.map((line) => ({
                 move_line_id: line.id,
                 product_id: line.product_id[0],
                 product_name: line.product_id[1],
-                quantity: line.quantity,
+                quantity: moveQtyMap[line.move_id[0]] || 0, // Số lượng dự kiến từ stock.move
                 uom: line.product_uom_id[1],
                 is_confirmed: false,
-                quantity_confirmed: line.quantity,
+                quantity_confirmed: moveQtyMap[line.move_id[0]] || 0,   
                 confirm_note: "",
             }));
-            
+
             console.log("Loaded move lines:", this.state.moveLines);
-            
+
         } catch (error) {
             console.error("Error loading move lines:", error);
             this._showNotification("Lỗi khi tải danh sách sản phẩm: " + error, "danger");
         }
     }
+
     
     async saveScanData() {
         if (!this.state.scannedPickingId) {
-            this._showNotification("Không có thông tin phiếu xuất kho để lưu.", "danger");
+            this._showNotification("Không tìm thấy thông tin phiếu xuất kho!", "danger");
             return;
         }
         
@@ -608,7 +628,6 @@ export class StockPickingQrScanner extends Component {
             this.state.showNoteArea = false;
             this.state.showProductConfirmArea = true;
             this.state.showCaptureArea = false;
-
             
         // } catch (error) {
         //     console.error("Save error: ", error);

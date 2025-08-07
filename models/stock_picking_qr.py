@@ -69,13 +69,20 @@ class StockPicking(models.Model):
                 qr_code_base64 = base64.b64encode(buffer.getvalue())
                 
                 # Reset trạng thái quét khi QR mới được tạo
-                record.write({
+                record.update({
                     'qr_code_image': qr_code_base64,
                     'is_scanned': False,
                     'scan_date': False,
                     'scan_user_id': False,
                     'scan_note': False,
                     'image_proof': False,
+                    'is_shipped' : False,
+                    'shipping_date' : False,
+                    'shipping_note' : False,
+                    'shipping_phone' :False,
+                    'shipping_company' : False,
+                    'shipping_image' : False,
+                    'shipping_type' : False,
                 })
 
     def action_done(self):
@@ -199,7 +206,7 @@ class StockPicking(models.Model):
             if confirmed_qty != move.product_uom_qty:
                 move.write({
                     # 'product_uom_qty': move.product_uom_qty - confirmed_qty,
-                    'quantity': confirmed_qty,  # nếu có trường này
+                    'quantity': confirmed_qty,
                 })
 
 
@@ -272,3 +279,4 @@ class StockMoveLineConfirm(models.Model):
         if self.move_line_id:
             self.product_id = self.move_line_id.product_id.id
             self.quantity_confirmed = self.move_line_id.quantity
+            
