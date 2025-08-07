@@ -395,16 +395,10 @@ export class StockPickingQrScanner extends Component {
         
         if (this.state.scanMode === 'prepare') {
             // PREPARE MODE LOGIC
-            if (picking.is_scanned && picking.qr_code_data && data !== picking.qr_code_data) {
-                this._showError("Mã QR đã bị thay đổi hoặc không hợp lệ. Vui lòng tạo lại mã QR.");
+            if (picking.state === 'done' || picking.state === 'cancel') {
+                this._showError(`Không thể quét QR cho phiếu có trạng thái '${picking.state}'!`);
                 return;
             }
-
-            if (picking.is_scanned && data === picking.qr_code_data) {
-                this._showError("Phiếu xuất kho này đã được quét và chuẩn bị hàng rồi!");
-                return;
-            }
-
             
             successMessage.innerHTML = `
                 <div class="alert alert-success">
@@ -554,54 +548,36 @@ export class StockPickingQrScanner extends Component {
     
     async _loadMoveLines(pickingId) {
         try {
+            // Thay đổi: lấy dữ liệu từ stock.move thay vì stock.move.line
             const domain = [["picking_id", "=", pickingId]];
             const fields = [
                 "product_id",
-                "qty_done",
-                "product_uom_id",
+                "product_uom", 
+                "product_uom_qty",
                 "picking_id",
-                "move_id"
+                "name",
             ];
             
-            const moveLines = await this.orm.call("stock.move.line", "search_read", [domain, fields]);
-
-            if (!moveLines || moveLines.length === 0) {
-                console.warn("Không tìm thấy move lines cho picking ID:", pickingId);
-                this._showNotification("Phiếu xuất kho này không có sản phẩm nào!", "warning");
-                return;
-            }
-
-            // Lấy danh sách move_id duy nhất để truy xuất product_uom_qty
-            const moveIds = [...new Set(moveLines.map(line => line.move_id[0]))];
-
-            // Truy vấn stock.move để lấy product_uom_qty
-            const moves = await this.orm.call("stock.move", "search_read", [
-                [["id", "in", moveIds]],
-                ["id", "product_uom_qty"]
-            ]);
-
-            // Đưa về dạng map cho dễ truy xuất
-            const moveQtyMap = {};
-            moves.forEach(m => {
-                moveQtyMap[m.id] = m.product_uom_qty;
-            });
-
-            // Map dữ liệu cho giao diện
-            this.state.moveLines = moveLines.map((line) => ({
-                move_line_id: line.id,
-                product_id: line.product_id[0],
-                product_name: line.product_id[1],
-                quantity: moveQtyMap[line.move_id[0]] || 0, // Số lượng dự kiến từ stock.move
-                uom: line.product_uom_id[1],
+            // Lấy tất cả stock.move của picking
+            const moves = await this.orm.call("stock.move", "search_read", [domain, fields]);
+            
+            // Map dữ liệu cho giao diện - hiển thị TẤT CẢ sản phẩm
+            this.state.moveLines = moves.map((move) => ({
+                move_line_id: move.id, // Sử dụng move.id làm identifier
+                move_id: move.id,      // Lưu move_id riêng
+                product_id: move.product_id[0],
+                product_name: move.product_id[1],
+                quantity: move.product_uom_qty, // Số lượng nhu cầu
+                uom: move.product_uom[1],
                 is_confirmed: false,
-                quantity_confirmed: moveQtyMap[line.move_id[0]] || 0,   
-                confirm_note: "",
+                quantity_confirmed: move.product_uom_qty,
+                confirm_note: ""
             }));
-
-            console.log("Loaded move lines:", this.state.moveLines);
-
+                        
+            console.log("Loaded moves:", this.state.moveLines);
+            
         } catch (error) {
-            console.error("Error loading move lines:", error);
+            console.error("Error loading moves:", error);
             this._showNotification("Lỗi khi tải danh sách sản phẩm: " + error, "danger");
         }
     }
@@ -648,19 +624,20 @@ export class StockPickingQrScanner extends Component {
         try {
             // Lưu thông tin QR và ảnh trước
             const base64Image = this.state.capturedImage.split(',')[1];
-            const note = this.state.scanNoteValue;  // ĐỌC TỪ STATE thay vì DOM
+            const note = this.state.scanNoteValue;
             
             await this.orm.call(
                 this.model,
                 'update_scan_info',
-                [this.state.scannedPickingId, base64Image, note]
+                [this.state.scannedPickingId, base64Image, note, this.state.moveLines]
             );
             
             // Sau đó mới lưu thông tin xác nhận sản phẩm
+            // THAY ĐỔI: Loại bỏ tham số picking_id nếu dùng phiên bản đơn giản
             await this.orm.call(
                 this.model,
                 'update_move_line_confirm',
-                [this.state.scannedPickingId, this.state.moveLines]
+                [[this.state.scannedPickingId], this.state.moveLines]
             );
             
             this._showNotification("Đã lưu tất cả thông tin thành công!", "success");

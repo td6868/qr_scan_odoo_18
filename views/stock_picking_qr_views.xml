@@ -7,116 +7,60 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <notebook position="inside">
-                <page string="Trạng thái">
-                    <group>
-                        <group string="Chuẩn bị hàng" col="2">
-                            <field name="is_scanned"/>
-                            <field name="scan_date" readonly="1"/>
-                            <field name="scan_user_id" readonly="1"/>
-                            <field name="scan_note" readonly="1" colspan="2"/>
-
-                            <field name="image_proof" widget="image" readonly="1"
-                                class="oe_avatar"                                
-                                style="max-width: 250px; max-height: 250px; border: 1px solid #ccc;" colspan="2"/>
-                        </group>
-
-                        <group string="Vận chuyển" col="2">
-                            <field name="is_shipped"/>
-                            <field name="shipping_date" readonly="1"/>
-                            <field name="shipping_type" readonly="1"/>
-                            <field name="scan_user_id" readonly="1"/>
-                            <field name="shipping_phone" readonly="1"/>
-                            <field name="shipping_company" readonly="1"/>
-                            <field name="shipping_note" readonly="1" colspan="2"/>
-
-                            <field name="shipping_image" widget="image" readonly="1"
-                                class="oe_avatar"                                
-                                style="max-width: 250px; max-height: 250px; border: 1px solid #ccc;" colspan="2"/>
-                        </group>
+                <!-- Thêm vào trong record id="view_picking_form_inherit_qr" sau page "Trạng thái" -->
+                <page string="Lịch sử quét QR">
+                    <group col="2">
+                        <field name="scan_history_ids">
+                            <list>
+                                <field name="scan_date"/>
+                                <field name="scan_user_id"/>
+                                <field name="scan_note"/>
+                            </list>
+                            <form>
+                                <group>
+                                    <group>
+                                        <field name="scan_date" readonly="1"/>
+                                        <field name="scan_user_id" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="scan_note"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <field name="image_proof" widget="image" class="oe_avatar" readonly="1"
+                                        style="max-width: 250px; max-height: 250px; border: 1px solid #ccc;"/>
+                                </group>
+                                <group string="Xác nhận sản phẩm">
+                                    <field name="move_line_confirmed_ids">
+                                        <list>
+                                            <field name="product_id"/>
+                                            <field name="move_quantity" string="SL nhu cầu"/>
+                                            <field name="quantity_confirmed"/>
+                                            <field name="difference_quantity"/>
+                                            <field name="is_confirmed"/>
+                                            <field name="confirm_note"/>
+                                            <field name="confirm_date"/>
+                                            <field name="confirm_user_id"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </form>
+                        </field>
                     </group>
-                </page>
-                <page string="Xác nhận sản phẩm xuất kho">
-                    <field name="move_line_confirmed_ids">
-                        <kanban>
-                            <templates>
-                                <t t-name="kanban-box">
-                                    <div class="oe_kanban_global_click o_kanban_record">
-                                        <div class="o_kanban_details">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <strong><field name="product_id"/></strong>
-                                                <div>
-                                                    <field name="is_confirmed"/>
-                                                </div>
-                                            </div>
-
-                                            <!-- <div>
-                                                <span><strong>Số lượng xuất kho: </strong></span>
-                                                <field name="move_line_quantity" readonly="1"/>
-                                            </div> -->
-
-                                            <div>
-                                                <span><strong>Số lượng xác nhận: </strong></span>
-                                                <field name="quantity_confirmed"/>
-                                            </div>
-
-                                            <!-- <div>
-                                                <span><strong>Chênh lệch: </strong></span>
-                                                <field name="difference_quantity" readonly="1"/>
-                                            </div> -->
-
-                                            <div>
-                                                <span><strong>Ghi chú: </strong></span>
-                                                <field name="confirm_note"/>
-                                            </div>
-
-                                            <div class="mt-2">
-                                                <small>
-                                                    <i>Xác nhận bởi: </i>
-                                                    <field name="confirm_user_id" readonly="1"/>
-                                                    <span> | </span>
-                                                    <field name="confirm_date" readonly="1"/>
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </t>
-                            </templates>
-                        </kanban>
-
-                        <form>
-                            <group>
-                                <group>
-                                    <field name="product_id" readonly="1"/>
-                                    <field name="move_line_id" readonly="1"/>
-                                    <field name="move_line_quantity" readonly="1"/>
-                                </group>
-                                <group>
-                                    <field name="quantity_confirmed"/>
-                                    <field name="difference_quantity" readonly="1"/>
-                                    <field name="is_confirmed" readonly="1"/>
-                                </group>
-                            </group>
-                            <group>
-                                <field name="confirm_note" placeholder="Ghi chú về việc xác nhận sản phẩm..."/>
-                            </group>
-                            <group>
-                                <field name="confirm_date" readonly="1"/>
-                                <field name="confirm_user_id" readonly="1"/>
-                            </group>
-                        </form>
-                    </field>
-                </page>
-
-                <!-- <page string="Xác nhận giao hàng">
-                    <group>
+                    <group string="Vận chuyển" col="2">
                         <field name="is_shipped"/>
                         <field name="shipping_date" readonly="1"/>
-                        <field name="scan_user_id" readonly="1"/>
-                        <field name="shipping_note" readonly="1"/>
                         <field name="shipping_type" readonly="1"/>
-                        <field name="shipping_image" widget="image" class="oe_avatar" readonly="1"/>
+                        <field name="scan_user_id" readonly="1"/>
+                        <field name="shipping_phone" readonly="1"/>
+                        <field name="shipping_company" readonly="1"/>
+                        <field name="shipping_note" readonly="1" colspan="2"/>
+
+                        <field name="shipping_image" widget="image" readonly="1"
+                            class="oe_avatar"                                
+                            style="max-width: 250px; max-height: 250px; border: 1px solid #ccc;" colspan="2"/>
                     </group>
-                </page> -->
+                </page>
             </notebook>
         </field>
     </record>
@@ -129,7 +73,8 @@
             <list string="Xác nhận sản phẩm">
                 <field name="picking_id"/>
                 <field name="product_id"/>
-                <field name="move_line_quantity" string="SL Move Line"/>
+                <field name="move_id"/>
+                <field name="move_quantity" string="SL nhu cầu"/>
                 <field name="quantity_confirmed"/>
                 <field name="difference_quantity" string="Chênh lệch"/>
                 <field name="is_confirmed"/>
@@ -152,11 +97,11 @@
                     <group>
                         <group>
                             <field name="picking_id" readonly="1"/>
-                            <field name="move_line_id" readonly="1"/>
+                            <field name="move_id" readonly="1"/>
                             <field name="product_id" readonly="1"/>
                         </group>
                         <group>
-                            <field name="move_line_quantity" readonly="1"/>
+                            <field name="move_quantity" readonly="1" string="SL nhu cầu"/>
                             <field name="quantity_confirmed"/>
                             <field name="difference_quantity" readonly="1"/>
                         </group>
@@ -183,13 +128,16 @@
             <search string="Tìm kiếm xác nhận sản phẩm">
                 <field name="picking_id"/>
                 <field name="product_id"/>
+                <field name="move_id"/>
                 <field name="confirm_user_id"/>
                 <filter string="Đã xác nhận" name="confirmed" domain="[('is_confirmed', '=', True)]"/>
                 <filter string="Chưa xác nhận" name="not_confirmed" domain="[('is_confirmed', '=', False)]"/>
+                <filter string="Có chênh lệch" name="has_difference" domain="[('difference_quantity', '!=', 0)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter string="Phiếu xuất kho" name="group_picking" domain="[]" context="{'group_by': 'picking_id'}"/>
                     <filter string="Sản phẩm" name="group_product" domain="[]" context="{'group_by': 'product_id'}"/>
                     <filter string="Người xác nhận" name="group_user" domain="[]" context="{'group_by': 'confirm_user_id'}"/>
+                    <filter string="Move" name="group_move" domain="[]" context="{'group_by': 'move_id'}"/>
                 </group>
             </search>
         </field>
@@ -200,7 +148,6 @@
         <field name="name">Xác nhận sản phẩm giao hàng</field>
         <field name="res_model">stock.move.line.confirm</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_stock_move_line_confirm_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Chưa có xác nhận sản phẩm nào!
@@ -233,10 +180,5 @@
               parent="menu_stock_qr_code_root"
               action="action_stock_move_line_confirm"
               sequence="20"/>
-    <!-- <menuitem id="menu_stock_picking_shipping"
-              name="Xác nhận Giao hàng"
-              parent="menu_stock_qr_code_root"
-              action="action_stock_move_line_confirm"
-              sequence="30"/> -->
-
+    
 </odoo>

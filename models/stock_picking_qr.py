@@ -9,12 +9,9 @@ class StockPicking(models.Model):
 
     qr_code_image = fields.Binary("QR Code", attachment=True)
     qr_code_data = fields.Char("QR Code Content")
-    image_proof = fields.Binary("Ảnh chứng minh", attachment=True)
-    scan_date = fields.Datetime("Ngày quét", readonly=True)
-    scan_user_id = fields.Many2one('res.users', "Người quét", readonly=True)
-    scan_note = fields.Text("Ghi chú khi quét")
-    is_scanned = fields.Boolean("Đã quét", default=False, readonly=True)
-    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'picking_id', string="Xác nhận sản phẩm")
+    #truong moi lich su chuan bi
+    scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
+    is_scanned = fields.Boolean("Đã quét", compute='_compute_is_scanned', store=True, default=False, copy=False)
     
     # Thêm trường mới cho loại vận chuyển
     shipping_type = fields.Selection([
@@ -22,13 +19,25 @@ class StockPicking(models.Model):
         ('viettelpost', 'Viettel Post'),
         ('delivery', 'Đặt ship : Xe khách/Xe ...')
     ], string="Loại vận chuyển", default='pickup')
-    shipping_image = fields.Binary("Ảnh đơn hàng chuyển đi", attachment=True)
-    shipping_date = fields.Datetime("Ngày vận chuyển", readonly=True)
-    shipping_note = fields.Text("Ghi chú vận chuyển")
-    shipping_phone = fields.Text("Số điện thoại giao vận")
-    shipping_company = fields.Text("Nhà xe")
+    shipping_image = fields.Binary("Ảnh đơn hàng chuyển đi", attachment=True, default=False)
+    shipping_date = fields.Datetime("Ngày vận chuyển", readonly=True, default=False)
+    shipping_note = fields.Text("Ghi chú vận chuyển",default=False)
+    shipping_phone = fields.Text("Số điện thoại giao vận", default=False)
+    shipping_company = fields.Text("Nhà xe", default=False)
     is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True)
-
+    
+    # Thêm trường last_scan_date
+    last_scan_date = fields.Datetime("Ngày quét cuối cùng", compute='_compute_last_scan_date', store=True)
+    
+    # Thêm trường move_line_confirmed_ids
+    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
+    
+    # Các trường liên kết với scan_history_ids mới nhất
+    scan_date = fields.Datetime(related='scan_history_ids.scan_date', string="Ngày quét", readonly=True)
+    scan_user_id = fields.Many2one(related='scan_history_ids.scan_user_id', string="Người quét", readonly=True)
+    scan_note = fields.Text(related='scan_history_ids.scan_note', string="Ghi chú khi quét", readonly=True)
+    image_proof = fields.Binary(related='scan_history_ids.image_proof', string="Ảnh chứng minh", readonly=True)
+    
     def create(self, vals):
         picking = super().create(vals)
         # Không generate QR ngay khi tạo vì có thể chưa có đủ thông tin
@@ -41,14 +50,6 @@ class StockPicking(models.Model):
             qr_data += f"Customer: {record.partner_id.name or 'N/A'}\n"
             qr_data += f"Date: {record.scheduled_date}\n"
             qr_data += f"ID: {record.id}\n"
-                
-                # Thêm danh sách sản phẩm
-                # qr_data += "Products:\n"
-                # for move in record.move_ids_without_package:
-                #     product_name = move.product_id.name or move.sale_line_id.name
-                #     quantity = move.product_uom_qty
-                #     uom = move.product_uom.name
-                #     qr_data += f"- {product_name}: {quantity} {uom}\n"
                 
             if not record.qr_code_image or record.qr_code_data != qr_data:
                 record.qr_code_data = qr_data
@@ -71,24 +72,24 @@ class StockPicking(models.Model):
                 # Reset trạng thái quét khi QR mới được tạo
                 record.update({
                     'qr_code_image': qr_code_base64,
-                    'is_scanned': False,
-                    'scan_date': False,
-                    'scan_user_id': False,
-                    'scan_note': False,
-                    'image_proof': False,
-                    'is_shipped' : False,
-                    'shipping_date' : False,
-                    'shipping_note' : False,
-                    'shipping_phone' :False,
-                    'shipping_company' : False,
-                    'shipping_image' : False,
-                    'shipping_type' : False,
                 })
+                
 
+    @api.depends('scan_history_ids.scan_date')
+    def _compute_last_scan_date(self):
+        for record in self:
+            if record.scan_history_ids:
+                record.last_scan_date = max(record.scan_history_ids.mapped('scan_date'))
+            else:
+                record.last_scan_date = False
+
+    @api.depends('scan_history_ids')
+    def _compute_is_scanned(self):
+        for record in self:
+            record.is_scanned = bool(record.scan_history_ids)
     def action_done(self):
         """Override action_done để tạo QR khi picking được hoàn thành"""
         result = super().action_done()
-        self._generate_qr_code()
         return result
 
     @api.model
@@ -112,20 +113,34 @@ class StockPicking(models.Model):
             'login': self.env.user.login,
         }
     
-    def update_scan_info(self, image_proof=None, scan_note=None, shipping_type=None, shipping_image=None, shipping_note=None, shipping_phone=None,shipping_company=None):
+    def update_scan_info(self, image_proof=None, scan_note=None, move_line_confirms=None, shipping_type=None, shipping_image=None, shipping_note=None, shipping_phone=None, shipping_company=None):
         """Method để cập nhật thông tin scan và/hoặc thông tin vận chuyển"""
         self.ensure_one()
+        if self.state in ['done', 'cancel']:
+            raise ValidationError(f"Không thể quét QR cho phiếu có trạng thái '{self.state}'")
+        
         vals = {}
         
-        # Cập nhật thông tin scan nếu có
-        if image_proof is not None:
-            vals.update({
+        # Tạo lịch sử quét mới nếu có thông tin scan
+        if image_proof is not None or move_line_confirms:
+            scan_history = self.env['stock.picking.scan.history'].create({
+                'picking_id': self.id,
                 'image_proof': image_proof,
                 'scan_note': scan_note,
-                'is_scanned': True,
-                'scan_date': fields.Datetime.now(),
-                'scan_user_id': self.env.user.id,
             })
+            # Tạo xác nhận sản phẩm cho lần quét này
+            if move_line_confirms:
+                self._create_move_line_confirms(scan_history.id, move_line_confirms)
+                # Cập nhật số lượng trong stock.move
+                move_confirmed_qty = {}
+                for confirm in move_line_confirms:
+                    move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
+                    if move_line.exists():
+                        move_id = move_line.move_id.id
+                        if move_id not in move_confirmed_qty:
+                            move_confirmed_qty[move_id] = 0
+                        move_confirmed_qty[move_id] += confirm['quantity_confirmed']
+                self._update_moves_quantity(move_confirmed_qty)
         
         # Cập nhật thông tin vận chuyển nếu có
         if shipping_type is not None:
@@ -151,52 +166,75 @@ class StockPicking(models.Model):
             self.write(vals) 
         
         return True
-            
     
-    def update_move_line_confirm(self, move_line_confirms):
-        """Method để cập nhật thông tin xác nhận sản phẩm"""
-        self.ensure_one()
-        
-        # Dictionary để track số lượng xác nhận theo move_id
-        move_confirmed_qty = {}
-        
-        # XỬ LÝ LOGIC TRƯỚC KHI XÓA/TẠO RECORDS
+    def _create_move_line_confirms(self, scan_history_id, move_line_confirms):
+        """Tạo xác nhận sản phẩm cho lần quét"""
         for confirm in move_line_confirms:
-            # Nếu không tick chọn, force quantity_confirmed = 0
             if not confirm.get('is_confirmed', False):
                 confirm['quantity_confirmed'] = 0
+            # Sử dụng move_id thay vì move_line_id
+            self.env['stock.move.line.confirm'].create({
+                'scan_history_id': scan_history_id,
+                'move_id': confirm['move_id'],  # Thay đổi này
+                'product_id': confirm['product_id'],
+                'quantity_confirmed': confirm['quantity_confirmed'],
+                'is_confirmed': confirm['is_confirmed'],
+                'confirm_note': confirm['confirm_note'],
                 
-            # LẤY MOVE TỪ MOVE_LINE
-            move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
-            if move_line.exists():  # Kiểm tra move_line có tồn tại
-                move_id = move_line.move_id.id
-                
-                # Cộng dồn số lượng theo move_id
-                if move_id not in move_confirmed_qty:
-                    move_confirmed_qty[move_id] = 0
-                move_confirmed_qty[move_id] += confirm['quantity_confirmed']
+            })            
+
+    def update_move_line_confirm(self, confirmed_lines):
+        """Cập nhật xác nhận move lines - phiên bản đơn giản và cập nhật quantity"""
         
-        # CẬP NHẬT STOCK.MOVE TRƯỚC
-        self._update_moves_quantity(move_confirmed_qty)
+        if not confirmed_lines:
+            return {'status': 'error', 'message': 'Không có dữ liệu xác nhận'}
         
-        # SAU ĐÓ MỚI XÓA CÁC XÁC NHẬN CŨ
-        self.move_line_confirmed_ids.unlink()
+        move_ids = [line['move_id'] for line in confirmed_lines]
+        moves = self.env['stock.move'].browse(move_ids).with_context(active_test=False)
         
-        # CUỐI CÙNG TẠO CÁC XÁC NHẬN MỚI
-        for confirm in move_line_confirms:
-            # Kiểm tra move_line vẫn tồn tại sau khi cập nhật
-            move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
-            if move_line.exists():
-                self.env['stock.move.line.confirm'].create({
-                    'picking_id': self.id,
-                    'move_line_id': confirm['move_line_id'],
-                    'product_id': confirm['product_id'],
-                    'quantity_confirmed': confirm['quantity_confirmed'],
-                    'is_confirmed': confirm['is_confirmed'],
-                    'confirm_note': confirm['confirm_note'],
-                })
+        # Kiểm tra tất cả moves có thuộc phiếu xuất kho này không
+        invalid_moves = moves.filtered(lambda m: m.picking_id.id != self.id)
+        if invalid_moves:
+            raise ValidationError(
+                f"Một số sản phẩm không thuộc phiếu xuất kho này: {', '.join(invalid_moves.mapped('product_id.name'))}"
+            )
         
-        return True
+        confirm_vals = []
+        for line in confirmed_lines:
+            move_id = line.get('move_id')
+            quantity = float(line.get('quantity_confirmed', 0.0))
+            note = line.get('confirm_note', '')
+            is_confirmed = line.get('is_confirmed', False)
+
+            move = moves.filtered(lambda m: m.id == move_id)
+            if not move:
+                continue
+
+            if quantity > move.product_uom_qty:
+                raise ValidationError(
+                    f"Sản phẩm '{move.product_id.display_name}' xác nhận {quantity} vượt quá nhu cầu {move.product_uom_qty}"
+                )
+
+            # Tạo bản ghi xác nhận
+            confirm_vals.append({
+                'move_id': move_id,
+                'product_id': move.product_id.id,
+                'quantity_confirmed': quantity,
+                'confirm_note': note,
+                'confirm_user_id': self.env.uid,
+                'confirm_date': fields.Datetime.now(),
+                'is_confirmed': is_confirmed,
+            })
+
+            # ✅ Cập nhật lại trường quantity nếu đã được confirm
+            if is_confirmed:
+                move.write({'quantity': quantity})
+
+        if confirm_vals:
+            self.env['stock.move.line.confirm'].create(confirm_vals)
+
+        return {'status': 'success', 'message': 'Đã xác nhận và cập nhật số lượng thành công'}
+
     
     def _update_moves_quantity(self, move_confirmed_qty):
         """Cập nhật quantity trong stock.move"""
@@ -209,13 +247,18 @@ class StockPicking(models.Model):
                     'quantity': confirmed_qty,
                 })
 
+    @api.depends('scan_history_ids.move_line_confirmed_ids')
+    def _compute_move_line_confirmed_ids(self):
+        for record in self:
+            record.move_line_confirmed_ids = record.scan_history_ids.mapped('move_line_confirmed_ids')
 
 class StockMoveLineConfirm(models.Model):
     _name = 'stock.move.line.confirm'
     _description = 'Xác nhận sản phẩm trong phiếu xuất kho'
     
-    picking_id = fields.Many2one('stock.picking', string="Phiếu xuất kho", required=True, ondelete='cascade')
-    move_line_id = fields.Many2one('stock.move.line', string="Chi tiết sản phẩm", required=True)
+    scan_history_id = fields.Many2one('stock.picking.scan.history', string="Lịch sử quét", required=True, ondelete='cascade')
+    picking_id = fields.Many2one('stock.picking', string="Phiếu xuất kho", related='scan_history_id.picking_id', store=True)
+    move_id = fields.Many2one('stock.move', string="Sản phẩm", required=True, ondelete='cascade')  # Thay đổi chính
     product_id = fields.Many2one('product.product', string="Sản phẩm", required=True)
     quantity_confirmed = fields.Float("Số lượng xác nhận", default=0.0)
     is_confirmed = fields.Boolean("Đã xác nhận", default=False)
@@ -224,9 +267,9 @@ class StockMoveLineConfirm(models.Model):
     confirm_user_id = fields.Many2one('res.users', "Người xác nhận", default=lambda self: self.env.user.id)
     
     # Computed fields
-    move_line_quantity = fields.Float(
-        "Số lượng move line", 
-        related='move_line_id.quantity', 
+    move_quantity = fields.Float(
+        "Số lượng nhu cầu", 
+        related='move_id.product_uom_qty',
         readonly=True
     )
     
@@ -242,11 +285,11 @@ class StockMoveLineConfirm(models.Model):
         store=True
     )
     
-    @api.depends('move_line_id.quantity', 'quantity_confirmed')
+    @api.depends('move_id.product_uom_qty', 'quantity_confirmed')
     def _compute_difference_quantity(self):
         for record in self:
-            if record.move_line_id:
-                record.difference_quantity = record.move_line_id.quantity - record.quantity_confirmed
+            if record.move_id:
+                record.difference_quantity = record.move_id.product_uom_qty - record.quantity_confirmed
             else:
                 record.difference_quantity = 0
     
@@ -256,13 +299,13 @@ class StockMoveLineConfirm(models.Model):
             if record.quantity_confirmed < 0:
                 raise ValidationError("Số lượng xác nhận không được âm!")
 
-    @api.constrains('move_line_id', 'quantity_confirmed')
-    def _check_quantity_vs_move_line(self):
+    @api.constrains('move_id', 'quantity_confirmed')
+    def _check_quantity_vs_move(self):
         for record in self:
-            if record.move_line_id and record.quantity_confirmed > record.move_line_id.quantity:
+            if record.move_id and record.quantity_confirmed > record.move_id.product_uom_qty:
                 raise ValidationError(
                     f"Số lượng xác nhận ({record.quantity_confirmed}) không được vượt quá "
-                    f"số lượng trong move line ({record.move_line_id.quantity})"
+                    f"nhu cầu ({record.move_id.product_uom_qty})"
                 )
     
     def name_get(self):
@@ -273,10 +316,21 @@ class StockMoveLineConfirm(models.Model):
             result.append((record.id, name))
         return result
 
-    @api.onchange('move_line_id')
-    def _onchange_move_line_id(self):
-        """Auto fill product khi chọn move line"""
-        if self.move_line_id:
-            self.product_id = self.move_line_id.product_id.id
-            self.quantity_confirmed = self.move_line_id.quantity
+    @api.onchange('move_id')
+    def _onchange_move_id(self):
+        """Auto fill product khi chọn move"""
+        if self.move_id:
+            self.product_id = self.move_id.product_id.id
+            self.quantity_confirmed = self.move_id.product_uom_qty
             
+class StockPickingScanHistory(models.Model):
+    _name = 'stock.picking.scan.history'
+    _description = 'Lịch sử quét QR chuẩn bị hàng'
+    _order = 'scan_date desc'
+    
+    picking_id = fields.Many2one('stock.picking', string="Phiếu xuất kho", required=True, ondelete='cascade')
+    image_proof = fields.Binary("Ảnh chứng minh", attachment=True)
+    scan_date = fields.Datetime("Ngày quét", default=fields.Datetime.now)
+    scan_user_id = fields.Many2one('res.users', "Người quét", default=lambda self: self.env.user.id)
+    scan_note = fields.Text("Ghi chú khi quét")
+    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')

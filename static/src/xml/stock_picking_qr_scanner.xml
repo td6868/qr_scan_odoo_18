@@ -54,34 +54,7 @@
                                 </div>
                                 
                                 <!-- PREPARE MODE SECTIONS -->
-                                <div t-if="state.scanMode === 'prepare'">
-                                    <!-- Existing prepare mode sections... -->
-                                    <!-- Khu vực chụp ảnh chuẩn bị hàng -->
-                                    <!-- <div t-if="state.showCaptureArea" class="camera-container mt-4">
-                                        <h4 class="mb-3">Chụp ảnh chứng minh chuẩn bị hàng</h4>
-                                        <div class="camera-wrapper">
-                                            <t t-if="!state.capturedImage">
-                                                <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
-                                                <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
-
-                                            </t>
-                                            <t t-else="">
-                                                <div class="captured-image-container">
-                                                    <img t-att-src="state.capturedImage" class="captured-image" />
-                                                    <div class="mt-3 d-flex justify-content-center">
-                                                        <button class="btn btn-secondary me-2" t-on-click="retakeImage">
-                                                            <i class="fa fa-refresh me-2"></i>Chụp lại
-                                                        </button>
-                                                        <button class="btn btn-success" t-on-click="saveImage">
-                                                            <i class="fa fa-check me-2"></i>Sử dụng ảnh này
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </t>
-                                        </div>
-                                    </div> -->
-
+                                <div t-if="state.scanMode === 'prepare'">                                
                                     <!-- Khu vực chụp ảnh chuẩn bị hàng -->
                                     <div t-if="state.showCaptureArea" class="camera-container mt-4">
                                         <h4 class="mb-3">Chụp ảnh chứng minh chuẩn bị hàng</h4>
