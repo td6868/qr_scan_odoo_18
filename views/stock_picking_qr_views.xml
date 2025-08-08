@@ -30,8 +30,8 @@
                                         <field name="scan_note"/>
                                          <!-- Hiển thị thông tin shipping nếu là loại shipping  -->
                                         <field name="shipping_type" readonly="1" invisible="scan_type != 'shipping'"/>
-                                        <!-- <field name="shipping_phone" readonly="1" invisible="scan_type != 'shipping'"/> -->
-                                        <!-- <field name="shipping_company" readonly="1" invisible="scan_type != 'shipping'"/> -->
+                                        <field name="shipping_phone" readonly="1" invisible="scan_type != 'shipping'"/>
+                                        <field name="shipping_company" readonly="1" invisible="scan_type != 'shipping'"/>
                                     </group>
                                 </group>
                                 
@@ -158,8 +158,8 @@
                         <field name="shipping_type" readonly="1"/>
                         <field name="scan_user_id" readonly="1"/>
                         <!-- <field name="shipping_phone" readonly="1"/>
-                        <field name="shipping_company" readonly="1"/>
-                        <field name="shipping_note" readonly="1" colspan="2"/> -->
+                        <field name="shipping_company" readonly="1"/> -->
+                        <field name="scan_note" readonly="1" colspan="2"/>
                     </group>
                 </page>
             </notebook>
