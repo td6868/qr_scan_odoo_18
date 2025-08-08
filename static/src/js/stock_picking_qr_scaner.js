@@ -49,7 +49,8 @@ export class StockPickingQrScanner extends Component {
             showCaptureArea: false,
             showNoteArea: false,
             showProductConfirmArea: false,
-            capturedImage: null,
+            capturedImages: [],
+            currentImageIndex: 0,
             scanNoteValue: '',
             moveLines: [],
             
@@ -151,7 +152,8 @@ export class StockPickingQrScanner extends Component {
         this.state.showShippingTypeArea = false;
         this.state.showShippingCaptureArea = false;
         this.state.showShippingNoteArea = false;
-        this.state.capturedImage = null;
+        this.state.capturedImages = [];
+        this.state.currentImageIndex = -1;
         this.state.shippingCapturedImage = null;
         this.state.scannedPickingId = null;
         this.state.scannedPickingName = null;
@@ -237,11 +239,22 @@ export class StockPickingQrScanner extends Component {
         const reader = new FileReader();
         reader.onload = (e) => {
             const imageDataUrl = e.target.result;
+            const timestamp = new Date().toLocaleString('vi-VN');
+            const imageObj = {
+                data: imageDataUrl,
+                name: `Upload_${file.name}_${timestamp}`,
+                timestamp: timestamp,
+                id: Date.now()
+            };
+            
             if (mode === 'prepare') {
-                this.state.capturedImage = imageDataUrl;
+                this.state.capturedImages.push(imageObj);
+                this.state.currentImageIndex = this.state.capturedImages.length - 1;
             } else if (mode === 'shipping') {
                 this.state.shippingCapturedImage = imageDataUrl;
             }
+            
+            this._showNotification(`Đã thêm ảnh thứ ${this.state.capturedImages.length}!`, "success");
         };
         reader.readAsDataURL(file);
     }
@@ -514,17 +527,54 @@ export class StockPickingQrScanner extends Component {
         canvas.height = videoHeight;
         context.drawImage(this.video.el, 0, 0, videoWidth, videoHeight);
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    
+        const timestamp = new Date().toLocaleString('vi-VN');
+        const imageObj = {
+            data: imageDataUrl,
+            name: `Image_${timestamp}`,
+            timestamp: timestamp,
+            id: Date.now() // unique id
+        };
         
         if (this.state.scanMode === 'prepare') {
-            this.state.capturedImage = imageDataUrl;
+            this.state.capturedImages.push(imageObj);
+            this.state.currentImageIndex = this.state.capturedImages.length - 1;
         } else if (this.state.scanMode === 'shipping') {
             this.state.shippingCapturedImage = imageDataUrl;
+        }
+        
+        this._showNotification(`Đã chụp ảnh thứ ${this.state.capturedImages.length}!`, "success");
+    }
+
+    removeImage(index, mode) {
+        if (mode === 'prepare') {
+            if (index >= 0 && index < this.state.capturedImages.length) {
+                this.state.capturedImages.splice(index, 1);
+                // Điều chỉnh currentImageIndex
+                if (this.state.currentImageIndex >= this.state.capturedImages.length) {
+                    this.state.currentImageIndex = Math.max(0, this.state.capturedImages.length - 1);
+                }
+            }
+        }
+        this._showNotification("Đã xóa ảnh!", "success");
+    }
+
+    viewImage(index, mode) {
+        this.state.currentImageIndex = index;
+    }
+
+    addMoreImages() {
+        // Reset capture method để cho phép chụp/upload thêm
+        if (this.state.scanMode === 'prepare') {
+            this.state.captureMethod = null;
+        } else if (this.state.scanMode === 'shipping') {
+            this.state.shippingCaptureMethod = null;
         }
     }
     
     retakeImage() {
         if (this.state.scanMode === 'prepare') {
-            this.state.capturedImage = null;
+            this.state.capturedImages = [];
             // Reset file input
             if (this.fileInput.el) {
                 this.fileInput.el.value = '';
@@ -538,7 +588,12 @@ export class StockPickingQrScanner extends Component {
         }
     }
     
-    saveImage() {
+    saveImages() {
+        if (this.state.scanMode === 'prepare' && this.state.capturedImages.length === 0) {
+            this._showNotification("Vui lòng chụp ít nhất 1 ảnh!", "warning");
+            return;
+        }
+        
         if (this.state.scanMode === 'prepare') {
             this.state.showCaptureArea = false;
             this.state.showNoteArea = true;
@@ -546,6 +601,11 @@ export class StockPickingQrScanner extends Component {
             this.state.showShippingCaptureArea = false;
             this.state.showShippingNoteArea = true;
         }
+    }
+
+    saveImage() {
+        this.state.showShippingCaptureArea = false;
+        this.state.showShippingNoteArea = true;
     }
     
     async _loadMoveLines(pickingId) {
@@ -592,26 +652,16 @@ export class StockPickingQrScanner extends Component {
             return;
         }
         
-        const base64Image = this.state.capturedImage.split(',')[1];
-        const note = this.scanNote.el.value;
+                   
+        this._showNotification("Đã lưu thông tin quét QR và ảnh chụp thành công!", "success");
         
-        // try {
-        //     await this.orm.call(
-        //         this.model,
-        //         'update_scan_info',
-        //         [this.state.scannedPickingId, base64Image, note]
-        //     );
+        this.state.showNoteArea = false;
+        this.state.showProductConfirmArea = true;
+        this.state.showCaptureArea = false;
+
+        const note = this.state.scanNoteValue;
             
-            this._showNotification("Đã lưu thông tin quét QR và ảnh chụp thành công!", "success");
-            
-            this.state.showNoteArea = false;
-            this.state.showProductConfirmArea = true;
-            this.state.showCaptureArea = false;
-            
-        // } catch (error) {
-        //     console.error("Save error: ", error);
-        //     this._showNotification("Lỗi khi lưu thông tin: " + error, "danger");
-        // }
+        
     }
     
     updateProductConfirm(index, field, value) {
@@ -629,13 +679,21 @@ export class StockPickingQrScanner extends Component {
             confirm: async () => {
             try {
                 // Lưu thông tin QR và ảnh trước
-                const base64Image = this.state.capturedImage.split(',')[1];
-                const note = this.state.scanNoteValue;
-                
+                const imagesData = this.state.capturedImages.map((img, index) => ({
+                    data: img.data.split(',')[1], // Remove data:image/jpeg;base64,
+                    name: img.name,
+                    description: `Ảnh minh chứng chuẩn bị hàng #${index + 1}`
+                }));
+
                 await this.orm.call(
                     this.model,
                     'update_scan_info',
-                    [this.state.scannedPickingId, base64Image, note, this.state.moveLines]
+                    [this.state.scannedPickingId],
+                    {
+                        images_data: imagesData,
+                        scan_note: this.state.scanNoteValue,
+                        move_line_confirms: this.state.moveLines
+                    }
                 );
                 
                 // Sau đó mới lưu thông tin xác nhận sản phẩm
@@ -717,7 +775,7 @@ export class StockPickingQrScanner extends Component {
             title: "Xác nhận lưu",
             body: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
             confirm: async () => {
-                try {
+                try {                
                     await this.orm.call(
                         this.model,               // 'stock.picking'
                         'update_scan_info',       // tên method

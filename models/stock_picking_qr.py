@@ -36,7 +36,8 @@ class StockPicking(models.Model):
     scan_date = fields.Datetime(related='scan_history_ids.scan_date', string="Ngày quét", readonly=True)
     scan_user_id = fields.Many2one(related='scan_history_ids.scan_user_id', string="Người quét", readonly=True)
     scan_note = fields.Text(related='scan_history_ids.scan_note', string="Ghi chú khi quét", readonly=True)
-    image_proof = fields.Binary(related='scan_history_ids.image_proof', string="Ảnh chứng minh", readonly=True)
+    prepare_image_count = fields.Integer("Số ảnh chuẩn bị", compute='_compute_prepare_image_count')
+    first_prepare_image = fields.Binary("Ảnh chuẩn bị đầu tiên", compute='_compute_first_prepare_image')
     
     def create(self, vals):
         picking = super().create(vals)
@@ -72,6 +73,13 @@ class StockPicking(models.Model):
                 # Reset trạng thái quét khi QR mới được tạo
                 record.update({
                     'qr_code_image': qr_code_base64,
+                    'is_shipped': False,  # Reset trạng thái vận chuyển
+                    'shipping_date': False,
+                    'shipping_note': False,
+                    'shipping_phone': False,
+                    'shipping_company': False,
+                    'shipping_type': 'pickup',  # Reset về default
+                    'shipping_image': False,
                 })
                 
 
@@ -112,8 +120,39 @@ class StockPicking(models.Model):
             'user_name': self.env.user.name,
             'login': self.env.user.login,
         }
-    
-    def update_scan_info(self, image_proof=None, scan_note=None, move_line_confirms=None, shipping_type=None, shipping_image=None, shipping_note=None, shipping_phone=None, shipping_company=None):
+        
+    @api.depends('scan_history_ids.attachment_ids')
+    def _compute_prepare_image_count(self):
+        for record in self:
+            record.prepare_image_count = sum(len(history.attachment_ids) for history in record.scan_history_ids)
+
+    @api.depends('scan_history_ids.attachment_ids')
+    def _compute_first_prepare_image(self):
+        for record in self:
+            first_image = False
+            for history in record.scan_history_ids:
+                if history.attachment_ids:
+                    first_image = history.attachment_ids[0].datas
+                    break
+            record.first_prepare_image = first_image
+
+    def get_all_prepare_images(self):
+        """Lấy tất cả ảnh chuẩn bị hàng"""
+        images = []
+        for history in self.scan_history_ids:
+            for attachment in history.attachment_ids:
+                images.append({
+                    'id': attachment.id,
+                    'name': attachment.name,
+                    'datas': attachment.datas,
+                    'create_date': attachment.create_date,
+                    'description': attachment.description,
+                })
+        return images
+           
+    def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
+                    shipping_type=None, shipping_image=None, shipping_note=None, 
+                    shipping_phone=None, shipping_company=None):        
         """Method để cập nhật thông tin scan và/hoặc thông tin vận chuyển"""
         self.ensure_one()
         if self.state in ['done', 'cancel']:
@@ -122,16 +161,18 @@ class StockPicking(models.Model):
         vals = {}
         
         # Tạo lịch sử quét mới nếu có thông tin scan
-        if image_proof is not None or move_line_confirms:
+        if images_data or move_line_confirms:
             scan_history = self.env['stock.picking.scan.history'].create({
                 'picking_id': self.id,
-                'image_proof': image_proof,
                 'scan_note': scan_note,
             })
-            # Tạo xác nhận sản phẩm cho lần quét này
+            # Lưu nhiều ảnh prepare
+            if images_data:
+                scan_history.save_images(images_data)
+                
+            # Tạo xác nhận sản phẩm
             if move_line_confirms:
                 self._create_move_line_confirms(scan_history.id, move_line_confirms)
-                # Cập nhật số lượng trong stock.move
                 move_confirmed_qty = {}
                 for confirm in move_line_confirms:
                     move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
@@ -142,7 +183,7 @@ class StockPicking(models.Model):
                         move_confirmed_qty[move_id] += confirm['quantity_confirmed']
                 self._update_moves_quantity(move_confirmed_qty)
         
-        # Cập nhật thông tin vận chuyển nếu có
+        # Cập nhật thông tin vận chuyển
         if shipping_type is not None:
             vals.update({
                 'shipping_type': shipping_type,
@@ -152,20 +193,35 @@ class StockPicking(models.Model):
             
         if shipping_image is not None:
             vals['shipping_image'] = shipping_image
-            
+                
         if shipping_note is not None:
             vals['shipping_note'] = shipping_note
-        
         if shipping_phone is not None:
             vals['shipping_phone'] = shipping_phone
-            
         if shipping_company is not None:
             vals['shipping_company'] = shipping_company
         
-        if vals:  # Chỉ ghi nếu có giá trị cần cập nhật
-            self.write(vals) 
+        if vals:
+            self.write(vals)
         
         return True
+    
+    # lưu nhiều ảnh vận chuyển 
+    # def _save_shipping_images(self, images_data):
+    #     """Lưu ảnh shipping vào ir.attachment"""
+    #     for i, img_data in enumerate(images_data):
+    #         if not img_data.get('data'):
+    #             continue
+                
+    #         self.env['ir.attachment'].create({
+    #             'name': img_data.get('name', f'Shipping_Image_{i+1}_{fields.Datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'),
+    #             'type': 'binary',
+    #             'datas': img_data['data'],
+    #             'res_model': self._name,
+    #             'res_id': self.id,
+    #             'mimetype': 'image/jpeg',
+    #             'description': f'Ảnh vận chuyển #{i+1}',
+    #         })
     
     def _create_move_line_confirms(self, scan_history_id, move_line_confirms):
         """Tạo xác nhận sản phẩm cho lần quét"""
@@ -325,12 +381,43 @@ class StockMoveLineConfirm(models.Model):
             
 class StockPickingScanHistory(models.Model):
     _name = 'stock.picking.scan.history'
-    _description = 'Lịch sử quét QR chuẩn bị hàng'
+    _description = 'Lịch sử quét QR'
     _order = 'scan_date desc'
     
     picking_id = fields.Many2one('stock.picking', string="Phiếu xuất kho", required=True, ondelete='cascade')
-    image_proof = fields.Binary("Ảnh chứng minh", attachment=True)
+    attachment_ids = fields.One2many(
+        'ir.attachment', 'res_id',
+        string='Ảnh chứng minh',
+        domain=[('res_model', '=', 'stock.picking.scan.history')],
+        auto_join=True
+    )
+    image_count = fields.Integer("Số lượng ảnh", compute='_compute_image_count')
+    
     scan_date = fields.Datetime("Ngày quét", default=fields.Datetime.now)
     scan_user_id = fields.Many2one('res.users', "Người quét", default=lambda self: self.env.user.id)
     scan_note = fields.Text("Ghi chú khi quét")
-    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')
+    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')    
+    
+    @api.depends('attachment_ids')
+    def _compute_image_count(self):
+        for record in self:
+            record.image_count = len(record.attachment_ids)
+    
+    def save_images(self, images_data):
+        """Lưu nhiều ảnh chuẩn bị vào ir.attachment"""
+        attachments = []
+        for i, img_data in enumerate(images_data):
+            if not img_data.get('data'):
+                continue
+                
+            attachment = self.env['ir.attachment'].create({
+                'name': img_data.get('name', f'Prepare_Image_{i+1}_{fields.Datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'),
+                'type': 'binary',
+                'datas': img_data['data'],
+                'res_model': self._name,
+                'res_id': self.id,
+                'mimetype': 'image/jpeg',
+                'description': img_data.get('description', f'Ảnh minh chứng chuẩn bị hàng #{i+1}'),
+            })
+            attachments.append(attachment.id)
+        return attachments
