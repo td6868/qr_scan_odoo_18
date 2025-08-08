@@ -18,13 +18,10 @@ class StockPicking(models.Model):
         ('pickup', 'Khách đến lấy hàng'),
         ('viettelpost', 'Viettel Post'),
         ('delivery', 'Đặt ship : Xe khách/Xe ...')
-    ], string="Loại vận chuyển", default='pickup')
-    shipping_image = fields.Binary("Ảnh đơn hàng chuyển đi", attachment=True, default=False)
-    shipping_date = fields.Datetime("Ngày vận chuyển", readonly=True, default=False)
-    shipping_note = fields.Text("Ghi chú vận chuyển",default=False)
-    shipping_phone = fields.Text("Số điện thoại giao vận", default=False)
-    shipping_company = fields.Text("Nhà xe", default=False)
-    is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True)
+    ], string="Loại vận chuyển", default='pickup', compute='_compute_shipping_info')
+    shipping_date = fields.Datetime("Ngày vận chuyển", compute='_compute_shipping_info', readonly=True, default=False)
+    shipping_note = fields.Text("Ghi chú vận chuyển",default=False,compute='_compute_shipping_info')
+    is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True,compute='_compute_shipping_info')
     
     # Thêm trường last_scan_date
     last_scan_date = fields.Datetime("Ngày quét cuối cùng", compute='_compute_last_scan_date', store=True)
@@ -73,13 +70,13 @@ class StockPicking(models.Model):
                 # Reset trạng thái quét khi QR mới được tạo
                 record.update({
                     'qr_code_image': qr_code_base64,
-                    'is_shipped': False,  # Reset trạng thái vận chuyển
-                    'shipping_date': False,
-                    'shipping_note': False,
-                    'shipping_phone': False,
-                    'shipping_company': False,
-                    'shipping_type': 'pickup',  # Reset về default
-                    'shipping_image': False,
+                    # 'is_shipped': False, 
+                    # 'shipping_date': False,
+                    # 'shipping_note': False,
+                    # 'shipping_phone': False,
+                    # 'shipping_company': False,
+                    # 'shipping_type': 'pickup', 
+                    # 'shipping_image': False,
                 })
                 
 
@@ -95,6 +92,24 @@ class StockPicking(models.Model):
     def _compute_is_scanned(self):
         for record in self:
             record.is_scanned = bool(record.scan_history_ids)
+            
+    @api.depends('scan_history_ids.scan_type', 'scan_history_ids.shipping_type')
+    def _compute_shipping_info(self):
+        for record in self:
+            shipping_history = record.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
+            if shipping_history:
+                latest_shipping = shipping_history[0]  # Đã sort theo scan_date desc
+                record.is_shipped = True
+                record.shipping_date = latest_shipping.scan_date
+                record.shipping_note = latest_shipping.scan_note
+                record.shipping_type = latest_shipping.shipping_type
+            else:
+                record.is_shipped = False
+                record.shipping_date = False
+                record.shipping_note = False
+                record.shipping_type = False
+                
+       
     def action_done(self):
         """Override action_done để tạo QR khi picking được hoàn thành"""
         result = super().action_done()
@@ -151,58 +166,46 @@ class StockPicking(models.Model):
         return images
            
     def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
-                    shipping_type=None, shipping_image=None, shipping_note=None, 
+                    scan_type='prepare', shipping_type=None, 
                     shipping_phone=None, shipping_company=None):        
-        """Method để cập nhật thông tin scan và/hoặc thông tin vận chuyển"""
+        """Method để cập nhật thông tin scan"""
         self.ensure_one()
         if self.state in ['done', 'cancel']:
             raise ValidationError(f"Không thể quét QR cho phiếu có trạng thái '{self.state}'")
         
-        vals = {}
+        # Tạo scan_history record
+        scan_vals = {
+            'picking_id': self.id,
+            'scan_type': scan_type,
+            'scan_note': scan_note,
+        }
         
-        # Tạo lịch sử quét mới nếu có thông tin scan
-        if images_data or move_line_confirms:
-            scan_history = self.env['stock.picking.scan.history'].create({
-                'picking_id': self.id,
-                'scan_note': scan_note,
-            })
-            # Lưu nhiều ảnh prepare
-            if images_data:
-                scan_history.save_images(images_data)
-                
-            # Tạo xác nhận sản phẩm
-            if move_line_confirms:
-                self._create_move_line_confirms(scan_history.id, move_line_confirms)
-                move_confirmed_qty = {}
-                for confirm in move_line_confirms:
-                    move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
-                    if move_line.exists():
-                        move_id = move_line.move_id.id
-                        if move_id not in move_confirmed_qty:
-                            move_confirmed_qty[move_id] = 0
-                        move_confirmed_qty[move_id] += confirm['quantity_confirmed']
-                self._update_moves_quantity(move_confirmed_qty)
-        
-        # Cập nhật thông tin vận chuyển
-        if shipping_type is not None:
-            vals.update({
+        # Thêm thông tin shipping nếu là shipping scan
+        if scan_type == 'shipping':
+            scan_vals.update({
                 'shipping_type': shipping_type,
-                'is_shipped': True,
-                'shipping_date': fields.Datetime.now(),
+                'shipping_phone': shipping_phone,
+                'shipping_company': shipping_company,
             })
-            
-        if shipping_image is not None:
-            vals['shipping_image'] = shipping_image
-                
-        if shipping_note is not None:
-            vals['shipping_note'] = shipping_note
-        if shipping_phone is not None:
-            vals['shipping_phone'] = shipping_phone
-        if shipping_company is not None:
-            vals['shipping_company'] = shipping_company
         
-        if vals:
-            self.write(vals)
+        scan_history = self.env['stock.picking.scan.history'].create(scan_vals)
+        
+        # Lưu ảnh
+        if images_data:
+            scan_history.save_images(images_data)
+                
+        # Xử lý move_line_confirms (chỉ cho prepare scan)
+        if move_line_confirms and scan_type == 'prepare':
+            self._create_move_line_confirms(scan_history.id, move_line_confirms)
+            move_confirmed_qty = {}
+            for confirm in move_line_confirms:
+                move_line = self.env['stock.move.line'].browse(confirm['move_line_id'])
+                if move_line.exists():
+                    move_id = move_line.move_id.id
+                    if move_id not in move_confirmed_qty:
+                        move_confirmed_qty[move_id] = 0
+                    move_confirmed_qty[move_id] += confirm['quantity_confirmed']
+            self._update_moves_quantity(move_confirmed_qty)
         
         return True
     
@@ -384,6 +387,12 @@ class StockPickingScanHistory(models.Model):
     _description = 'Lịch sử quét QR'
     _order = 'scan_date desc'
     
+    # Thêm trường phân loại scan
+    scan_type = fields.Selection([
+        ('prepare', 'Chuẩn bị hàng'),
+        ('shipping', 'Vận chuyển')
+    ], string="Loại quét", required=True, default='prepare')
+    
     picking_id = fields.Many2one('stock.picking', string="Phiếu xuất kho", required=True, ondelete='cascade')
     attachment_ids = fields.One2many(
         'ir.attachment', 'res_id',
@@ -396,7 +405,16 @@ class StockPickingScanHistory(models.Model):
     scan_date = fields.Datetime("Ngày quét", default=fields.Datetime.now)
     scan_user_id = fields.Many2one('res.users', "Người quét", default=lambda self: self.env.user.id)
     scan_note = fields.Text("Ghi chú khi quét")
-    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')    
+    move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')   
+    
+    # Các trường shipping chuyển từ stock.picking sang
+    shipping_type = fields.Selection([
+        ('pickup', 'Khách đến lấy hàng'),
+        ('viettelpost', 'Viettel Post'),
+        ('delivery', 'Đặt ship : Xe khách/Xe ...')
+    ], string="Loại vận chuyển")
+    shipping_phone = fields.Text("Số điện thoại giao vận")
+    shipping_company = fields.Text("Nhà xe") 
     
     @api.depends('attachment_ids')
     def _compute_image_count(self):

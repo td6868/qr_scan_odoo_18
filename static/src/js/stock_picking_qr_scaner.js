@@ -59,7 +59,8 @@ export class StockPickingQrScanner extends Component {
             showShippingCaptureArea: false,
             showShippingNoteArea: false,
             selectedShippingType: null,
-            shippingCapturedImage: null,
+            shippingCapturedImages: [],
+            shippingCurrentImageIndex:0,
             shippingPhone: '',
             shippingCompany: '',
             
@@ -154,7 +155,8 @@ export class StockPickingQrScanner extends Component {
         this.state.showShippingNoteArea = false;
         this.state.capturedImages = [];
         this.state.currentImageIndex = -1;
-        this.state.shippingCapturedImage = null;
+        this.state.shippingCapturedImages = [];
+        this.state.shippingCurrentImageIndex = -1;
         this.state.scannedPickingId = null;
         this.state.scannedPickingName = null;
         this.state.selectedShippingType = null;
@@ -251,7 +253,8 @@ export class StockPickingQrScanner extends Component {
                 this.state.capturedImages.push(imageObj);
                 this.state.currentImageIndex = this.state.capturedImages.length - 1;
             } else if (mode === 'shipping') {
-                this.state.shippingCapturedImage = imageDataUrl;
+                this.state.shippingCapturedImages.push(imageObj);
+                this.state.shippingCurrentImageIndex = this.state.shippingCapturedImages.length - 1;
             }
             
             this._showNotification(`Đã thêm ảnh thứ ${this.state.capturedImages.length}!`, "success");
@@ -540,7 +543,8 @@ export class StockPickingQrScanner extends Component {
             this.state.capturedImages.push(imageObj);
             this.state.currentImageIndex = this.state.capturedImages.length - 1;
         } else if (this.state.scanMode === 'shipping') {
-            this.state.shippingCapturedImage = imageDataUrl;
+            this.state.shippingCapturedImages.push(imageObj);
+            this.state.shippingCurrentImageIndex = this.state.shippingCapturedImages.length - 1;
         }
         
         this._showNotification(`Đã chụp ảnh thứ ${this.state.capturedImages.length}!`, "success");
@@ -556,11 +560,27 @@ export class StockPickingQrScanner extends Component {
                 }
             }
         }
+        if (mode == 'shipping'){
+            if (index >= 0 && index < this.state.shippingCapturedImages.length) {
+                this.state.shippingCapturedImages.splice(index, 1);
+                // Điều chỉnh currentImageIndex
+                if (this.state.shippingCurrentImageIndex >= this.state.shippingCapturedImages.length) {
+                    this.state.shippingCurrentImageIndex = Math.max(0, this.state.shippingCurrentImageIndex.length - 1);
+                }
+            }
+        }
         this._showNotification("Đã xóa ảnh!", "success");
     }
 
+
     viewImage(index, mode) {
-        this.state.currentImageIndex = index;
+        if (mode == 'prepare'){
+            this.state.currentImageIndex = index;
+        }
+        else if (mode == 'shipping'){
+            this.state.shippingCurrentImageIndex = index;
+        }
+        
     }
 
     addMoreImages() {
@@ -580,7 +600,7 @@ export class StockPickingQrScanner extends Component {
                 this.fileInput.el.value = '';
             }
         } else if (this.state.scanMode === 'shipping') {
-            this.state.shippingCapturedImage = null;
+            this.state.shippingCapturedImages = null;
             // Reset file input
             if (this.shippingFileInput.el) {
                 this.shippingFileInput.el.value = '';
@@ -590,6 +610,11 @@ export class StockPickingQrScanner extends Component {
     
     saveImages() {
         if (this.state.scanMode === 'prepare' && this.state.capturedImages.length === 0) {
+            this._showNotification("Vui lòng chụp ít nhất 1 ảnh!", "warning");
+            return;
+        }
+
+        if (this.state.scanMode === 'shipping' && this.state.shippingCapturedImages.length === 0) {
             this._showNotification("Vui lòng chụp ít nhất 1 ảnh!", "warning");
             return;
         }
@@ -603,10 +628,10 @@ export class StockPickingQrScanner extends Component {
         }
     }
 
-    saveImage() {
-        this.state.showShippingCaptureArea = false;
-        this.state.showShippingNoteArea = true;
-    }
+    // saveImage() {
+    //     this.state.showShippingCaptureArea = false;
+    //     this.state.showShippingNoteArea = true;
+    // }
     
     async _loadMoveLines(pickingId) {
         try {
@@ -692,7 +717,8 @@ export class StockPickingQrScanner extends Component {
                     {
                         images_data: imagesData,
                         scan_note: this.state.scanNoteValue,
-                        move_line_confirms: this.state.moveLines
+                        move_line_confirms: this.state.moveLines,
+                        scan_type: 'prepare'
                     }
                 );
                 
@@ -766,26 +792,28 @@ export class StockPickingQrScanner extends Component {
         const shippingNote = this.shippingNote.el.value;
         const shippingPhone = this.state.shippingPhone;      // THÊM MỚI
         const shippingCompany = this.state.shippingCompany;
-        let shippingImage = null;
         
-        if (this.state.shippingCapturedImage) {
-            shippingImage = this.state.shippingCapturedImage.split(',')[1];
-        }
         this.dialogService.add(ConfirmationDialog, {
             title: "Xác nhận lưu",
             body: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
             confirm: async () => {
-                try {                
+                try {           
+                    const shippingImagesData = this.state.shippingCapturedImages.map((img, index) => ({
+                        data: img.data.split(',')[1],
+                        name: img.name,
+                        description: `Ảnh vận chuyển #${index + 1}`
+                    }));     
                     await this.orm.call(
                         this.model,               // 'stock.picking'
                         'update_scan_info',       // tên method
                         [[this.state.scannedPickingId]], // args: danh sách record id (self)
                         {
                             shipping_type: this.state.selectedShippingType,
-                            shipping_image: shippingImage,
-                            shipping_note: shippingNote,
+                            images_data: shippingImagesData,
+                            scan_note: shippingNote,
                             shipping_phone: shippingPhone,
                             shipping_company: shippingCompany,
+                            scan_type: 'shipping',
                         }
                     );
                     
