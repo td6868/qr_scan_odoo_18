@@ -157,8 +157,8 @@
                         <field name="shipping_date" readonly="1"/>
                         <field name="shipping_type" readonly="1"/>
                         <field name="scan_user_id" readonly="1"/>
-                        <!-- <field name="shipping_phone" readonly="1"/> -->
-                        <!-- <field name="shipping_company" readonly="1"/>
+                        <!-- <field name="shipping_phone" readonly="1"/>
+                        <field name="shipping_company" readonly="1"/>
                         <field name="shipping_note" readonly="1" colspan="2"/> -->
                     </group>
                 </page>

@@ -1,424 +1,425 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
-    <t t-name="khoakim_18.StockPickingQrScanner">
-        <div class="o_stock_picking_qr_scanner">
-            <div class="container py-4">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-md-8">
-                        <div class="card shadow">
-                            
-                             <!-- Mode Selector  -->
-                            <div t-if="state.showModeSelector" class="card-header bg-primary text-white">
-                                <h3 class="mb-3"><i class="fa fa-qrcode me-2"></i>Chọn chế độ quét QR</h3>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('prepare')">
-                                            <div class="card-body text-center">
-                                                <i class="fa fa-box fa-3x mb-3 text-info">✅</i>
-                                                <h5>Xuất kho</h5>
-                                                <p class="small">Quét QR, chụp ảnh và xác nhận xuất kho</p>
+    <templates xml:space="preserve">
+        <t t-name="khoakim_18.StockPickingQrScanner">
+            <div class="o_stock_picking_qr_scanner">
+                <div class="container py-4">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-md-8">
+                            <div class="card shadow">
+                                
+                                <!-- Mode Selector  -->
+                                <div t-if="state.showModeSelector" class="card-header bg-primary text-white">
+                                    <h3 class="mb-3"><i class="fa fa-qrcode me-2"></i>Chọn chế độ quét QR</h3>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('prepare')">
+                                                <div class="card-body text-center">
+                                                    <i class="fa fa-box fa-3x mb-3 text-info">✅</i>
+                                                    <h5>Xuất kho</h5>
+                                                    <p class="small">Quét QR, chụp ảnh và xác nhận xuất kho</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('shipping')">
-                                            <div class="card-body text-center">
-                                                <i class="fa fa-truck fa-3x mb-3 text-info"></i>
-                                                <h5>Vận chuyển</h5>
-                                                <p class="small">Quét QR và điền thông tin giao vận</p>
+                                        <div class="col-md-6">
+                                            <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('shipping')">
+                                                <div class="card-body text-center">
+                                                    <i class="fa fa-truck fa-3x mb-3 text-info"></i>
+                                                    <h5>Vận chuyển</h5>
+                                                    <p class="small">Quét QR và điền thông tin giao vận</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                             <!-- Dynamic Header  -->
-                            <div t-if="!state.showModeSelector" class="card-header text-white" t-att-class="state.scanMode === 'prepare' ? 'bg-success' : 'bg-info'">
-                                <h3 class="mb-0">
-                                    <i t-att-class="state.scanMode === 'prepare' ? 'fa fa-box-open me-2' : 'fa fa-truck me-2'"></i>
-                                    <span t-if="state.scanMode === 'prepare'">Quét QR chuẩn bị hàng</span>
-                                    <span t-else="">Quét QR vận chuyển</span>
-                                </h3>
-                                <button class="btn btn-outline-light btn-sm mt-2" t-on-click="resetMode">
-                                    <i class="fa fa-arrow-left me-2"></i>Đổi chế độ
-                                </button>
-                            </div>
-
-                            <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
-                                 <!-- Khu vực hiển thị kết quả quét  -->
-                                <div t-ref="result" class="mb-4"></div>
-                                
-                                 <!-- Khu vực quét QR  -->
-                                <div t-ref="reader" class="qr-reader-container">
-                                    <div id="reader" style="width: 100%;"></div>
+                                <!-- Dynamic Header  -->
+                                <div t-if="!state.showModeSelector" class="card-header text-white" t-att-class="state.scanMode === 'prepare' ? 'bg-success' : 'bg-info'">
+                                    <h3 class="mb-0">
+                                        <i t-att-class="state.scanMode === 'prepare' ? 'fa fa-box-open me-2' : 'fa fa-truck me-2'"></i>
+                                        <span t-if="state.scanMode === 'prepare'">Quét QR chuẩn bị hàng</span>
+                                        <span t-else="">Quét QR vận chuyển</span>
+                                    </h3>
+                                    <button class="btn btn-outline-light btn-sm mt-2" t-on-click="resetMode">
+                                        <i class="fa fa-arrow-left me-2"></i>Đổi chế độ
+                                    </button>
                                 </div>
-                                
-                                 <!-- PREPARE MODE SECTIONS  -->
-                                <div t-if="state.scanMode === 'prepare'">                                
-                                     <!-- Khu vực chụp ảnh chuẩn bị hàng  -->
-                                    <div t-if="state.showCaptureArea" class="camera-container mt-4">
-                                        <h4 class="mb-3">Chụp ảnh chứng minh chuẩn bị hàng</h4>
-                                        
-                                         <!-- Chọn phương thức  -->
-                                        <div t-if="!state.captureMethod" class="method-selector mb-4">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onCaptureMethodChange('camera')">
-                                                        <div class="card-body text-center">
-                                                            <i class="fa fa-camera fa-2x mb-2 text-primary"></i>
-                                                            <h6>Dùng camera</h6>
-                                                            <p class="small text-muted">Chụp ảnh trực tiếp</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onCaptureMethodChange('file')">
-                                                        <div class="card-body text-center">
-                                                            <i class="fa fa-upload fa-2x mb-2 text-info"></i>
-                                                            <h6>Upload ảnh</h6>
-                                                            <p class="small text-muted">Chọn ảnh từ thiết bị</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3 text-center">
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.showCaptureArea = false">
-                                                    <i class="fa fa-arrow-left me-1"></i>Quay lại
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                         <!-- Camera method  -->
-                                        <div t-if="state.captureMethod === 'camera'" class="camera-wrapper">
-                                            <div class="mb-2 d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Chụp ảnh bằng camera</h6>
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.captureMethod = null">
-                                                    <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
-                                                </button>
-                                            </div>
-                                            <t t-if="!state.capturedImages.length || state.captureMethod === 'camera'">
-                                                <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
-                                                <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
-                                            </t>
-                                        </div>
-                                        
-                                         <!-- File upload method  -->
-                                        <div t-if="state.captureMethod === 'file'" class="file-wrapper">
-                                            <div class="mb-2 d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Upload ảnh từ thiết bị</h6>
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.captureMethod = null">
-                                                    <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
-                                                </button>
-                                            </div>
-                                            <div class="upload-area border border-dashed p-4 text-center">
-                                                <i class="fa fa-cloud-upload fa-3x text-muted mb-3"></i>
-                                                <p class="mb-3">Chọn ảnh từ thiết bị của bạn</p>
-                                                <input t-ref="fileInput" type="file" class="d-none" accept="image/*" t-on-change="onFileSelected"/>
-                                                <button class="btn btn-primary" t-on-click="() => this.fileInput.el.click()">
-                                                    <i class="fa fa-folder-open me-2"></i>Chọn ảnh
-                                                </button>
-                                            </div>
-                                        </div>
 
-                                        <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4">
-                                            <h6 class="mb-3">
-                                                <i class="fa fa-images me-2"></i>
-                                                Ảnh đã chụp (<t t-esc="state.capturedImages.length"/>)
-                                            </h6>
-                                            <div class="row">
-                                                <t t-foreach="state.capturedImages" t-as="image" t-key="image.id">
-                                                    <div class="col-md-4 col-lg-3 mb-3">
-                                                        <div class="card">
-                                                            <img t-att-src="image.data" class="card-img-top" style="height: 120px; object-fit: cover;"/>
-                                                            <div class="card-body p-2">
-                                                                <small class="text-muted d-block"><t t-esc="image.timestamp"/></small>
-                                                                <div class="btn-group btn-group-sm w-100 mt-2">
-                                                                    <button class="btn btn-outline-primary" t-on-click="() => this.viewImage(image_index, 'prepare')" title="Xem">
-                                                                        <i class="fa fa-eye"></i>
-                                                                    </button>
-                                                                    <button class="btn btn-outline-danger" t-on-click="() => this.removeImage(image_index, 'prepare')" title="Xóa">
-                                                                        <i class="fa fa-trash"></i>
-                                                                    </button>
-                                                                </div>
+                                <div class="card-body" style="max-height: 80vh; overflow-y: auto;">
+                                    <!-- Khu vực hiển thị kết quả quét  -->
+                                    <div t-ref="result" class="mb-4"></div>
+                                    
+                                    <!-- Khu vực quét QR  -->
+                                    <div t-ref="reader" class="qr-reader-container">
+                                        <div id="reader" style="width: 100%;"></div>
+                                    </div>
+                                    
+                                    <!-- PREPARE MODE SECTIONS  -->
+                                    <div t-if="state.scanMode === 'prepare'">                                
+                                        <!-- Khu vực chụp ảnh chuẩn bị hàng  -->
+                                        <div t-if="state.showCaptureArea" class="camera-container mt-4">
+                                            <h4 class="mb-3">Chụp ảnh chứng minh chuẩn bị hàng</h4>
+                                            
+                                            <!-- Chọn phương thức  -->
+                                            <div t-if="!state.captureMethod" class="method-selector mb-4">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onCaptureMethodChange('camera')">
+                                                            <div class="card-body text-center">
+                                                                <i class="fa fa-camera fa-2x mb-2 text-primary"></i>
+                                                                <h6>Dùng camera</h6>
+                                                                <p class="small text-muted">Chụp ảnh trực tiếp</p>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onCaptureMethodChange('file')">
+                                                            <div class="card-body text-center">
+                                                                <i class="fa fa-upload fa-2x mb-2 text-info"></i>
+                                                                <h6>Upload ảnh</h6>
+                                                                <p class="small text-muted">Chọn ảnh từ thiết bị</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-3 text-center">
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.showCaptureArea = false">
+                                                        <i class="fa fa-arrow-left me-1"></i>Quay lại
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Camera method  -->
+                                            <div t-if="state.captureMethod === 'camera'" class="camera-wrapper">
+                                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Chụp ảnh bằng camera</h6>
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.captureMethod = null">
+                                                        <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
+                                                    </button>
+                                                </div>
+                                                <t t-if="!state.capturedImages.length || state.captureMethod === 'camera'">
+                                                    <video t-ref="video" autoplay="true" class="camera-preview"></video>
+                                                    <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
+                                                    <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
                                                 </t>
                                             </div>
-                                            <div class="d-flex justify-content-between mt-3">
-                                                <button class="btn btn-outline-primary" t-on-click="addMoreImages">
-                                                    <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
-                                                </button>
-                                                <button class="btn btn-success" t-on-click="saveImages">
-                                                    <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                            
+                                            <!-- File upload method  -->
+                                            <div t-if="state.captureMethod === 'file'" class="file-wrapper">
+                                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Upload ảnh từ thiết bị</h6>
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.captureMethod = null">
+                                                        <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
+                                                    </button>
+                                                </div>
+                                                <div class="upload-area border border-dashed p-4 text-center">
+                                                    <i class="fa fa-cloud-upload fa-3x text-muted mb-3"></i>
+                                                    <p class="mb-3">Chọn ảnh từ thiết bị của bạn</p>
+                                                    <input t-ref="fileInput" type="file" class="d-none" accept="image/*" t-on-change="onFileSelected"/>
+                                                    <button class="btn btn-primary" t-on-click="() => this.fileInput.el.click()">
+                                                        <i class="fa fa-folder-open me-2"></i>Chọn ảnh
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4">
+                                                <h6 class="mb-3">
+                                                    <i class="fa fa-images me-2"></i>
+                                                    Ảnh đã chụp (<t t-esc="state.capturedImages.length"/>)
+                                                </h6>
+                                                <div class="row">
+                                                    <t t-foreach="state.capturedImages" t-as="image" t-key="image.id">
+                                                        <div class="col-md-4 col-lg-3 mb-3">
+                                                            <div class="card">
+                                                                <img t-att-src="image.data" class="card-img-top" style="height: 120px; object-fit: cover;"/>
+                                                                <div class="card-body p-2">
+                                                                    <small class="text-muted d-block"><t t-esc="image.timestamp"/></small>
+                                                                    <div class="btn-group btn-group-sm w-100 mt-2">
+                                                                        <button class="btn btn-outline-primary" t-on-click="() => this.viewImage(image_index, 'prepare')" title="Xem">
+                                                                            <i class="fa fa-eye"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-outline-danger" t-on-click="() => this.removeImage(image_index, 'prepare')" title="Xóa">
+                                                                            <i class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-3">
+                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
+                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
+                                                    </button>
+                                                    <button class="btn btn-success" t-on-click="saveImages">
+                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        
+                                        <!-- Khu vực ghi chú chuẩn bị  -->
+                                        <div t-if="state.showNoteArea" class="note-container mt-4">
+                                            <h4 class="mb-3">Ghi chú (tùy chọn)</h4>
+                                            <div class="form-group">                                            
+                                                <textarea t-ref="scanNote" class="form-control" rows="3" placeholder="Nhập ghi chú về việc giao hàng..."
+                                                    t-att-value="state.scanNoteValue"
+                                                    t-on-input="onScanNoteInput">
+                                                </textarea>
+                                            </div>
+                                            <div class="mt-3 d-flex justify-content-end">
+                                                <button class="btn btn-primary" t-on-click="saveScanData">
+                                                    <i class="fa fa-save me-2"></i>Lưu thông tin
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
+                                        
+                                        <!-- Khu vực xác nhận sản phẩm  -->
+                                        <div t-if="state.showProductConfirmArea" class="product-confirm-container mt-4">
+                                            <h4 class="mb-3">Xác nhận sản phẩm giao hàng</h4>
+                                            <div class="row g-3 g-md-4">
+                                                <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
+                                                    <div class="col-12 col-sm-6 col-lg-4">
+                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative bg-white">
+                                                            <!-- Status indicator bar  -->
+                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 bg-success" style="height: 3px;"></div>
+                                                            
+                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 bg-success-subtle">
+                                                                <div class="d-flex align-items-center flex-grow-1">
+                                                                    <i t-attf-class="fa fa-box me-2 text-success"/>
+                                                                    <div>
+                                                                        <h6 class="card-title mb-1 fw-semibold">
+                                                                            <t t-esc="line.product_name" />
+                                                                        </h6>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
 
-                                    
-                                     <!-- Khu vực ghi chú chuẩn bị  -->
-                                    <div t-if="state.showNoteArea" class="note-container mt-4">
-                                        <h4 class="mb-3">Ghi chú (tùy chọn)</h4>
-                                        <div class="form-group">                                            
-                                            <textarea t-ref="scanNote" class="form-control" rows="3" placeholder="Nhập ghi chú về việc giao hàng..."
-                                                t-att-value="state.scanNoteValue"
-                                                t-on-input="onScanNoteInput">
-                                            </textarea>
-                                        </div>
-                                        <div class="mt-3 d-flex justify-content-end">
-                                            <button class="btn btn-primary" t-on-click="saveScanData">
-                                                <i class="fa fa-save me-2"></i>Lưu thông tin
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                     <!-- Khu vực xác nhận sản phẩm  -->
-                                    <div t-if="state.showProductConfirmArea" class="product-confirm-container mt-4">
-                                        <h4 class="mb-3">Xác nhận sản phẩm giao hàng</h4>
-                                        <div class="row g-3 g-md-4">
-                                            <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
-                                                <div class="col-12 col-sm-6 col-lg-4">
-                                                    <div t-attf-class="card shadow-sm h-100 border-0 position-relative bg-white">
-                                                         <!-- Status indicator bar  -->
-                                                        <div t-attf-class="position-absolute top-0 start-0 w-100 bg-success" style="height: 3px;"></div>
-                                                        
-                                                        <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 bg-success-subtle">
-                                                            <div class="d-flex align-items-center flex-grow-1">
-                                                                <i t-attf-class="fa fa-box me-2 text-success"/>
+                                                            <div class="card-body d-flex flex-column gap-3">
                                                                 <div>
-                                                                    <h6 class="card-title mb-1 fw-semibold">
-                                                                        <t t-esc="line.product_name" />
-                                                                    </h6>
+                                                                    <label t-att-for="'quantity-confirmed-' + line_index" class="form-label small text-muted fw-medium">
+                                                                        <i class="fa fa-check-circle me-1 text-success"></i>
+                                                                        Số lượng Yêu cầu / Xác nhận
+                                                                    </label>
+                                                                    <div class="input-group">
+                                                                        <input
+                                                                            type="number"
+                                                                            class="form-control text-center fw-semibold"
+                                                                            t-att-id="'quantity-confirmed-' + line_index"
+                                                                            t-att-value="line.quantity_confirmed"
+                                                                            t-on-input="ev => onConfirmQuantityInput(ev, line_index)"
+                                                                            placeholder="Nhập số lượng..."
+                                                                            min="0"
+                                                                            t-att-max="line.quantity"
+                                                                        />
+                                                                        <span class="input-group-text bg-light fw-medium">
+                                                                            / <t t-esc="line.quantity"/> <t t-esc="line.uom"/>
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="card-body d-flex flex-column gap-3">
-                                                            <div>
-                                                                <label t-att-for="'quantity-confirmed-' + line_index" class="form-label small text-muted fw-medium">
-                                                                    <i class="fa fa-check-circle me-1 text-success"></i>
-                                                                    Số lượng Yêu cầu / Xác nhận
-                                                                </label>
-                                                                <div class="input-group">
-                                                                    <input
-                                                                        type="number"
-                                                                        class="form-control text-center fw-semibold"
-                                                                        t-att-id="'quantity-confirmed-' + line_index"
-                                                                        t-att-value="line.quantity_confirmed"
-                                                                        t-on-input="ev => onConfirmQuantityInput(ev, line_index)"
-                                                                        placeholder="Nhập số lượng..."
-                                                                        min="0"
-                                                                        t-att-max="line.quantity"
-                                                                    />
-                                                                    <span class="input-group-text bg-light fw-medium">
-                                                                        / <t t-esc="line.quantity"/> <t t-esc="line.uom"/>
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                                                
-                                                            <div>
-                                                                <label t-att-for="'confirm-note-' + line_index" class="form-label small text-muted fw-medium">
-                                                                    <i class="fa fa-sticky-note me-1 text-info"></i>
-                                                                    Ghi chú
-                                                                </label>
-                                                                <div class="input-group">
-                                                                    <span class="input-group-text bg-light">
-                                                                        <i class="fa fa-pencil text-muted"/>
-                                                                    </span>
-                                                                    <input
-                                                                        type="text"
-                                                                        class="form-control"
-                                                                        t-att-id="'confirm-note-' + line_index"
-                                                                        t-att-value="line.confirm_note"
-                                                                        t-on-input="ev => onConfirmNoteInput(ev, line_index)"
-                                                                        placeholder="Ghi chú về sản phẩm..."
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </t>
-                                        </div>
-                                        <div class="mt-4 d-flex justify-content-end">
-                                            <button class="btn btn-primary" t-on-click="saveProductConfirm">
-                                                <i class="fa fa-save me-2"></i>Lưu xác nhận sản phẩm
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                 <!-- SHIPPING MODE SECTIONS  -->
-                                <div t-if="state.scanMode === 'shipping'">
-                                     <!-- Khu vực chọn loại vận chuyển  -->
-                                    <div t-if="state.showShippingTypeArea" class="shipping-type-container mt-4">
-                                        <h4 class="mb-3">Chọn loại vận chuyển</h4>
-                                        <div class="form-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="shipping_type" id="pickup" value="pickup" t-on-change="onShippingTypeChange"/>
-                                                <label class="form-check-label" for="pickup">
-                                                    <i class="fa fa-user me-2"></i>Khách đến lấy hàng
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="shipping_type" id="viettelpost" value="viettelpost" t-on-change="onShippingTypeChange"/>
-                                                <label class="form-check-label" for="viettelpost">
-                                                    <i class="fa fa-user me-2"></i>Viettel Post
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="shipping_type" id="delivery" value="delivery" t-on-change="onShippingTypeChange"/>
-                                                <label class="form-check-label" for="delivery">
-                                                    <i class="fa fa-truck me-2"></i>Đặt ship
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 d-flex justify-content-end">
-                                            <button class="btn btn-primary" t-on-click="confirmShippingType" t-att-disabled="!state.selectedShippingType">
-                                                <i class="fa fa-arrow-right me-2"></i>Tiếp tục
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                     <!-- Khu vực chụp ảnh vận chuyển - CẬP NHẬT THEO LOGIC PREPARE  -->
-                                    <div t-if="state.showShippingCaptureArea" class="camera-container mt-4">
-                                        <h4 class="mb-3">Chụp ảnh đơn hàng chuyển đi</h4>
-                                        
-                                         <!-- Chọn phương thức  -->
-                                        <div t-if="!state.shippingCaptureMethod" class="method-selector mb-4">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onShippingCaptureMethodChange('camera')">
-                                                        <div class="card-body text-center">
-                                                            <i class="fa fa-camera fa-2x mb-2 text-primary"></i>
-                                                            <h6>Dùng camera</h6>
-                                                            <p class="small text-muted">Chụp ảnh trực tiếp</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onShippingCaptureMethodChange('file')">
-                                                        <div class="card-body text-center">
-                                                            <i class="fa fa-upload fa-2x mb-2 text-info"></i>
-                                                            <h6>Upload ảnh</h6>
-                                                            <p class="small text-muted">Chọn ảnh từ thiết bị</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3 text-center">
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.showShippingCaptureArea = false">
-                                                    <i class="fa fa-arrow-left me-1"></i>Quay lại
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                         <!-- Camera method  -->
-                                        <div t-if="state.shippingCaptureMethod === 'camera'" class="camera-wrapper">
-                                            <div class="mb-2 d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Chụp ảnh bằng camera</h6>
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.shippingCaptureMethod = null">
-                                                    <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
-                                                </button>
-                                            </div>
-                                            <t t-if="!state.shippingCapturedImages.length || state.shippingCaptureMethod === 'camera'">
-                                                <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
-                                                <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
-                                            </t>
-                                        </div>
-                                        
-                                         <!-- File upload method  -->
-                                        <div t-if="state.shippingCaptureMethod === 'file'" class="file-wrapper">
-                                            <div class="mb-2 d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0">Upload ảnh từ thiết bị</h6>
-                                                <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.shippingCaptureMethod = null">
-                                                    <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
-                                                </button>
-                                            </div>
-                                            <div class="upload-area border border-dashed p-4 text-center">
-                                                <i class="fa fa-cloud-upload fa-3x text-muted mb-3"></i>
-                                                <p class="mb-3">Chọn ảnh từ thiết bị của bạn</p>
-                                                <input t-ref="shippingFileInput" type="file" class="d-none" accept="image/*" t-on-change="onShippingFileSelected"/>
-                                                <button class="btn btn-primary" t-on-click="() => this.shippingFileInput.el.click()">
-                                                    <i class="fa fa-folder-open me-2"></i>Chọn ảnh
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                         <!-- Danh sách ảnh vận chuyển đã chụp  -->
-                                        <div t-if="state.shippingCapturedImages.length > 0" class="captured-images-list mt-4">
-                                            <h6 class="mb-3">
-                                                <i class="fa fa-images me-2"></i>
-                                                Ảnh vận chuyển đã chụp (<t t-esc="state.shippingCapturedImages.length"/>)
-                                            </h6>
-                                            <div class="row">
-                                                <t t-foreach="state.shippingCapturedImages" t-as="image" t-key="image.id">
-                                                    <div class="col-md-4 col-lg-3 mb-3">
-                                                        <div class="card">
-                                                            <img t-att-src="image.data" class="card-img-top" style="height: 120px; object-fit: cover;"/>
-                                                            <div class="card-body p-2">
-                                                                <small class="text-muted d-block"><t t-esc="image.timestamp"/></small>
-                                                                <div class="btn-group btn-group-sm w-100 mt-2">
-                                                                    <button class="btn btn-outline-primary" t-on-click="() => this.viewImage(image_index, 'shipping')" title="Xem">
-                                                                        <i class="fa fa-eye"></i>
-                                                                    </button>
-                                                                    <button class="btn btn-outline-danger" t-on-click="() => this.removeImage(image_index, 'shipping')" title="Xóa">
-                                                                        <i class="fa fa-trash"></i>
-                                                                    </button>
+                                                                                    
+                                                                <div>
+                                                                    <label t-att-for="'confirm-note-' + line_index" class="form-label small text-muted fw-medium">
+                                                                        <i class="fa fa-sticky-note me-1 text-info"></i>
+                                                                        Ghi chú
+                                                                    </label>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text bg-light">
+                                                                            <i class="fa fa-pencil text-muted"/>
+                                                                        </span>
+                                                                        <input
+                                                                            type="text"
+                                                                            class="form-control"
+                                                                            t-att-id="'confirm-note-' + line_index"
+                                                                            t-att-value="line.confirm_note"
+                                                                            t-on-input="ev => onConfirmNoteInput(ev, line_index)"
+                                                                            placeholder="Ghi chú về sản phẩm..."
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </t>
                                             </div>
-                                            <div class="d-flex justify-content-between mt-3">
-                                                <button class="btn btn-outline-primary" t-on-click="addMoreImages">
-                                                    <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
-                                                </button>
-                                                <button class="btn btn-success" t-on-click="saveImages">
-                                                    <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                            <div class="mt-4 d-flex justify-content-end">
+                                                <button class="btn btn-primary" t-on-click="saveProductConfirm">
+                                                    <i class="fa fa-save me-2"></i>Lưu xác nhận sản phẩm
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                     <!-- Khu vực ghi chú vận chuyển  -->
-                                    <div t-if="state.showShippingNoteArea" class="note-container mt-4">                                        
-                                        <h4 class="mb-3">Thông tin vận chuyển</h4>    
-                                         <!-- Số điện thoại giao vận  -->
-                                        <div class="form-group mb-3">
-                                            <label class="form-label">Số điện thoại giao vận</label>
-                                            <input 
-                                                type="tel" 
-                                                class="form-control" 
-                                                t-att-value="state.shippingPhone"
-                                                t-on-input="onShippingPhoneInput"
-                                                placeholder="Nhập số điện thoại giao vận..."
-                                            />
+
+                                    <!-- SHIPPING MODE SECTIONS  -->
+                                    <div t-if="state.scanMode === 'shipping'">
+                                        <!-- Khu vực chọn loại vận chuyển  -->
+                                        <div t-if="state.showShippingTypeArea" class="shipping-type-container mt-4">
+                                            <h4 class="mb-3">Chọn loại vận chuyển</h4>
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="shipping_type" id="pickup" value="pickup" t-on-change="onShippingTypeChange"/>
+                                                    <label class="form-check-label" for="pickup">
+                                                        <i class="fa fa-user me-2"></i>Khách đến lấy hàng
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="shipping_type" id="viettelpost" value="viettelpost" t-on-change="onShippingTypeChange"/>
+                                                    <label class="form-check-label" for="viettelpost">
+                                                        <i class="fa fa-user me-2"></i>Viettel Post
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="shipping_type" id="delivery" value="delivery" t-on-change="onShippingTypeChange"/>
+                                                    <label class="form-check-label" for="delivery">
+                                                        <i class="fa fa-truck me-2"></i>Đặt ship
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 d-flex justify-content-end">
+                                                <button class="btn btn-primary" t-on-click="confirmShippingType" t-att-disabled="!state.selectedShippingType">
+                                                    <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                </button>
+                                            </div>
                                         </div>
                                         
-                                         <!-- Tên nhà xe  -->
-                                        <div class="form-group mb-3">
-                                            <label class="form-label">Tên nhà xe</label>
-                                            <input 
-                                                type="text" 
-                                                class="form-control" 
-                                                t-att-value="state.shippingCompany"
-                                                t-on-input="onShippingCompanyInput"
-                                                placeholder="Nhập tên nhà xe vận chuyển..."
-                                            />
+                                        <!-- Khu vực chụp ảnh vận chuyển - CẬP NHẬT THEO LOGIC PREPARE  -->
+                                        <div t-if="state.showShippingCaptureArea" class="camera-container mt-4">
+                                            <h4 class="mb-3">Chụp ảnh đơn hàng chuyển đi</h4>
+                                            
+                                            <!-- Chọn phương thức  -->
+                                            <div t-if="!state.shippingCaptureMethod" class="method-selector mb-4">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onShippingCaptureMethodChange('camera')">
+                                                            <div class="card-body text-center">
+                                                                <i class="fa fa-camera fa-2x mb-2 text-primary"></i>
+                                                                <h6>Dùng camera</h6>
+                                                                <p class="small text-muted">Chụp ảnh trực tiếp</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card bg-light h-100" style="cursor: pointer;" t-on-click="() => this.onShippingCaptureMethodChange('file')">
+                                                            <div class="card-body text-center">
+                                                                <i class="fa fa-upload fa-2x mb-2 text-info"></i>
+                                                                <h6>Upload ảnh</h6>
+                                                                <p class="small text-muted">Chọn ảnh từ thiết bị</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-3 text-center">
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.showShippingCaptureArea = false">
+                                                        <i class="fa fa-arrow-left me-1"></i>Quay lại
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Camera method  -->
+                                            <div t-if="state.shippingCaptureMethod === 'camera'" class="camera-wrapper">
+                                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Chụp ảnh bằng camera</h6>
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.shippingCaptureMethod = null">
+                                                        <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
+                                                    </button>
+                                                </div>
+                                                <t t-if="!state.shippingCapturedImages.length || state.shippingCaptureMethod === 'camera'">
+                                                    <video t-ref="video" autoplay="true" class="camera-preview"></video>
+                                                    <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
+                                                    <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
+                                                </t>
+                                            </div>
+                                            
+                                            <!-- File upload method  -->
+                                            <div t-if="state.shippingCaptureMethod === 'file'" class="file-wrapper">
+                                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Upload ảnh từ thiết bị</h6>
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.state.shippingCaptureMethod = null">
+                                                        <i class="fa fa-arrow-left me-1"></i>Đổi phương thức
+                                                    </button>
+                                                </div>
+                                                <div class="upload-area border border-dashed p-4 text-center">
+                                                    <i class="fa fa-cloud-upload fa-3x text-muted mb-3"></i>
+                                                    <p class="mb-3">Chọn ảnh từ thiết bị của bạn</p>
+                                                    <input t-ref="shippingFileInput" type="file" class="d-none" accept="image/*" t-on-change="onShippingFileSelected"/>
+                                                    <button class="btn btn-primary" t-on-click="() => this.shippingFileInput.el.click()">
+                                                        <i class="fa fa-folder-open me-2"></i>Chọn ảnh
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Danh sách ảnh vận chuyển đã chụp  -->
+                                            <div t-if="state.shippingCapturedImages.length > 0" class="captured-images-list mt-4">
+                                                <h6 class="mb-3">
+                                                    <i class="fa fa-images me-2"></i>
+                                                    Ảnh vận chuyển đã chụp (<t t-esc="state.shippingCapturedImages.length"/>)
+                                                </h6>
+                                                <div class="row">
+                                                    <t t-foreach="state.shippingCapturedImages" t-as="image" t-key="image.id">
+                                                        <div class="col-md-4 col-lg-3 mb-3">
+                                                            <div class="card">
+                                                                <img t-att-src="image.data" class="card-img-top" style="height: 120px; object-fit: cover;"/>
+                                                                <div class="card-body p-2">
+                                                                    <small class="text-muted d-block"><t t-esc="image.timestamp"/></small>
+                                                                    <div class="btn-group btn-group-sm w-100 mt-2">
+                                                                        <button class="btn btn-outline-primary" t-on-click="() => this.viewImage(image_index, 'shipping')" title="Xem">
+                                                                            <i class="fa fa-eye"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-outline-danger" t-on-click="() => this.removeImage(image_index, 'shipping')" title="Xóa">
+                                                                            <i class="fa fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-3">
+                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
+                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
+                                                    </button>
+                                                    <button class="btn btn-success" t-on-click="saveImages">
+                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-group mb-3">
-                                            <label class="form-label">Ghi chú vận chuyển (tùy chọn)</label>
-                                            <textarea t-ref="shippingNote" class="form-control" rows="3" placeholder="Nhập ghi chú về việc vận chuyển..."></textarea>
-                                        </div>
-                                        <div class="mt-3 d-flex justify-content-end">
-                                            <button class="btn btn-success" t-on-click="saveShippingData">
-                                                <i class="fa fa-save me-2"></i>Lưu thông tin vận chuyển
-                                            </button>
+                                        
+                                        <!-- Khu vực ghi chú vận chuyển  -->
+                                        <div t-if="state.showShippingNoteArea" class="note-container mt-4">                                        
+                                            <h4 class="mb-3">Thông tin vận chuyển</h4>    
+                                            <!-- Số điện thoại giao vận  -->
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Số điện thoại giao vận</label>
+                                                <input 
+                                                    type="tel" 
+                                                    class="form-control" 
+                                                    t-att-value="state.shippingPhone"
+                                                    t-on-input="onShippingPhoneInput"
+                                                    placeholder="Nhập số điện thoại giao vận..."
+                                                />
+                                            </div>
+                                            
+                                            <!-- Tên nhà xe  -->
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Tên nhà xe</label>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control" 
+                                                    t-att-value="state.shippingCompany"
+                                                    t-on-input="onShippingCompanyInput"
+                                                    placeholder="Nhập tên nhà xe vận chuyển..."
+                                                />
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Ghi chú vận chuyển (tùy chọn)</label>
+                                                <textarea t-ref="shippingNote" class="form-control" rows="3" placeholder="Nhập ghi chú về việc vận chuyển..."></textarea>
+                                            </div>
+                                            <div class="mt-3 d-flex justify-content-end">
+                                                <button class="btn btn-success" t-on-click="saveShippingData">
+                                                    <i class="fa fa-save me-2"></i>Lưu thông tin vận chuyển
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -427,6 +428,5 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </t>
-</templates>
+        </t>
+    </templates>

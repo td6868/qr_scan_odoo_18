@@ -30,11 +30,11 @@ class StockPicking(models.Model):
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
     
     # Các trường liên kết với scan_history_ids mới nhất
-    scan_date = fields.Datetime(related='scan_history_ids.scan_date', string="Ngày quét", readonly=True)
+    # scan_date = fields.Datetime(related='scan_history_ids.scan_date', string="Ngày quét", readonly=True)
     scan_user_id = fields.Many2one(related='scan_history_ids.scan_user_id', string="Người quét", readonly=True)
     scan_note = fields.Text(related='scan_history_ids.scan_note', string="Ghi chú khi quét", readonly=True)
-    prepare_image_count = fields.Integer("Số ảnh chuẩn bị", compute='_compute_prepare_image_count')
-    first_prepare_image = fields.Binary("Ảnh chuẩn bị đầu tiên", compute='_compute_first_prepare_image')
+    # prepare_image_count = fields.Integer("Số ảnh chuẩn bị", compute='_compute_prepare_image_count')
+    # first_prepare_image = fields.Binary("Ảnh chuẩn bị đầu tiên", compute='_compute_first_prepare_image')
     
     def create(self, vals):
         picking = super().create(vals)
@@ -70,13 +70,7 @@ class StockPicking(models.Model):
                 # Reset trạng thái quét khi QR mới được tạo
                 record.update({
                     'qr_code_image': qr_code_base64,
-                    # 'is_shipped': False, 
-                    # 'shipping_date': False,
-                    # 'shipping_note': False,
-                    # 'shipping_phone': False,
-                    # 'shipping_company': False,
-                    # 'shipping_type': 'pickup', 
-                    # 'shipping_image': False,
+
                 })
                 
 
