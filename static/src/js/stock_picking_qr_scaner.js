@@ -351,7 +351,7 @@ export class StockPickingQrScanner extends Component {
             try {
                 // Sử dụng stop() thay vì clear() cho Html5Qrcode
                 this.state.qrScanner.stop().then(() => {
-                    console.log("QR Scanner stopped successfully");
+                    console.log("DỪng quét thành công!");
                     this.state.qrScanner = null;
                     this.state.isScanning = false;
                     
@@ -360,7 +360,7 @@ export class StockPickingQrScanner extends Component {
                         this.reader.el.classList.remove('d-none');
                     }
                 }).catch(err => {
-                    console.error("Error stopping QR scanner:", err);
+                    console.error("Lỗi dừng quét:", err);
                     this.state.qrScanner = null;
                     this.state.isScanning = false;
                     
@@ -370,7 +370,7 @@ export class StockPickingQrScanner extends Component {
                     }
                 });
             } catch (err) {
-                console.error("Error stopping QR scanner:", err);
+                console.error("Lỗi dừng quét:", err);
                 this.state.qrScanner = null;
                 this.state.isScanning = false;
                 
@@ -387,7 +387,7 @@ export class StockPickingQrScanner extends Component {
         if (this.state.qrScanner && this.state.isScanning) {
             try {
                 await this.state.qrScanner.stop();
-                console.log("QR Scanner stopped successfully");
+                console.log("QR đã dừng!");
                 this.state.qrScanner = null;
                 this.state.isScanning = false;
                 
@@ -396,7 +396,7 @@ export class StockPickingQrScanner extends Component {
                     this.reader.el.classList.remove('d-none');
                 }
             } catch (err) {
-                console.error("Error stopping QR scanner:", err);
+                console.error("Lỗi dừng quét:", err);
                 this.state.qrScanner = null;
                 this.state.isScanning = false;
                 
@@ -423,7 +423,6 @@ export class StockPickingQrScanner extends Component {
                     <h4><i class="fa fa-check-circle me-2"></i>Quét thành công - Chế độ chuẩn bị hàng!</h4>
                     <p><strong>Phiếu xuất kho:</strong> ${picking.name}</p>
                     <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || 'N/A'}</p>
-                    <p><strong>Ngày:</strong> ${picking.scheduled_date || 'N/A'}</p>
                 </div>
             `;
             this.result.el.innerHTML = '';
@@ -451,7 +450,6 @@ export class StockPickingQrScanner extends Component {
                     <h4><i class="fa fa-truck me-2"></i>Quét thành công - Chế độ vận chuyển!</h4>
                     <p><strong>Phiếu xuất kho:</strong> ${picking.name}</p>
                     <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || 'N/A'}</p>
-                    <p><strong>Ngày:</strong> ${picking.scheduled_date || 'N/A'}</p>
                     <p><strong>Trạng thái:</strong> <span class="badge bg-info">Đã chuẩn bị hàng</span></p>
                 </div>
             `;

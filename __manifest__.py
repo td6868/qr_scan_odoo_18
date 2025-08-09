@@ -53,9 +53,9 @@ Long description of module's purpose
     },
     
     # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
-    ],
+    # 'demo': [
+    #     'demo/demo.xml',
+    # ],
     
     'icon': 'qr_scan_odoo_18/static/description/icon.png',
     

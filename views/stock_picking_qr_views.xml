@@ -6,6 +6,12 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
+            <!-- #Add action_print_picking button replace print -->
+            <xpath expr="//button[@name='do_print_picking']" position="replace">
+                <button name="action_print_picking" string="In" type="object" class="btn btn-primary">
+                </button>
+            </xpath>
+
             <notebook position="inside">
                  <!-- Thêm vào trong record id="view_picking_form_inherit_qr" sau page "Trạng thái"  -->
                 <page string="Lịch sử quét QR">
@@ -36,7 +42,7 @@
                                 </group>
                                 
                                  <!-- Hiển thị nhiều ảnh cho cả prepare và shipping  -->
-                                <group string="Ảnh minh chứng chuẩn bị hàng" col="3" invisible="scan_type != 'prepare'">
+                                <group string="Ảnh xuất kho chuẩn bị hàng" col="3" invisible="scan_type != 'prepare'">
                                     <field name="attachment_ids" mode="kanban" nolabel="1">
                                         <kanban>
                                             <templates>
@@ -46,7 +52,8 @@
                                                             <div style="height: 180px; overflow: hidden;">
                                                                 <img t-att-src="'/web/image/' + record.id.raw_value"
                                                                     class="img-fluid" 
-                                                                    style="height: 100%; width: 100%; object-fit: cover;"/>
+                                                                    style="height: 100%; width: 100%; object-fit: cover;"
+                                                                    alt="Ảnh xuất kho"/>
                                                             </div>
                                                             <div class="card-body p-3">
                                                                 <h6 class="card-title mb-2" style="font-weight: 600; color: #2c3e50; font-size: 0.9rem;">
@@ -54,7 +61,7 @@
                                                                 </h6>
                                                                 <div class="mb-2">
                                                                     <small class="text-muted d-flex align-items-center" style="font-size: 0.75rem;">
-                                                                        <i class="fa fa-calendar-o me-1"></i>
+                                                                        <i class="fa fa-calendar-o me-1" title="Ngày tạo"></i>
                                                                         <field name="create_date"/>
                                                                     </small>
                                                                 </div>
@@ -85,7 +92,7 @@
                                 </group>
 
                                  <!-- Hiển thị nhiều ảnh vận chuyển  -->
-                                <group string="Ảnh minh chứng vận chuyển" col="3" invisible="scan_type != 'shipping'">
+                                <group string="Ảnh vận chuyển" col="3" invisible="scan_type != 'shipping'">
                                     <field name="attachment_ids" mode="kanban" nolabel="1">
                                         <kanban>
                                             <templates>
@@ -95,7 +102,8 @@
                                                             <div style="height: 180px; overflow: hidden;">
                                                                 <img t-att-src="'/web/image/' + record.id.raw_value"
                                                                     class="img-fluid" 
-                                                                    style="height: 100%; width: 100%; object-fit: cover;"/>
+                                                                    style="height: 100%; width: 100%; object-fit: cover;"
+                                                                    alt="Ảnh vận chuyển"/>
                                                             </div>
                                                             <div class="card-body p-3">
                                                                 <h6 class="card-title mb-2" style="font-weight: 600; color: #2c3e50; font-size: 0.9rem;">
@@ -103,7 +111,7 @@
                                                                 </h6>
                                                                 <div class="mb-2">
                                                                     <small class="text-muted d-flex align-items-center" style="font-size: 0.75rem;">
-                                                                        <i class="fa fa-calendar-o me-1"></i>
+                                                                        <i class="fa fa-calendar-o me-1" title="Ngày tạo"></i>
                                                                         <field name="create_date"/>
                                                                     </small>
                                                                 </div>
