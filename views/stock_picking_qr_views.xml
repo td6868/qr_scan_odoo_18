@@ -14,9 +14,10 @@
 
             <notebook position="inside">
                  <!-- Thêm vào trong record id="view_picking_form_inherit_qr" sau page "Trạng thái"  -->
-                <page string="Lịch sử quét QR">
+                <page string="Lịch sử quét QR" groups="stock.group_stock_manager">
                     <group col="2">
-                        <field name="scan_history_ids">
+                        <field name="scan_history_ids" nolabel="1">
+
                             <list>
                                 <field name="scan_date"/>
                                 <field name="scan_user_id"/>
