@@ -34,8 +34,10 @@ Long description of module's purpose
 
     # always loaded
     'data': [
-        'views/stock_picking_qr_views.xml',
         'security/ir.model.access.csv',    
+        'report/custom_report.xml',
+        'report/stock_picking_rp.xml',
+        'views/stock_picking_qr_views.xml',
     ],
     
     # 'css': [

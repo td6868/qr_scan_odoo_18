@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <template id="report_picking_customize_layout">
+        <div class="header">
+            <div class="row" t-if="doc.sale_id.company_int.vend_code == 'HV'"
+                 t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/hv_head.jpg');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;">
+                <div class="col-1" style="margin: 2.5mm;"/>
+                <div class="col-8">
+                    <h5 style="font-size: 20px;margin-top: 7mm;text-align: center;color: #ffffff;">
+                        <strong t-if="doc.sale_id.company_int.name" t-field="doc.sale_id.company_int.name"/>
+                    </h5>
+                </div>
+                <div class="col-3"/>
+            </div>
+
+            <div class="row" t-if="doc.sale_id.company_int.vend_code == 'KK'"
+                 t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/kk_head.png');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;"/>
+        </div>
+
+        <div class="article o_report_layout_standard">
+            <t t-out="0"/>
+        </div>
+
+        <div class="footer o_standard_footer">
+            <div class="row" t-if="doc.sale_id.company_int.vend_code == 'KK'"
+                 style="background-image:url('/khoakim_18/static/src/img/kk_footer.png');background-size: 240mm 12mm;width: 240mm;height: 12mm;font-family: Roboto; font-size:13px;">
+                <!-- <div class="col-10" style="padding-top: -5mm;">
+                    <div class="row">
+                        <div class="col-12" style="text-align: right;">
+                            <strong>https://www.khoakim.com.vn</strong>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12" style="text-align: center;">
+                            <strong>CÔNG TY TNHH THIẾT BỊ CÔNG NGHIỆP KHOA KIM</strong>
+                        </div>
+                    </div>
+                </div> -->
+            </div>
+
+            <div class="row" t-if="doc.sale_id.company_int.vend_code == 'HV'"
+                 style="background-image:url('/khoakim_18/static/src/img/hv_foot.jpg');background-size: 240mm 16mm;width: 240mm;height: 16mm;left:0;right:0;z-index:-10;font-family: Roboto;"/>
+
+        </div>
+
+    </template>
+
+    <template id="report_picking_customize_doc">
+        <div class="page" style="background-image: url('/khoakim_18/static/src/img/kk_bg.png');background-size: 240mm 270mm;left:0;right:0;z-index:-10;width: 240mm;height: 100%;background-repeat: repeat-y;font-family: Roboto;">
+            <div class="row" style="padding-top: 5mm;">
+                <div class="col-3 text-center" style="padding-top:4mm;">
+                    <t t-if="doc.qr_code_image">
+                        <img t-att-src="image_data_uri(doc.qr_code_image)" 
+                        style="width: 110px; height: 110px; border: 1px solid #ccc;" 
+                        alt="QR Code"
+                        width="image"/>
+                        <br/>
+                        <small style="font-size: 10px;">Mã QR: <span t-esc="doc.name"/></small>
+                    </t>
+                </div>
+                <div class="col-6 text-center">
+                    <h2 class="mt16" style="font-size: 34px">
+                        <span t-if="doc.state in ['assigned','done']">PHIẾU XUẤT KHO </span>
+                        <span t-if="doc.state == 'draft'">PHIẾU XUẤT KHO (Nháp)</span>
+                        <span t-if="doc.state == 'cancel'">PHIẾU XUẤT KHO (Huỷ)</span>
+                    </h2>
+                    <h4>(BIÊN BẢN GIAO HÀNG)</h4>
+                    <h4>Ký hiệu đơn: <span t-field="doc.sale_id.seq_name" style="font-size:18px;"/></h4>
+                    <h6>
+                        Ngày xuất kho:
+                        <span t-if="doc.date_done" t-field="doc.date_done"/>
+                    </h6>
+                </div>
+                <div class="col-3">
+                </div>
+            </div>
+
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-12" id="info">
+                    <h4>
+                        Bên giao hàng:
+                    </h4>
+                    <div>
+                        <strong>Tên công ty: </strong><span t-if="doc.sale_id" t-field="doc.sale_id.company_int.name"/>
+                    </div>
+                    <div>
+                        <strong>Địa chỉ: </strong><span>Khuyến Lương, Hà Nội</span>
+                    </div>
+                    <div>
+                        <strong>Số điện thoại: </strong><span>888.000.888</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="font-size: 17px; padding-top:2mm;">
+                <div class="col-12">
+                    <div id="custinfo">
+                        <h4>Bên nhận hàng: </h4>
+                        <div>
+                            <strong>Khách hàng:</strong>
+                            <span style="padding-right: 8mm" t-if="doc.partner_id.name" t-field="doc.partner_id.name"/>
+                        </div>
+                        <div class="row">                            
+                            <div class="col-5">
+                                <div>
+                                    <strong>Địa chỉ:</strong>
+                                    <span t-if="doc.sale_id.partner_shipping_id.street">
+                                        <span t-if="doc.sale_id.partner_shipping_id.street" t-field="doc.sale_id.partner_shipping_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.sale_id.partner_shipping_id.street2">
+                                                ,
+                                            </span>
+                                        <span t-if="doc.sale_id.partner_shipping_id.street2" t-field="doc.sale_id.partner_shipping_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.sale_id.partner_shipping_id.city">
+                                                ,
+                                            </span>
+                                        <span t-if="doc.sale_id.partner_shipping_id.city" t-field="doc.sale_id.partner_shipping_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.sale_id.partner_shipping_id.state_id.name">
+                                                ,
+                                            </span>
+                                        <span t-if="doc.sale_id.partner_shipping_id.state_id.name" t-field="doc.sale_id.partner_shipping_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.sale_id.partner_shipping_id.country_id.name">
+                                                ,
+                                            </span>
+                                        <span t-if="doc.sale_id.partner_shipping_id.country_id.name" t-field="doc.sale_id.partner_shipping_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-7">
+                                <strong>Địa chỉ nhận hàng:</strong>
+                                <span t-if="doc.partner_id.street">
+                                    <span t-if="doc.partner_id.street" t-field="doc.partner_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.partner_id.street2">
+                                            ,
+                                        </span>
+                                    <span t-if="doc.partner_id.street2" t-field="doc.partner_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.partner_id.city">
+                                            ,
+                                        </span>
+                                    <span t-if="doc.partner_id.city" t-field="doc.partner_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.partner_id.state_id.name">
+                                            ,
+                                        </span>
+                                    <span t-if="doc.partner_id.state_id.name" t-field="doc.partner_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.partner_id.country_id.name">
+                                            ,
+                                        </span>
+                                    <span t-if="doc.partner_id.country_id.name" t-field="doc.partner_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Số điện thoại:</strong>
+                            <span t-if="doc.partner_id.mobile or doc.partner_id.phone" t-field="doc.partner_id.mobile or doc.partner_id.phone"
+                                  t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                        </div>
+                        <div>
+                            <span t-if="doc.partner_id.email">
+                                <strong>Email:</strong>
+                                <span style="padding-right: 8mm" t-field="doc.partner_id.email"/>
+                            </span>
+                            <span t-if="doc.partner_id.vat">
+                                <strong>MST:</strong>
+                                <span t-field="doc.partner_id.vat" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div style="padding-top: 2mm;padding-bottom: 3mm;">
+                    <strong>Hai bên cùng nhau lập biên bản bàn giao số lượng hàng theo bảng kế dưới đây:</strong>
+                </div>
+            </div>
+            <div class="row">
+                <div id="product_table">
+                    <table class="table" style="font-size: 17px;">
+                        <style>
+                            th, td {
+                                        border: 1px solid black;
+                                        border-collapse: collapse;
+                                    }
+                        </style>
+                        <thead style="display: table-row-group;">
+                            <tr class="header_tb">
+                                <th name="th_seq" class="text-center">
+                                    <div>STT</div>
+                                    <div style="font-size: 13px;">(No.)</div>
+                                </th>
+                                <th name="th_image" class="text-center">
+                                    <div>Ảnh</div>
+                                    <div style="font-size: 13px;">(Image)</div>
+                                </th>
+                                <th name="th_description" class="text-center">
+                                    <div>Mã hàng</div>
+                                    <div style="font-size: 13px;">(Model)</div>
+                                </th>
+<!--                                <th name="th_attrs" class="text-center">-->
+<!--                                    <div>Thuộc tính</div>-->
+<!--                                    <div style="font-size: 13px;">(Attribute)</div>-->
+<!--                                </th>-->
+                                <th name="th_uom" class="text-center">
+                                    <div>ĐVT</div>
+                                    <div style="font-size: 13px;">(Unit)</div>
+                                </th>
+<!--                                <th name="th_quantity" class="text-center">-->
+<!--                                    <div>SLg Đặt</div>-->
+<!--                                    <div style="font-size: 13px;">(Ord Q'ty)</div>-->
+<!--                                </th>-->
+                                <th name="th_quantity_rev" class="text-center">
+                                    <div>SLg Giao</div>
+                                    <div style="font-size: 13px;">(Del Q'ty)</div>
+                                </th>
+                                <th name="th_note" class="text-center">
+                                    <div>Ghi chú</div>
+                                    <div style="font-size: 13px;">(Note)</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="wh_tbody">
+                            <t t-set="seq" t-value="0"/>
+                            <t t-foreach="doc.move_ids_without_package" t-as="ml">
+                                <t t-set="seq" t-value="seq + 1"/>
+                                <tr>
+                                    <td style="width: 5%" name="td_seq" class="text-center">
+                                        <span t-esc="seq"/>
+                                    </td>
+                                    <td style="width: 15%" name="td_prod_image" class="text-center">
+                                        <t t-if="ml.sale_line_id.prod_image">
+                                            <img t-att-src="image_data_uri(ml.sale_line_id.prod_image)" style="max-height: 20mm;"/>
+                                        </t>
+                                        <t t-if="ml.sale_line_id.prod_image == False">
+                                            <div/>
+                                        </t>
+                                    </td>
+                                    <td style="width: 35%" class="text-left">
+                                        <span t-field="ml.sale_line_id.name"/>
+                                    </td>
+
+                                    <td style="width: 10%; text-align: center;">
+                                        <span t-field="ml.product_uom"/>
+                                    </td>
+                                    <td style="width: 10%; text-align: right;">
+                                        <span t-field="ml.product_uom_qty"/>
+                                    </td>
+                                    <td style="width: 10%" class="text-left">
+                                        <span/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-6">
+                    <div class="text-left" t-if="doc.note" t-field="doc.note"/>
+                </div>
+                <div class="col-6"/>
+            </div>
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Người nhận hàng</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Giao vận</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Thủ kho</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_stock_picking_khoakim">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
+                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
+

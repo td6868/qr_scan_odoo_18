@@ -24,15 +24,15 @@ class StockPicking(models.Model):
     is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True,compute='_compute_shipping_info')
     
     # Thêm trường last_scan_date
-    last_scan_date = fields.Datetime("Ngày quét cuối cùng", compute='_compute_last_scan_date', store=True)
+    # last_scan_date = fields.Datetime("Ngày quét cuối cùng", compute='_compute_last_scan_date', store=True)
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
     
     # Các trường liên kết với scan_history_ids mới nhất
     # scan_date = fields.Datetime(related='scan_history_ids.scan_date', string="Ngày quét", readonly=True)
-    scan_user_id = fields.Many2one(related='scan_history_ids.scan_user_id', string="Người quét", readonly=True)
-    scan_note = fields.Text(related='scan_history_ids.scan_note', string="Ghi chú khi quét", readonly=True)
+    scan_user_id = fields.Many2one('res.users', string="Người quét", compute="_compute_shipping_info",)
+    scan_note = fields.Text(string="Ghi chú", compute="_compute_shipping_info",)
     # prepare_image_count = fields.Integer("Số ảnh chuẩn bị", compute='_compute_prepare_image_count')
     # first_prepare_image = fields.Binary("Ảnh chuẩn bị đầu tiên", compute='_compute_first_prepare_image')
     
@@ -74,14 +74,6 @@ class StockPicking(models.Model):
                 })
                 
 
-    @api.depends('scan_history_ids.scan_date')
-    def _compute_last_scan_date(self):
-        for record in self:
-            if record.scan_history_ids:
-                record.last_scan_date = max(record.scan_history_ids.mapped('scan_date'))
-            else:
-                record.last_scan_date = False
-
     @api.depends('scan_history_ids')
     def _compute_is_scanned(self):
         for record in self:
@@ -97,11 +89,15 @@ class StockPicking(models.Model):
                 record.shipping_date = latest_shipping.scan_date
                 record.shipping_note = latest_shipping.scan_note
                 record.shipping_type = latest_shipping.shipping_type
+                record.scan_user_id = latest_shipping.scan_user_id
+                record.scan_note = latest_shipping.scan_note
             else:
                 record.is_shipped = False
                 record.shipping_date = False
                 record.shipping_note = False
                 record.shipping_type = False
+                record.scan_note = False
+                record.scan_user_id = False
                 
        
     def action_done(self):
@@ -202,24 +198,7 @@ class StockPicking(models.Model):
             self._update_moves_quantity(move_confirmed_qty)
         
         return True
-    
-    # lưu nhiều ảnh vận chuyển 
-    # def _save_shipping_images(self, images_data):
-    #     """Lưu ảnh shipping vào ir.attachment"""
-    #     for i, img_data in enumerate(images_data):
-    #         if not img_data.get('data'):
-    #             continue
-                
-    #         self.env['ir.attachment'].create({
-    #             'name': img_data.get('name', f'Shipping_Image_{i+1}_{fields.Datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'),
-    #             'type': 'binary',
-    #             'datas': img_data['data'],
-    #             'res_model': self._name,
-    #             'res_id': self.id,
-    #             'mimetype': 'image/jpeg',
-    #             'description': f'Ảnh vận chuyển #{i+1}',
-    #         })
-    
+       
     def _create_move_line_confirms(self, scan_history_id, move_line_confirms):
         """Tạo xác nhận sản phẩm cho lần quét"""
         for confirm in move_line_confirms:
