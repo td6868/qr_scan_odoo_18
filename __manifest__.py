@@ -59,7 +59,7 @@ Long description of module's purpose
     #     'demo/demo.xml',
     # ],
     
-    'icon': 'qr_scan_odoo_18/static/description/icon.png',
+    # 'icon': 'qr_scan_odoo_18/static/description/icon.png',
     
     'installable': True,
     'application': True,
