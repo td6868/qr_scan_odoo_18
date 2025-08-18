@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <templates xml:space="preserve">
+        <t t-name="qr_scan_odoo_18.ConfirmationDialog" owl="1">
+            <div class="modal fade show" style="display: block;" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" t-esc="props.title"/>
+                            <button type="button" class="btn-close" t-on-click="onCancel"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p t-esc="props.body"/>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" t-on-click="onCancel">
+                                <t t-esc="cancelText"/>
+                            </button>
+                            <button type="button" class="btn btn-primary" t-on-click="onConfirm">
+                                <t t-esc="confirmText"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        </t>
+    </templates>

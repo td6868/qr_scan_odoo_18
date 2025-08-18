@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_layout_po">
+        <div class="header">
+            
+        </div>
+        <div class="article o_report_layout_standard">
+            <t t-out="0"/>
+        </div>
+
+        
+    </template>
+
+    <template id="report_po_doc">
+        <div class="page" style="background-image: url('/qr_scan_odoo_18/static/src/img/kk_bg.png');background-size: 240mm 270mm;left:0;right:0;z-index:-10;width: 240mm;height: 100%;background-repeat: repeat-y;font-family: Roboto;">
+            <div class="row" style="padding-top: 5mm;">
+                <div class="col-3 text-center" style="padding-top:4mm;">
+                    <t t-if="doc.qr_code_image">
+                        <img t-att-src="image_data_uri(doc.qr_code_image)" 
+                        style="width: 110px; height: 110px; border: 1px solid #ccc;" 
+                        alt="QR Code"
+                        width="image"/>
+                        <br/>
+                        <small style="font-size: 10px;">Mã QR: <span t-esc="doc.name"/></small>
+                    </t>
+                </div>
+                <div class="col-6 text-center">
+                    <h2 class="mt16" style="font-size: 34px">
+                        <span>PHIẾU NHẬP KHO</span>
+                    </h2>
+                </div>
+                <div class="col-3">
+                </div>
+            </div>
+
+            <div class="row" style="font-size: 17px; padding-top:2mm;">
+                <div class="col-12">
+                    <div id="custinfo">
+                        <h4>Bên giao hàng: </h4>
+                        <div>
+                            <strong>Nhà cung cấp:</strong>
+                            <span style="padding-right: 8mm" t-if="doc.partner_id.name" t-field="doc.partner_id.name"/>
+                        </div>
+                        <div>
+                            <strong>Địa chỉ:</strong>
+                            <span t-if="doc.partner_id.street">
+                                <span t-if="doc.partner_id.street" t-field="doc.partner_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                <span t-if="doc.partner_id.street2">
+                                        ,
+                                    </span>
+                                <span t-if="doc.partner_id.street2" t-field="doc.partner_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                <span t-if="doc.partner_id.city">
+                                        ,
+                                    </span>
+                                <span t-if="doc.partner_id.city" t-field="doc.partner_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                <span t-if="doc.partner_id.state_id.name">
+                                        ,
+                                    </span>
+                                <span t-if="doc.partner_id.state_id.name" t-field="doc.partner_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                <span t-if="doc.partner_id.country_id.name">
+                                        ,
+                                    </span>
+                                <span t-if="doc.partner_id.country_id.name" t-field="doc.partner_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                            </span>
+                        </div>
+                        <div>
+                            <strong>Số điện thoại:</strong>
+                            <span t-if="doc.partner_id.mobile or doc.partner_id.phone" t-field="doc.partner_id.mobile or doc.partner_id.phone"
+                                  t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-12" id="info">
+                    <h4>
+                        Bên nhận hàng:
+                    </h4>
+                    <!-- <div>
+                        <strong>Tên công ty: </strong><span t-if="doc.partner_shipping_id" t-field="doc.partner_shipping_id.name"/>
+                    </div> -->
+                    <div>
+                        <strong>Địa chỉ: </strong><span>Khuyến Lương, Hà Nội</span>
+                    </div>
+                    <div>
+                        <strong>Số điện thoại: </strong><span>888.000.888</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="padding-top: 2mm;padding-bottom: 3mm;">
+                    <strong>Hai bên cùng nhau lập biên bản bàn giao số lượng hàng theo bảng kế dưới đây:</strong>
+                </div>
+            </div>
+            <div class="row">
+                <div id="product_table">
+                    <table class="table" style="font-size: 17px;">
+                        <style>
+                            th, td {
+                                        border: 1px solid black;
+                                        border-collapse: collapse;
+                                    }
+                        </style>
+                        <thead style="display: table-row-group;">
+                            <tr class="header_tb">
+                                <th name="th_seq" class="text-center">
+                                    <div>STT</div>
+                                    <div style="font-size: 13px;">(No.)</div>
+                                </th>
+                                <th name="th_description" class="text-center">
+                                    <div>Mã hàng</div>
+                                    <div style="font-size: 13px;">(Model)</div>
+                                </th>
+                                <th name="th_uom" class="text-center">
+                                    <div>ĐVT</div>
+                                    <div style="font-size: 13px;">(Unit)</div>
+                                </th>
+                                <th name="th_quantity_rev" class="text-center">
+                                    <div>SLg Giao</div>
+                                    <div style="font-size: 13px;">(Del Q'ty)</div>
+                                </th>
+                                <th name="th_note" class="text-center">
+                                    <div>Ghi chú</div>
+                                    <div style="font-size: 13px;">(Note)</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="wh_tbody">
+                            <t t-set="seq" t-value="0"/>
+                            <t t-foreach="doc.move_ids_without_package" t-as="ml">
+                                <t t-set="seq" t-value="seq + 1"/>
+                                <tr>
+                                    <td style="width: 5%" name="td_seq" class="text-center">
+                                        <span t-esc="seq"/>
+                                    </td>                                    
+                                    <td style="width: 35%" class="text-left">
+                                        <span t-field="ml.product_id"/>
+                                    </td>
+
+                                    <td style="width: 10%; text-align: center;">
+                                        <span t-field="ml.product_uom"/>
+                                    </td>
+                                    <td style="width: 10%; text-align: right;">
+                                        <span t-field="ml.quantity"/>
+                                    </td>
+                                    <td style="width: 10%" class="text-left">
+                                        <!-- <span t-field="ml.note"/> -->
+                                    </td>
+                                </tr>
+                            </t>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-6">
+                </div>
+                <div class="col-6"/>
+            </div>
+            <div class="row" style="padding-top:5mm;">
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Người nhận hàng</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Giao vận</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <strong class="mt64 mb64">Thủ kho</strong>
+                    </div>
+                    <div class="text-center" style="padding-bottom: 4cm;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_purchase_order_khoakim">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="qr_scan_odoo_18.report_layout_po">
+                    <t t-call="qr_scan_odoo_18.report_po_doc"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

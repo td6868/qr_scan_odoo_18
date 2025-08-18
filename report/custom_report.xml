@@ -11,5 +11,29 @@
             <field name="print_report_name">'Phiếu giao hàng - %s - %s' % (object.partner_id.name or '', object.name)</field>
             <field name="binding_type">report</field>
         </record>
+        
+        <record id="action_report_purchase_order_customize" model="ir.actions.report">
+            <field name="name">Phiếu nhập kho</field>
+            <field name="model">stock.picking</field>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">qr_scan_odoo_18.report_purchase_order_khoakim</field>
+            <field name="report_file">qr_scan_odoo_18.report_purchase_order_khoakim</field>
+            <field name="print_report_name">'Phiếu mua hàng - %s - %s' % (object.partner_id.name or '', object.name)</field>
+            <field name="binding_type">report</field>
+        </record>
+
+        <!-- Invoice Print Report -->
+        <record id="action_report_purchase_order_china" model="ir.actions.report">
+            <field name="name">In phiếu chuyển hàng</field>
+            <field name="model">product.order.china</field>
+            <field name="binding_model_id" ref="khoakim_18.model_product_order_china"/>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">qr_scan_odoo_18.action_report_po_china</field>
+            <field name="report_file">qr_scan_odoo_18.action_report_po_china</field>
+            <field name="print_report_name">'Kiện hàng - %s - %s' % (object.name or '', object.partner_id.name)</field>
+            <field name="binding_type">report</field>
+        </record>
+        
     </data>
 </odoo>
