@@ -13,14 +13,15 @@ class ProductOrderChina(models.Model):
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét")
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
     scan_user_id = fields.Many2one('res.users', string="Người quét", compute="_compute_shipping_info",)
-    scan_note = fields.Text(string="Ghi chú", compute="_compute_shipping_info",)
+    scan_note = fields.Char(string="Ghi chú", compute="_compute_shipping_info",)
     shipping_type = fields.Selection([
-        ('pickup', 'Xách tay'),
-        ('viettelpost', 'Chính ngạch'),
-        ('delivery', 'Chuyển phát thường')
+        ('pickup', 'Đến lấy hàng'),
+        ('viettelpost', 'CPN/ViettelPost'),
+        ('delivery', 'Gửi xe hàng'),
+        ('other', 'Khác')
     ], string="Loại vận chuyển", default='pickup', compute='_compute_shipping_info')
     shipping_date = fields.Datetime("Ngày vận chuyển", compute='_compute_shipping_info', readonly=True, default=False)
-    shipping_note = fields.Text("Ghi chú vận chuyển",default=False,compute='_compute_shipping_info')
+    shipping_note = fields.Char("Ghi chú vận chuyển",default=False,compute='_compute_shipping_info')
     is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True,compute='_compute_shipping_info')
 
     def create(self, vals):
@@ -238,7 +239,7 @@ class ProductOrderChinaLineConfirm(models.Model):
         required=True
     )
     quantity_checked = fields.Float("Số lượng đã kiểm", default=0.0)
-    confirm_note = fields.Text("Ghi chú kiểm hàng")
+    confirm_note = fields.Char("Ghi chú kiểm hàng")
     confirm_date = fields.Datetime("Ngày xác nhận", default=fields.Datetime.now)
     confirm_user_id = fields.Many2one(
         'res.users', 
@@ -317,17 +318,18 @@ class StockPickingScanHistory(models.Model):
     
     scan_date = fields.Datetime("Ngày quét", default=fields.Datetime.now)
     scan_user_id = fields.Many2one('res.users', "Người quét", default=lambda self: self.env.user.id)
-    scan_note = fields.Text("Ghi chú khi quét")
+    scan_note = fields.Char("Ghi chú khi quét")
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm', 'scan_history_id', string="Xác nhận sản phẩm", ondelete='cascade')   
     
     # Các trường shipping chuyển từ stock.picking sang
     shipping_type = fields.Selection([
-        ('pickup', 'Khách đến lấy hàng'),
-        ('viettelpost', 'Viettel Post'),
-        ('delivery', 'Đặt ship : Xe khách/Xe ...')
+        ('pickup', 'Đến lấy hàng'),
+        ('viettelpost', 'CPN/ViettelPost'),
+        ('delivery', 'Gửi xe hàng'),
+        ('other', 'Khác')
     ], string="Loại vận chuyển")
-    shipping_phone = fields.Text("Số điện thoại giao vận")
-    shipping_company = fields.Text("Nhà xe") 
+    shipping_phone = fields.Char("Số điện thoại giao vận")
+    shipping_company = fields.Char("Nhà xe") 
     
     @api.depends('attachment_ids')
     def _compute_image_count(self):
