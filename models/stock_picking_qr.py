@@ -10,36 +10,40 @@ class StockPicking(models.Model):
     qr_code_image = fields.Binary("QR Code", attachment=True)
     qr_code_data = fields.Char("QR Code Content")
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
-    is_scanned = fields.Boolean("Đã quét", compute='_compute_is_scanned', default=False, copy=False)
+    # is_scanned = fields.Boolean("Đã quét", compute='_compute_is_scanned', default=False, copy=False)
     
     # Thêm trường mới cho loại vận chuyển
-    shipping_type = fields.Selection([
-        ('pickup', 'Khách đến lấy hàng'),
-        ('viettelpost', 'Viettel Post'),
-        ('delivery', 'Đặt ship : Xe khách/Xe ...')
-    ], string="Loại vận chuyển", default='pickup', compute='_compute_shipping_info')
-    shipping_date = fields.Datetime("Ngày vận chuyển", compute='_compute_shipping_info', readonly=True, default=False)
-    shipping_note = fields.Text("Ghi chú vận chuyển",default=False,compute='_compute_shipping_info')
-    is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True,compute='_compute_shipping_info')
+    # shipping_type = fields.Selection([
+    #     ('pickup', 'Khách đến lấy hàng'),
+    #     ('viettelpost', 'Viettel Post'),
+    #     ('delivery', 'Đặt ship : Xe khách/Xe ...')
+    # ], string="Loại vận chuyển", default='pickup', store=True, compute='_compute_shipping_info')
+
+    # shipping_date = fields.Datetime("Ngày vận chuyển", store=True, compute='_compute_shipping_info', readonly=True, default=False)
+
+    # shipping_note = fields.Text("Ghi chú vận chuyển",default=False,store=True,compute='_compute_shipping_info')
+
+    # is_shipped = fields.Boolean("Đã vận chuyển", default=False, readonly=True,store=True,compute='_compute_shipping_info')
+
     
     # Trạng thái nhận hàng
-    is_received = fields.Boolean("Đã nhận hàng", compute='_compute_inbound_info', default=False)
-    receive_date = fields.Datetime("Ngày nhận hàng", compute='_compute_inbound_info', readonly=True)
-    receive_user_id = fields.Many2one('res.users', string="Người nhận hàng", compute='_compute_inbound_info')
-    receive_note = fields.Text("Ghi chú nhận hàng", compute='_compute_inbound_info')
+    # is_received = fields.Boolean("Đã nhận hàng", compute='_compute_inbound_info', store=True, default=False)
+    # receive_date = fields.Datetime("Ngày nhận hàng", compute='_compute_inbound_info', store=True, readonly=True)
+    # receive_user_id = fields.Many2one('res.users', string="Người nhận hàng", store=True, compute='_compute_inbound_info')
+    # receive_note = fields.Text("Ghi chú nhận hàng", store=True, compute='_compute_inbound_info')
     
     # Trạng thái kiểm hàng
-    is_checked = fields.Boolean("Đã kiểm hàng", compute='_compute_inbound_info', default=False)
-    check_date = fields.Datetime("Ngày kiểm hàng", compute='_compute_inbound_info', readonly=True)
-    check_user_id = fields.Many2one('res.users', string="Người kiểm hàng", compute='_compute_inbound_info')
-    check_note = fields.Text("Ghi chú kiểm hàng", compute='_compute_inbound_info')
+    # is_checked = fields.Boolean("Đã kiểm hàng", compute='_compute_inbound_info', store=True, default=False)
+    # check_date = fields.Datetime("Ngày kiểm hàng", compute='_compute_inbound_info', store=True, readonly=True)
+    # check_user_id = fields.Many2one('res.users', string="Người kiểm hàng", store=True, compute='_compute_inbound_info')
+    # check_note = fields.Text("Ghi chú kiểm hàng", store=True, compute='_compute_inbound_info')
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
-    
+
     # Các trường liên kết với scan_history_ids mới nhất
-    scan_user_id = fields.Many2one('res.users', string="Người quét", compute="_compute_shipping_info",)
-    scan_note = fields.Text(string="Ghi chú", compute="_compute_shipping_info",)
+    # scan_user_id = fields.Many2one('res.users', string="Người quét", compute="_compute_shipping_info", store=True)
+    # scan_note = fields.Text(string="Ghi chú", compute="_compute_shipping_info", store=True)
     
     def create(self, vals):
         picking = super().create(vals)
@@ -62,36 +66,48 @@ class StockPicking(models.Model):
             shipping_history = record.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
             if shipping_history:
                 latest_shipping = shipping_history[0]  # Đã sort theo scan_date desc
-                record.is_shipped = True
-                record.shipping_date = latest_shipping.scan_date
-                record.shipping_note = latest_shipping.scan_note
-                record.shipping_type = latest_shipping.shipping_type
-                record.scan_user_id = latest_shipping.scan_user_id
-                record.scan_note = latest_shipping.scan_note
+                record.update({
+                    'is_shipped': True,
+                    'shipping_date': latest_shipping.scan_date,
+                    'shipping_note': latest_shipping.scan_note,
+                    'scan_user_id': latest_shipping.scan_user_id,
+                    'scan_note': latest_shipping.scan_note,
+                    'shipping_type': latest_shipping.shipping_type,
+                })
             else:
-                record.is_shipped = False
-                record.shipping_date = False
-                record.shipping_note = False
-                record.shipping_type = False
-                record.scan_note = False
-                record.scan_user_id = False
+                record.update({
+                    'is_shipped': False,
+                    'shipping_date': False,
+                    'shipping_note': False,
+                    'shipping_type': False,
+                    'scan_note': False,
+                    'scan_user_id': False,
+                })
 
     @api.depends('scan_history_ids.scan_type')
     def _compute_inbound_info(self):
         for record in self:
             # Tính toán thông tin nhận hàng
             receive_history = record.scan_history_ids.filtered(lambda h: h.scan_type == 'receive')
+            
             if receive_history:
                 latest_receive = receive_history[0]  # Đã sort theo scan_date desc
-                record.is_received = True
-                record.receive_date = latest_receive.scan_date
-                record.receive_user_id = latest_receive.scan_user_id
-                record.receive_note = latest_receive.scan_note
+                is_received = True
+                receive_date = latest_receive.scan_date
+                receive_user_id = latest_receive.scan_user_id
+                receive_note = latest_receive.scan_note
             else:
-                record.is_received = False
-                record.receive_date = False
-                record.receive_user_id = False
-                record.receive_note = False
+                is_received = False
+                receive_date = False
+                receive_user_id = False
+                receive_note = False
+
+            record.update({
+                'is_received': is_received,
+                'receive_date': receive_date,
+                'receive_user_id': receive_user_id,
+                'receive_note': receive_note,
+            })
             
             # Tính toán thông tin kiểm hàng
             check_history = record.scan_history_ids.filtered(lambda h: h.scan_type == 'checking')

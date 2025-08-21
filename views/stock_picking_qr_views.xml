@@ -15,8 +15,9 @@
             <notebook position="inside">
                  <!-- Thêm vào trong record id="view_picking_form_inherit_qr" sau page "Trạng thái"  -->
                 <page string="Lịch sử quét QR" groups="stock.group_stock_manager">
+
                     <group col="2">
-                        <field name="scan_history_ids" nolabel="1">
+                        <field name="scan_history_ids" nolabel="1" readonly="1" force_save="1">
 
                             <list>
                                 <field name="scan_date"/>
@@ -384,6 +385,7 @@
      <!-- Menu Items - Cấu trúc menu mới -->
     <menuitem id="menu_stock_qr_code_root"
               name="QR xuất kho"
+              web_icon="qr_scan_odoo_18/static/description/icon.png"
               sequence="50"/>
 
     <!-- Menu cha cho quét mã QR -->
