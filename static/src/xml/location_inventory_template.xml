@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="qr_scan_odoo_18.LocationInventoryTemplate">
+        <!-- Updated all classes to use mobile-inventory- prefix -->
+        <div class="mobile-inventory-container" t-if="state.showLocationInventoryArea">
+            <!-- Mobile-optimized header -->
+            <div class="mobile-inventory-header">
+                <div class="mobile-inventory-title">
+                    <i class="fa fa-map-marker"></i>
+                    <h3>Kiểm kê vị trí</h3>
+                </div>
+                <div class="mobile-inventory-location-name">
+                    <t t-esc="state.scannedLocationName || 'N/A'"/>
+                </div>
+                <div class="mobile-inventory-stats">
+                    <div class="mobile-inventory-stat-item">
+                        <i class="fa fa-boxes"></i>
+                        <span><t t-esc="state.quants ? state.quants.length : 0"/> sản phẩm</span>
+                    </div>
+                    <div class="mobile-inventory-stat-item">
+                        <i class="fa fa-warehouse"></i>
+                        <span><t t-esc="state.locationData ? state.locationData.usage : 'N/A'"/></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile-optimized action buttons -->
+            <div class="mobile-inventory-actions">
+                <button class="mobile-inventory-btn mobile-inventory-btn-add" t-on-click="onAddNewProduct">
+                    <i class="fa fa-plus"></i>
+                    <span>Thêm sản phẩm</span>
+                </button>
+                <button class="mobile-inventory-btn mobile-inventory-btn-confirm" t-on-click="onConfirmLocationInventory">
+                    <i class="fa fa-check-circle"></i>
+                    <span>Xác nhận kiểm kê</span>
+                </button>
+            </div>
+
+            <!-- Mobile-optimized product list -->
+            <div class="mobile-inventory-products-section">
+                <t t-if="state.quants">
+                    <t t-foreach="state.quants" t-as="quant" t-key="quant.id">
+                        <div class="mobile-inventory-product-card" t-key="quant.id">
+                            <div class="mobile-inventory-product-header">
+                                <div class="mobile-inventory-product-info">
+                                    <h4 class="mobile-inventory-product-name">
+                                        <t t-esc="quant.product_name"/>
+                                        <t t-if="quant.is_new">
+                                            <span class="mobile-inventory-badge-new">Mới</span>
+                                        </t>
+                                    </h4>
+                                    <p class="mobile-inventory-product-code"><t t-esc="quant.product_code || 'N/A'"/></p>
+                                </div>
+                                <div class="mobile-inventory-product-actions">
+                                    <button class="mobile-inventory-btn-search" 
+                                            t-att-data-product-id="quant.product_id"
+                                            t-on-click="onSearchProductOtherLocations"
+                                            title="Tìm ở vị trí khác">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                    <button class="mobile-inventory-btn-delete" 
+                                            t-att-data-product-id="quant.product_id"
+                                            t-att-data-quant-id="quant.id"
+                                            t-on-click="onDeleteProductFromInventory"
+                                            title="Xóa sản phẩm">
+                                        <i class="fa fa-trash"> Xóa </i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-inventory-product-quantities">
+                                <div class="mobile-inventory-quantity-row">
+                                    <label>Số lượng hệ thống:</label>
+                                    <span class="mobile-inventory-system-qty"><t t-esc="quant.quantity"/> <t t-esc="quant.uom_name"/></span>
+                                </div>
+                                
+                                <div class="mobile-inventory-quantity-row">
+                                    <label>Số lượng kiểm kê:</label>
+                                    <div class="mobile-inventory-quantity-input-wrapper">
+                                        <input type="number" 
+                                               class="mobile-inventory-quantity-input" 
+                                               t-att-value="quant.counted_quantity"
+                                               t-att-data-quant-id="quant.id"
+                                               min="0" 
+                                               step="0.01"
+                                               placeholder="Nhập số lượng"
+                                               t-on-input="onLocationQuantityUpdate"/>
+                                        <span class="mobile-inventory-unit-label"><t t-esc="quant.uom_name"/></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mobile-inventory-quantity-row">
+                                    <label>Chênh lệch:</label>
+                                    <span t-attf-class="mobile-inventory-difference #{(quant.counted_quantity || 0) - quant.quantity &gt; 0 ? 'mobile-inventory-positive' : ( (quant.counted_quantity || 0) - quant.quantity &lt; 0 ? 'mobile-inventory-negative' : 'mobile-inventory-neutral')}">
+                                        <t t-esc="((quant.counted_quantity || 0) - quant.quantity).toFixed(2)"/> <t t-esc="quant.uom_name"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="mobile-inventory-loading-state">
+                        <i class="fa fa-spinner fa-spin"></i>
+                        <p>Đang tải dữ liệu...</p>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Mobile-optimized summary -->
+            <div class="mobile-inventory-summary-section">
+                <div class="mobile-inventory-summary-card">
+                    <h4>Tổng quan kiểm kê</h4>
+                    <div class="mobile-inventory-summary-stats">
+                        <div class="mobile-inventory-summary-item">
+                            <span class="mobile-inventory-label">Tổng sản phẩm:</span>
+                            <span class="mobile-inventory-value"><t t-esc="state.quants ? state.quants.length : 0"/></span>
+                        </div>
+                        <div class="mobile-inventory-summary-item">
+                            <span class="mobile-inventory-label">Có thay đổi:</span>
+                            <span class="mobile-inventory-value"><t t-esc="state.quants ? state.quants.filter(q => q.difference !== 0).length : 0"/></span>
+                        </div>
+                        <div class="mobile-inventory-summary-item">
+                            <span class="mobile-inventory-label">Tổng chênh lệch:</span>
+                            <span class="mobile-inventory-value"><t t-esc="state.quants ? state.quants.reduce((sum, q) => sum + (q.difference || 0), 0).toFixed(2) : '0.00'"/></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mobile-inventory-notes-card">
+                    <h4>Ghi chú kiểm kê</h4>
+                    <textarea class="mobile-inventory-notes-input" 
+                              rows="4" 
+                              placeholder="Nhập ghi chú về việc kiểm kê..."
+                              t-att-value="state.scanNoteValue"
+                              t-on-input="onScanNoteInput"></textarea>
+                </div>
+            </div>
+
+            <!-- Mobile-optimized modal -->
+            <div class="mobile-inventory-modal-overlay" id="otherLocationsModal" style="display: none;">
+                <div class="mobile-inventory-modal-container">
+                    <div class="mobile-inventory-modal-header">
+                        <h4>
+                            <i class="fa fa-search"></i>
+                            Sản phẩm ở vị trí khác
+                        </h4>
+                        <button type="button" class="mobile-inventory-btn-close" data-bs-dismiss="modal">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mobile-inventory-modal-body">
+                        <div id="otherLocationsContent">
+                            <div class="mobile-inventory-loading-state">
+                                <i class="fa fa-spinner fa-spin"></i>
+                                <p>Đang tìm kiếm...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-inventory-modal-footer">
+                        <button type="button" class="mobile-inventory-btn mobile-inventory-btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

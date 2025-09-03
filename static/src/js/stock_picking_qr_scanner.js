@@ -11,10 +11,12 @@ import { PrepareScanHandler } from "./handlers/prepare_scan_handler.js"
 import { ShippingScanHandler } from "./handlers/shipping_scan_handler.js"
 import { ReceiveScanHandler } from "./handlers/receive_scan_handler.js"
 import { CheckingScanHandler } from "./handlers/checking_scan_handler.js"
+import { LocationScanHandler } from "./handlers/location_scan_handler.js"
 import { CameraManager } from "./utils/camera_manager.js"
 import { FileManager } from "./utils/file_manager.js"
 import { registry } from "@web/core/registry";
 import { ConfirmationDialog } from "./components/confirmation_dialog.js"
+import { markup } from "@odoo/owl"
 
 
 export class StockPickingQrScanner extends Component {
@@ -52,6 +54,7 @@ export class StockPickingQrScanner extends Component {
       showShippingTypeArea: false,
       showShippingCaptureArea: false,
       showShippingNoteArea: false,
+      showLocationInventoryArea: false,
 
       // Data
       capturedImages: [],
@@ -60,6 +63,10 @@ export class StockPickingQrScanner extends Component {
       shippingPhone: "",
       shippingCompany: "",
       scanNoteValue: "",
+      scannedLocationId: null,
+      scannedLocationName: null,
+      locationData: null,
+      quants: [],
 
       // Capture methods
       captureMethod: null,
@@ -83,23 +90,13 @@ export class StockPickingQrScanner extends Component {
       shipping: new ShippingScanHandler(this),
       receive: new ReceiveScanHandler(this),
       checking: new CheckingScanHandler(this),
+      kiemke: new LocationScanHandler(this),
     }
 
     onMounted(() => {
     })
 
   }
-
-  /**
-   * Mounted - khởi tạo refs sau khi component được mount
-   */
-  // mounted() {
-  //   // Lấy refs từ DOM thay vì dùng useRef
-  //   this.result = { el: this.el.querySelector('[t-ref="result"]') }
-  //   this.video = { el: this.el.querySelector('[t-ref="video"]') }
-  //   this.scanNote = { el: this.el.querySelector('[t-ref="scanNote"]') }
-  //   this.fileInput = { el: this.el.querySelector('[t-ref="fileInput"]') }
-  // }
 
   /**
    * Trigger re-render khi state thay đổi
@@ -208,15 +205,19 @@ export class StockPickingQrScanner extends Component {
       showReceiveNoteArea: false,
       showCheckingCaptureArea: false,
       showCheckingProductConfirmArea: false,
+      showLocationInventoryArea: false,
       capturedImages: [],
       moveLines: [],
       scannedPickingId: null,
       scannedPickingName: null,
+      scannedLocationId: null,
+      scannedLocationName: null,
+      locationData: null,
+      quants: [],
       captureMethod: null,
       shippingCaptureMethod: null,
       checkingCaptureMethod: null,
       receiveCaptureMethod: null,
-
     })
   }
 
@@ -337,7 +338,7 @@ export class StockPickingQrScanner extends Component {
       newMoveLines[lineIndex].confirm_note = ev.target.value
       this._updateState({ moveLines: newMoveLines })
     } catch (error) {
-      console.error("[v0] Error in onConfirmNoteInput:", error)
+      console.error("Error in onConfirmNoteInput:", error)
     }
   }
 
@@ -352,14 +353,6 @@ export class StockPickingQrScanner extends Component {
   // UI helper methods
   onCaptureMethodChange(method) {
     this._updateState({ captureMethod: method })
-  }
-
-  onCheckingCaptureMethodChange(method) {
-    this._updateState({ checkingCaptureMethod: method })
-  }
-
-  onReceiveCaptureMethodChange(method) {
-    this._updateState({ receiveCaptureMethod: method })
   }
 
   saveImages() {
@@ -439,7 +432,7 @@ export class StockPickingQrScanner extends Component {
     if (!this.state.scannedPickingId) {
       this.notification.add("Không có thông tin sản phẩm để xác nhận.", { type: "danger" })
       return
-    }
+    } 
 
     this.dialogService.add(ConfirmationDialog, {
       title: "Xác nhận lưu",
@@ -472,8 +465,263 @@ export class StockPickingQrScanner extends Component {
         await handler.saveScanReceiveData(data)
       },
     })
+  }
 
+  // ========== LOCATION INVENTORY METHODS ==========
+  
+  onLocationQuantityUpdate(event) {
+    const quantId = parseInt(event.target.dataset.quantId)
+    const newQuantity = parseFloat(event.target.value) || 0
+    
+    if (newQuantity < 0) {
+      this.notification.add("Số lượng không âm", { type: "warning" })
+      event.target.value = 0
+      return
+    }
+    
+    const handler = this.handlers.kiemke
+    if (handler) {
+      handler.updateProductQuantity(quantId, newQuantity)
+    }
+  }
+  
+  onAddNewProduct() {
+    // Hiển thị dialog tìm kiếm và chọn sản phẩm
+    this.dialogService.add(ConfirmationDialog, {
+      title: "Thêm sản phẩm mới",
+      body: markup(`
+        <div class="form-group">
+          <label>Tìm kiếm sản phẩm:</label>
+          <div class="dropdown w-100">
+            <input type="text" 
+                  id="productSearchInput" 
+                  class="form-control" 
+                  placeholder="Nhập tên hoặc mã sản phẩm..." 
+                  autocomplete="off"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">
+            <ul class="dropdown-menu w-100 mt-1" id="newProductSelect">
+              <li><span class="dropdown-item-text">-- Nhập từ khóa tìm kiếm --</span></li>
+            </ul>
+          </div>
+        </div>
 
+        <div class="form-group mt-2">
+          <label>Số lượng:</label>
+          <input type="number" id="newProductQuantity" class="form-control" min="0" step="0.01" value="1">
+        </div>
+      `),
+      confirm: async () => {
+        const productSearchInput = document.getElementById('productSearchInput')
+        const quantityInput = document.getElementById('newProductQuantity')
+        
+        const selectedProductId = productSearchInput.dataset.selectedProductId
+        if (!selectedProductId) {
+          this.notification.add("Vui lòng chọn sản phẩm", { type: "warning" })
+          return
+        }
+        
+        const productId = parseInt(selectedProductId)
+        const quantity = parseFloat(quantityInput.value) || 0
+        
+        if (quantity <= 0) {
+          this.notification.add("Số lượng phải lớn hơn 0", { type: "warning" })
+          return
+        }
+        
+        const handler = this.handlers.kiemke
+        if (handler) {
+          await handler.addNewProduct(productId, quantity)
+        }
+      },
+    })
+    
+    // Setup search functionality
+    setTimeout(() => {
+      this._setupProductSearch()
+    }, 100)
+  }
+
+  _setupProductSearch() {
+    const searchInput = document.getElementById('productSearchInput')
+    const productDropdown = document.getElementById('newProductSelect')
+    
+    if (!searchInput || !productDropdown) return
+    
+    let searchTimeout
+    
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout)
+      const searchTerm = e.target.value.trim()
+      
+      // Clear selected product when typing
+      delete searchInput.dataset.selectedProductId
+      
+      searchTimeout = setTimeout(async () => {
+        if (searchTerm.length >= 2) {
+          await this._searchAndLoadProducts(searchTerm, productDropdown)
+        } else {
+          // Clear dropdown if search term too short
+          productDropdown.innerHTML = '<li><span class="dropdown-item-text">-- Nhập ít nhất 2 ký tự --</span></li>'
+        }
+      }, 300) // Debounce 300ms
+    })
+    
+    // Setup dropdown click handlers
+    productDropdown.addEventListener('click', (e) => {
+      if (e.target.classList.contains('dropdown-item') && e.target.dataset.productId) {
+        const productId = e.target.dataset.productId
+        const productName = e.target.textContent
+        
+        // Set selected product
+        searchInput.value = productName
+        searchInput.dataset.selectedProductId = productId
+        
+        // Close dropdown
+        document.getElementById("newProductSelect").classList.remove("show");
+      }
+    })
+    
+    // Focus on search input
+    searchInput.focus()
+  }
+  
+  async _searchAndLoadProducts(searchTerm, dropdownElement) {
+    try {
+      dropdownElement.innerHTML = '<li><span class="dropdown-item-text">Đang tìm kiếm...</span></li>'
+      
+      console.log('Searching for products with term:', searchTerm)
+      
+      const products = await this.orm.call(
+        'stock.quant',
+        'search_products_for_inventory',
+        [],
+        {
+          search_term: searchTerm,
+          limit: 50
+        }
+      )
+      
+      console.log('Products received from backend:', products)
+      
+      dropdownElement.innerHTML = ''
+      
+      if (products && products.length > 0) {
+        products.forEach(product => {
+          const listItem = document.createElement('li')
+          const link = document.createElement('a')
+          link.className = 'dropdown-item'
+          link.href = '#'
+          link.dataset.productId = product.id
+          link.textContent = `${product.default_code || ''} - ${product.name}`
+          listItem.appendChild(link)
+          dropdownElement.appendChild(listItem)
+        })
+        console.log(`Added ${products.length} products to dropdown`)
+      } else {
+        dropdownElement.innerHTML = '<li><span class="dropdown-item-text">Không tìm thấy sản phẩm</span></li>'
+        console.log('No products found')
+      }
+    } catch (error) {
+      console.error('Lỗi tìm kiếm sản phẩm:', error)
+      dropdownElement.innerHTML = '<li><span class="dropdown-item-text">Lỗi tìm kiếm</span></li>'
+    }
+  }
+  
+  onDeleteProductFromInventory(event) {
+    const productId = parseInt(event.target.dataset.productId)
+    const quantId = parseInt(event.target.dataset.quantId)
+    
+    // Tìm thông tin sản phẩm
+    const quant = this.state.quants.find(q => q.id === quantId)
+    if (!quant) {
+      this.notification.add("Không tìm thấy sản phẩm", { type: "warning" })
+      return
+    }
+    
+    this.dialogService.add(ConfirmationDialog, {
+      title: "Xác nhận xóa sản phẩm",
+      body: `Bạn có chắc chắn muốn xóa sản phẩm "${quant.product_name}" khỏi vị trí này không? Hành động này không thể hoàn tác.`,
+      confirm: async () => {
+        const handler = this.handlers.kiemke
+        if (handler) {
+          await handler.removeProductFromInventory(productId)
+        }
+      },
+    })
+  }
+
+  onConfirmLocationInventory() {
+    this.dialogService.add(ConfirmationDialog, {
+      title: "Xác nhận kiểm kê",
+      body: "Bạn có chắc chắn muốn xác nhận kiểm kê này không? Hệ thống sẽ cập nhật số lượng kho.",
+      confirm: async () => {
+        const handler = this.handlers.kiemke
+        if (handler) {
+          await handler.confirmInventory()
+        }
+      },
+    })
+  }
+  
+  onSearchProductOtherLocations(event) {
+    const productId = parseInt(event.target.dataset.productId)
+    const handler = this.handlers.kiemke
+    if (handler) {
+      handler.searchProductInOtherLocations(productId).then(locations => {
+        this._showOtherLocationsModal(locations)
+      })
+    }
+  }
+  
+  _showOtherLocationsModal(locations) {
+    let contentHtml;
+    console.log("locations:", locations);               // In object rõ ràng trong console
+    console.log("json:", JSON.stringify(locations));   // In ra dạng chuỗi JSON
+
+    if (locations && locations.length > 0) {
+        const rows = locations.map(loc => `
+            <tr>
+                <td>${loc.location_name}</td>
+                <td>${loc.quantity}</td>
+                <td>${loc.reserved_quantity}</td>
+                <td>${loc.available_quantity}</td>
+                <td>${loc.uom_name}</td>
+            </tr>
+        `).join("");
+
+        contentHtml = `
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Vị trí</th>
+                            <th>Số lượng</th>
+                            <th>Đã đặt</th>
+                            <th>Khả dụng</th>
+                            <th>Đơn vị</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } else {
+        contentHtml = `
+            <div class="text-center text-muted">
+                <p>Không tìm thấy sản phẩm ở vị trí khác</p>
+            </div>
+        `;
+    }
+
+    this.dialogService.add(ConfirmationDialog, {
+      title: "Sản phẩm ở vị trí khác",
+      body: markup(contentHtml),
+      confirm: () => {}, // Empty confirm function
+      confirmText: "Đóng"
+    });
   }
 
 }

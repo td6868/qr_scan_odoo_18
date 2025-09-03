@@ -111,20 +111,20 @@ export class QRScanner extends Component {
         }
       }
 
-      // Kiểm tra định dạng QR hợp lệ
-      if (!scannedData.hasOwnProperty("Model") || !scannedData.hasOwnProperty("ID")) {
-        return { isValid: false, error: "QR không chứa thông tin model hợp lệ" }
+      // Bắt buộc phải có Model
+      if (!scannedData.hasOwnProperty("Model")) {
+        return { isValid: false, error: "QR không chứa thông tin model" }
       }
+
+      const model = scannedData.Model
+      const recordId = scannedData.ID ? Number.parseInt(scannedData.ID) : null
 
       return {
         isValid: true,
-        model: scannedData.Model,
-        recordId: Number.parseInt(scannedData.ID),
-        pickingName: scannedData.Picking,
-        customerName: scannedData.Customer,
-        date: scannedData.Date,
+        model: model,                  // vd: "stock.picking", "stock.location"
+        recordId: recordId,            // nếu không có ID sẽ = null
         rawData: data,
-        parsedData: scannedData,
+        parsedData: scannedData,       // giữ nguyên các key-value parse được
       }
     } catch (error) {
       return { isValid: false, error: "Lỗi parse dữ liệu QR: " + error.message }

@@ -9,7 +9,7 @@
                             <button type="button" class="btn-close" t-on-click="onCancel"></button>
                         </div>
                         <div class="modal-body">
-                            <p t-esc="props.body"/>
+                            <div t-out="props.body"/>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" t-on-click="onCancel">

@@ -38,7 +38,10 @@
                                         <div class="col-md-4">
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanType('inventory')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-clipboard-list fa-3x mb-3 text-warning"></i>
+                                                    <img src="/qr_scan_odoo_18/static/description/icon.png"
+                                                        alt="Kiểm kê"
+                                                        class="mb-3"
+                                                        style="width: 48px; height: 48px;"/>
                                                     <h5>Kiểm kê</h5>
                                                     <p class="small">Quét QR kiểm kê kho</p>
                                                 </div>
@@ -94,6 +97,21 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- KIỂM KÊ MODES -->
+                                    <div t-if="this.scanType === 'inventory'" class="row">
+                                        <div class="col-md-6">
+                                            <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('kiemke')">
+
+                                                <div class="card-body text-center">
+                                                    <i class="fa fa-check-square fa-3x mb-3 text-warning"></i>
+                                                    <h5>Kiểm kê</h5>
+                                                    <p class="small">Quét QR, và kiểm kê hàng hóa</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>                  
 
                                 <!-- <div t-if="!state.showModeSelector">
@@ -111,7 +129,7 @@
                                         <div id="reader" style="width: 100%;"></div>
                                     </div>
 
-                                    <!-- <div t-if="state.successMessage" t-raw="state.successMessage" class="mt-3"/> -->
+                                    <!-- <div t-if="state.successMessage" t-out="state.successMessage" class="mt-3"/> -->
 
                                     <!-- PREPARE MODE SECTIONS (EXISTING) -->
                                     <div t-if="state.scanMode === 'prepare'">                                
@@ -409,9 +427,9 @@
                                                 <div class="upload-area border border-dashed p-4 text-center">
                                                     <i class="fa fa-cloud-upload fa-3x text-muted mb-3"></i>
                                                     <p class="mb-3">Chọn ảnh từ thiết bị của bạn</p>
-                                                    <input t-ref="shippingFileInput" type="file" class="d-none" accept="image/*" t-on-change="onFileSelected"/>
+                                                    <input t-ref="fileInput" type="file" class="d-none" accept="image/*" t-on-change="onFileSelected"/>
                                                     <!-- Fixed shipping file input click to use method instead of ref -->
-                                                    <button class="btn btn-primary" t-on-click="() => this.shippingFileInput.el.click()">
+                                                    <button class="btn btn-primary" t-on-click="() => this.fileInput.el.click()">
                                                         <i class="fa fa-folder-open me-2"></i>Chọn ảnh
                                                     </button>
                                                 </div>
@@ -707,6 +725,10 @@
                                                 </button>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div t-if="state.scanMode === 'kiemke'">
+                                        <!-- Template kiểm kê kho -->
+                                        <t t-call="qr_scan_odoo_18.LocationInventoryTemplate"/>
                                     </div>
                                 </div>
                             </div>

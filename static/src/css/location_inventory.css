@@ -1,0 +1,565 @@
+Mobile-First Location Inventory Styles
+/* Added mobile-inventory- prefix to all classes to avoid conflicts */
+.mobile-inventory-container {
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Mobile-optimized header */
+.mobile-inventory-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-inventory-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mobile-inventory-title i {
+  font-size: 18px;
+}
+
+.mobile-inventory-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.mobile-inventory-location-name {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.mobile-inventory-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mobile-inventory-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.mobile-inventory-stat-item i {
+  font-size: 14px;
+}
+
+/* Mobile-optimized action buttons */
+.mobile-inventory-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mobile-inventory-actions .mobile-inventory-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 48px; /* Touch-friendly height */
+}
+
+.mobile-inventory-btn-add {
+  background: #28a745;
+  color: white;
+}
+
+.mobile-inventory-btn-add:hover,
+.mobile-inventory-btn-add:active {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.mobile-inventory-btn-confirm {
+  background: #007bff;
+  color: white;
+}
+
+.mobile-inventory-btn-confirm:hover,
+.mobile-inventory-btn-confirm:active {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Mobile-optimized product cards */
+.mobile-inventory-products-section {
+  margin-bottom: 24px;
+}
+
+.mobile-inventory-product-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.mobile-inventory-product-card:active {
+  transform: scale(0.98);
+}
+
+.mobile-inventory-product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.mobile-inventory-product-info {
+  flex: 1;
+}
+
+.mobile-inventory-product-name {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobile-inventory-badge-new {
+  background: #28a745;
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.mobile-inventory-product-code {
+  margin: 0;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.mobile-inventory-btn-search {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-inventory-btn-search:hover,
+.mobile-inventory-btn-search:active {
+  background: #138496;
+  transform: scale(0.95);
+}
+
+/* Mobile-optimized quantities */
+.mobile-inventory-product-quantities {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-inventory-quantity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.mobile-inventory-quantity-row label {
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+  margin: 0;
+}
+
+.mobile-inventory-system-qty {
+  background: #f8f9fa;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #495057;
+  font-size: 14px;
+}
+
+.mobile-inventory-quantity-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-inventory-quantity-input {
+  width: 100px;
+  padding: 8px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 15px;
+  text-align: center;
+  font-weight: 500;
+  transition: border-color 0.2s ease;
+}
+
+.mobile-inventory-quantity-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.mobile-inventory-unit-label {
+  font-size: 13px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.mobile-inventory-difference {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.mobile-inventory-difference.mobile-inventory-positive {
+  background: #d4edda;
+  color: #155724;
+}
+
+.mobile-inventory-difference.mobile-inventory-negative {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.mobile-inventory-difference.mobile-inventory-neutral {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+/* Mobile-optimized summary */
+.mobile-inventory-summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mobile-inventory-summary-card,
+.mobile-inventory-notes-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-inventory-summary-card h4,
+.mobile-inventory-notes-card h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.mobile-inventory-summary-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-inventory-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.mobile-inventory-summary-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-inventory-summary-item .mobile-inventory-label {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.mobile-inventory-summary-item .mobile-inventory-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.mobile-inventory-notes-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+}
+
+.mobile-inventory-notes-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Loading state */
+.mobile-inventory-loading-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.mobile-inventory-loading-state i {
+  font-size: 24px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.mobile-inventory-loading-state p {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Mobile-optimized modal */
+.mobile-inventory-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.mobile-inventory-modal-container {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-inventory-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-inventory-modal-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-inventory-btn-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-inventory-btn-close:hover,
+.mobile-inventory-btn-close:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-inventory-modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.mobile-inventory-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobile-inventory-btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-inventory-btn-secondary:hover,
+.mobile-inventory-btn-secondary:active {
+  background: #545b62;
+}
+
+/* Animations */
+.mobile-inventory-container {
+  animation: mobile-inventory-slideInUp 0.3s ease-out;
+}
+
+@keyframes mobile-inventory-slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-inventory-product-card {
+  animation: mobile-inventory-fadeInUp 0.3s ease-out;
+}
+
+@keyframes mobile-inventory-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) {
+  .mobile-inventory-container {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .mobile-inventory-actions {
+    max-width: 400px;
+  }
+
+  .mobile-inventory-summary-section {
+    flex-direction: row;
+  }
+
+  .mobile-inventory-summary-card,
+  .mobile-inventory-notes-card {
+    flex: 1;
+  }
+
+  .mobile-inventory-product-quantities {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .mobile-inventory-quantity-row {
+    flex: 1;
+    min-width: 200px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-inventory-container {
+    background: #1a1a1a;
+    color: #ffffff;
+  }
+
+  .mobile-inventory-product-card,
+  .mobile-inventory-summary-card,
+  .mobile-inventory-notes-card {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #ffffff;
+  }
+
+  .mobile-inventory-quantity-input,
+  .mobile-inventory-notes-input {
+    background: #3d3d3d;
+    border-color: #505050;
+    color: #ffffff;
+  }
+
+  .mobile-inventory-system-qty {
+    background: #3d3d3d;
+    color: #ffffff;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mobile-inventory-product-card,
+  .mobile-inventory-summary-card,
+  .mobile-inventory-notes-card {
+    border-width: 2px;
+  }
+
+  .mobile-inventory-quantity-input,
+  .mobile-inventory-notes-input {
+    border-width: 3px;
+  }
+
+  .mobile-inventory-btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

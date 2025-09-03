@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="generate_qr_code_action" model="ir.actions.server">
+            <field name="name">Tạo QR Code cho địa điểm</field>
+            <field name="model_id" ref="stock.model_stock_location"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    for record in records:
+                        record.generate_qr_code()
+            </field>
+            <field name="binding_model_id" ref="stock.model_stock_location"/>
+        </record>
+    </data>
+</odoo>

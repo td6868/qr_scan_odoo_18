@@ -24,8 +24,3 @@ class ShippingScanProcessor(models.TransientModel):
         # Check if prepared first
         if not picking.scan_history_ids.filtered(lambda h: h.scan_type == 'prepare'):
             raise ValidationError("Phải chuẩn bị hàng trước khi vận chuyển!")
-        
-        # Check if already shipped
-        existing_scan = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
-        if existing_scan:
-            raise ValidationError("Phiếu này đã được vận chuyển rồi!")

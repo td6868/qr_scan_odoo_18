@@ -11,9 +11,9 @@ class ReceiveScanProcessor(models.TransientModel):
 
     def _validate_scan_specific(self, picking, **kwargs):
         """Validate receive scan specific rules"""
-        existing_scan = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'receive')
-        if existing_scan:
-            raise ValidationError("Phiếu nhập kho này đã được nhận hàng rồi!")
+        # existing_scan = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'receive')
+        # if existing_scan:
+        #     raise ValidationError("Phiếu nhập kho này đã được nhận hàng rồi!")
         
         # Check if it's incoming picking
         if picking.picking_type_id.code != 'incoming':

@@ -30,6 +30,8 @@ Long description of module's purpose
                     "crm",
                     "hr",
                     "hr_expense",
+                    "web",
+                    "widget_info_popover",
                 ],
 
     # always loaded
@@ -40,6 +42,8 @@ Long description of module's purpose
         'report/report_po_china.xml',
         'report/report_po_kk.xml',
         'views/stock_picking_qr_views.xml',
+        'views/stock_location_views.xml',
+        'views/scan_history_stock_location_views.xml',
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
     ],
@@ -52,8 +56,10 @@ Long description of module's purpose
     'assets': {
         'web.assets_backend': [
             'qr_scan_odoo_18/static/src/xml/stock_picking_qr_scanner.xml',
-            # 'qr_scan_odoo_18/static/src/js/stock_picking_qr_scaner.js',
+            'qr_scan_odoo_18/static/src/xml/location_inventory_template.xml',
+            # 'qr_scan_odoo_18/static/src/js/stock_picking_scaner.js',
             'qr_scan_odoo_18/static/src/css/stock_picking_qr_scanner.css',
+            'qr_scan_odoo_18/static/src/css/location_inventory.css',
             'qr_scan_odoo_18/static/lib/html5-qrcode/html5-qrcode.min.js',
             'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
 
@@ -75,6 +81,7 @@ Long description of module's purpose
             'qr_scan_odoo_18/static/src/js/handlers/shipping_scan_handler.js',
             'qr_scan_odoo_18/static/src/js/handlers/receive_scan_handler.js',
             'qr_scan_odoo_18/static/src/js/handlers/checking_scan_handler.js',
+            'qr_scan_odoo_18/static/src/js/handlers/location_scan_handler.js',
             
             # Main component
             'qr_scan_odoo_18/static/src/js/stock_picking_qr_scanner.js',

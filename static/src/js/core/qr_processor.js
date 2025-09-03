@@ -18,10 +18,16 @@ export class QRProcessor {
     }
 
     // Validate model
-    if (qrInfo.model !== "stock.picking") {
+    if (qrInfo.model === "stock.picking") {
+      return await this._processPickingQR(qrInfo, context)
+    } else if (qrInfo.model === "stock.location") {
+      return await this._processLocationQR(qrInfo, context)
+    } else {
       throw new Error(`Model không được hỗ trợ: ${qrInfo.model}`)
     }
-
+  }
+  
+  async _processPickingQR(qrInfo, context) {
     // Lấy thông tin picking từ database
     const picking = await this._fetchPicking(qrInfo.recordId)
 
@@ -29,10 +35,27 @@ export class QRProcessor {
     this._validatePickingForContext(picking, context)
 
     return {
+      model: "stock.picking",
       picking,
       qrInfo,
       context,
-      nextAction: this._determineNextAction(picking, context),
+      nextAction: this._determinePickingNextAction(picking, context),
+    }
+  }
+
+  /**
+   * Xử lý QR cho stock.location
+   */
+  async _processLocationQR(qrInfo, context) {
+    // Lấy thông tin location từ database
+    const location = await this._fetchLocation(qrInfo.recordId)
+
+    return {
+      model: "stock.location",
+      location,
+      qrInfo,
+      context,
+      nextAction: this._determineLocationNextAction(location, context),
     }
   }
 
@@ -48,6 +71,20 @@ export class QRProcessor {
     }
 
     return pickings[0]
+  }
+
+  /**
+   * Lấy thông tin location từ database
+   */
+  async _fetchLocation(locationId) {
+    const domain = [["id", "=", locationId]]
+    const locations = await this.orm.call("stock.location", "search_read", [domain])
+
+    if (!locations || locations.length === 0) {
+      throw new Error("Không tìm thấy vị trí kho!")
+    }
+
+    return locations[0]
   }
 
   /**
@@ -70,9 +107,6 @@ export class QRProcessor {
         break
 
       case "shipping":
-        if (!picking.is_scanned) {
-          throw new Error("Phiếu xuất kho này chưa được quét QR và chụp ảnh chứng minh!")
-        }
         if (picking.is_shipped) {
           throw new Error("Phiếu xuất kho này đã được vận chuyển rồi!")
         }
@@ -98,7 +132,7 @@ export class QRProcessor {
   /**
    * Xác định hành động tiếp theo dựa trên context
    */
-  _determineNextAction(picking, context) {
+  _determinePickingNextAction(picking, context) {
     const { scan_mode } = context
 
     const actionMap = {
@@ -109,5 +143,18 @@ export class QRProcessor {
     }
 
     return actionMap[scan_mode] || "showCaptureArea"
+  }
+
+  /**
+   * Xác định hành động tiếp theo cho location
+   */
+  _determineLocationNextAction(location, context) {
+    const { scan_mode } = context
+
+    const actionMap = {
+      kiemke: "showLocationInventoryArea",
+    }
+
+    return actionMap[scan_mode] || "showLocationInventoryArea"
   }
 }

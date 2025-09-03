@@ -4,8 +4,8 @@ access_stock_picking_qr_manager,stock.picking.qr.manager,model_stock_picking,sto
 access_stock_move_line_confirm_user,stock.move.line.confirm.user,model_stock_move_line_confirm,stock.group_stock_user,1,1,1,1
 access_stock_picking_scan_history_user,stock.picking.scan.history.user,model_stock_picking_scan_history,stock.group_stock_user,1,1,1,0
 access_stock_picking_scan_history_manager,stock.picking.scan.history.manager,model_stock_picking_scan_history,stock.group_stock_manager,1,1,1,1
-access_stock_picking_qr_service_user,stock.picking.qr.service.user,model_stock_picking_qr_service,stock.group_stock_user,1,1,1,0
-access_stock_picking_qr_service_manager,stock.picking.qr.service.manager,model_stock_picking_qr_service,stock.group_stock_manager,1,1,1,1
+access_multi_model_qr_service_user,multi.model.qr.service.user,model_multi_model_qr_service,stock.group_stock_user,1,1,1,0
+access_multi_model_qr_service_manager,multi.model.qr.service.manager,model_multi_model_qr_service,stock.group_stock_manager,1,1,1,1
 access_stock_picking_scan_processor_user,stock.picking.scan.processor.user,model_stock_picking_scan_processor,stock.group_stock_user,1,1,1,0
 access_stock_picking_scan_processor_manager,stock.picking.scan.processor.manager,model_stock_picking_scan_processor,stock.group_stock_manager,1,1,1,1
 access_stock_picking_prepare_processor_user,stock.picking.prepare.processor.user,model_stock_picking_prepare_processor,stock.group_stock_user,1,1,1,0
@@ -16,3 +16,7 @@ access_stock_picking_receive_processor_user,stock.picking.receive.processor.user
 access_stock_picking_receive_processor_manager,stock.picking.receive.processor.manager,model_stock_picking_receive_processor,stock.group_stock_manager,1,1,1,1
 access_stock_picking_checking_processor_user,stock.picking.checking.processor.user,model_stock_picking_checking_processor,stock.group_stock_user,1,1,1,0
 access_stock_picking_checking_processor_manager,stock.picking.checking.processor.manager,model_stock_picking_checking_processor,stock.group_stock_manager,1,1,1,1
+access_stock_location_user,stock.location.qr.code.user,model_stock_location,stock.group_stock_user,1,1,1,1
+access_stock_location_manager,stock.location.qr.code.manager,model_stock_location,stock.group_stock_manager,1,1,1,1
+access_stock_location_scan_history_user,stock.location.scan.history.user,model_stock_location_scan_history,base.group_user,1,1,1,1
+access_stock_location_scan_history_manager,stock.location.scan.history.manager,model_stock_location_scan_history,stock.group_stock_manager,1,1,1,1

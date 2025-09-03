@@ -33,6 +33,12 @@
                                         <field name="scan_user_id" readonly="1"/>
                                         <field name="scan_type" readonly="1"/>
                                         <field name="image_count" readonly="1"/>
+                                        <!-- <widget name="info_popover" 
+                                            config='{
+                                                "title": "Thông tin quan trọng",
+                                                "content": "Đây là nội dung hiển thị khi hover",
+                                                "trigger": "hover"
+                                            }'/>                                                                                                                      -->
                                     </group>
                                     <group>
                                         <field name="scan_note"/>
