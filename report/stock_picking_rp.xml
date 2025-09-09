@@ -52,11 +52,9 @@
                 <div class="col-3 text-center" style="padding-top:4mm;">
                     <t t-if="doc.qr_code_image">
                         <img t-att-src="image_data_uri(doc.qr_code_image)" 
-                        style="width: 110px; height: 110px; border: 1px solid #ccc;" 
-                        alt="QR Code"
+                        style="width: 200px; height: 200px; border: 0.5px solid #ccc;" 
                         width="image"/>
                         <br/>
-                        <small style="font-size: 10px;">Mã QR: <span t-esc="doc.name"/></small>
                     </t>
                 </div>
                 <div class="col-6 text-center">
