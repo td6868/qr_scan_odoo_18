@@ -3,7 +3,7 @@
 
     <template id="report_picking_customize_layout">
         <div class="header">
-            <div class="row" t-if="doc.sale_id.company_int.vend_code == 'HV'"
+            <!-- <div class="row" t-if="doc.sale_id.company_int.vend_code == 'HV'"
                  t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/hv_head.jpg');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;">
                 <div class="col-1" style="margin: 2.5mm;"/>
                 <div class="col-8">
@@ -15,7 +15,7 @@
             </div>
 
             <div class="row" t-if="doc.sale_id.company_int.vend_code == 'KK'"
-                 t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/kk_head.png');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;"/>
+                 t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/kk_head.png');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;"/> -->
         </div>
 
         <div class="article o_report_layout_standard">
@@ -88,7 +88,7 @@
                         <strong>Địa chỉ: </strong><span>Khuyến Lương, Hà Nội</span>
                     </div>
                     <div>
-                        <strong>Số điện thoại: </strong><span>888.000.888</span>
+                        <strong>Số điện thoại: </strong><span t-if="doc.sale_id.company_int.phone" t-field="doc.sale_id.company_int.phone"/>
                     </div>
                 </div>
             </div>
