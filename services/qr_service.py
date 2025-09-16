@@ -37,16 +37,14 @@ class MultiModelQRService(models.TransientModel):
     def _build_picking_qr_data(self, picking):
         """Build QR data for stock picking"""
         qr_data = f"Model: stock.picking\n"
-        qr_data += f"Picking: {picking.name}\n"
-        qr_data += f"Customer: {picking.partner_id.name or 'N/A'}\n"
-        qr_data += f"Date: {picking.scheduled_date}\n"
+        # qr_data += f"Picking: {picking.name}\n"
         qr_data += f"ID: {picking.id}\n"
         return qr_data
 
     def _build_location_qr_data(self, location):
         """Build QR data for stock location"""
         qr_data = f"Model: stock.location\n"
-        qr_data += f"Name: {location.name}\n"
+        # qr_data += f"Name: {location.name}\n"
         qr_data += f"ID: {location.id}\n"
         return qr_data
 

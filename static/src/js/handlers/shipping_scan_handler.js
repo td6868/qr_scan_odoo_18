@@ -15,19 +15,9 @@ export class ShippingScanHandler extends BaseScanHandler {
         `
   }
 
-  async _loadRequiredData(picking, context) {
-    // Shipping mode doesn't need to load move lines
-    // Just set basic state
-    this.component._updateState({
-      shippingType: "",
-      shippingPhone: "",
-      shippingCompany: "",
-    })
-  }
-
   async saveToDatabase(data) {
     const { images, scanNote, shippingType, shippingPhone, shippingCompany } = data
-
+  
     try {
       let imagesData = []
       if (shippingType === "delivery" && images && images.length > 0) {
@@ -37,11 +27,12 @@ export class ShippingScanHandler extends BaseScanHandler {
           description: `Ảnh minh chứng vận chuyển #${index + 1}`,
         }))
       }
-
+  
+      // Lưu thông tin vận chuyển
       await this.orm.call("stock.picking", "update_scan_info", 
         [this.component.state.scannedPickingId],
         {
-          images_data: imagesData, // Will be empty array for pickup/viettelpost
+          images_data: imagesData,
           scan_note: scanNote,          
           shipping_type: shippingType,
           shipping_phone: shippingPhone,
@@ -49,17 +40,28 @@ export class ShippingScanHandler extends BaseScanHandler {
           scan_mode: this.component.state.scanMode,
         }
       )
-
-      this.notification.add("Đã lưu thông tin vận chuyển thành công!", { type: "success" })
-
+  
+      // Xác nhận phiếu giao hàng
+      try {
+        await this.orm.call(
+          "stock.picking", 
+          "button_validate", 
+          [this.component.state.scannedPickingId],
+          { 
+            
+          }
+        )
+        this.notification.add("Đã xác nhận và lưu thông tin vận chuyển thành công!", { type: "success" })
+      } catch (validateError) {
+        console.error("Lỗi xác nhận phiếu giao hàng:", validateError)
+        throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu giao hàng: " + validateError.message)
+      }
+  
       this.component._updateState({ showNoteArea: false })
       this.component.resetMode()
     } catch (error) {
       console.error("Lỗi lưu dữ liệu vận chuyển:", error)
-      this.notification.add("Lỗi lưu dữ liệu: " + error.message, { type: "danger" })
+      this.notification.add(error.message || "Lỗi lưu dữ liệu: " + error.message, { type: "danger" })
     }
-  }
-  async saveScanShippingData(data) {
-    return this.saveToDatabase(data)
   }
 }

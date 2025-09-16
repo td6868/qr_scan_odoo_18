@@ -125,6 +125,31 @@ class StockPicking(models.Model):
     def _compute_move_line_confirmed_ids(self):
         for record in self:
             record.move_line_confirmed_ids = record.scan_history_ids.mapped('move_line_confirmed_ids')
+            
+    def action_view_image_proof(self):
+        self.ensure_one()
+        domain = [('picking_id', '=', self.id)]
+        image_proof_ids = self.env['stock.picking.scan.history'].search(domain)
+        """Hiển thị ảnh chứng minh"""
+        result = {
+            'name': 'Ảnh chứng minh',
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking.scan.history',
+            'domain': domain,
+            'context': {'create': False},
+        }          
+        result.update({
+            "view_mode": 'kanban,form',
+            "domain": domain,
+        })  
+        return result
+    
+    
+    def action_print_picking(self):
+        
+        return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize').report_action(self)
+    
+    
 
 class StockMoveLineConfirm(models.Model):
     _name = 'stock.move.line.confirm'
@@ -194,7 +219,9 @@ class StockMoveLineConfirm(models.Model):
         if self.move_id:
             self.product_id = self.move_id.product_id.id
             self.quantity_confirmed = self.move_id.product_uom_qty
-            
+        
+        
+
 class StockPickingScanHistory(models.Model):
     _name = 'stock.picking.scan.history'
     _description = 'Lịch sử quét QR'

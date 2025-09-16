@@ -2,7 +2,7 @@
     <templates xml:space="preserve">
         <t t-name="qr_scan_odoo_18.StockPickingQrScanner">
             <div class="o_stock_picking_qr_scanner">
-                <div class="container py-4">
+                 <div class="container py-4">
                     <div class="row justify-content-center">
                         <div class="col-12 col-md-8">
                             <div class="card shadow">

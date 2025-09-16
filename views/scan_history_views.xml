@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Simple Form View for Scan History - Image Focused -->
+    <record id="view_scan_history_form" model="ir.ui.view">
+        <field name="name">stock.picking.scan.history.form</field>
+        <field name="model">stock.picking.scan.history</field>
+        <field name="arch" type="xml">
+            <form string="Ảnh minh chứng">                
+                <field name="scan_type" readonly="1"/>
+                <field name="attachment_ids" widget="one2many_kanban" nolabel="1" readonly="1" >
+                    <kanban>
+                        <templates>
+                            <t t-name="kanban-box" >                                
+                                <div class="o_kanban_image"> 
+                                    <field name="datas" widget="image" no_open="1" options="{'no_open': True}"/>
+                                    <!-- <img t-att-src="'/web/image/ir.attachment/' + record.id.raw_value + '/datas'" class="img-fluid"/>                                     -->
+                                </div>                                
+                            </t>
+                        </templates>
+                    </kanban>
+                </field>
+            </form>
+        </field>
+    </record>
+
+    <!-- Enhanced Kanban View for Scan History -->
+    <record id="view_scan_history_kanban" model="ir.ui.view">
+        <field name="name">stock.picking.scan.history.kanban</field>
+        <field name="model">stock.picking.scan.history</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false" edit="false">
+                <field name="id"/>              
+                <field name="attachment_ids" readonly="1"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_kanban_card" t-att-data-id="record.id.raw_value">
+                            <!-- Card Header -->
+                            <div class="o_kanban_card_header d-flex justify-content-between align-items-center p-2" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                                <div class="o_kanban_card_header_title">
+                                    <field name="scan_type" class="font-weight-bold text-uppercase" style="font-size: 0.9rem;"/>
+                                </div>
+                                <div t-if="record.attachment_ids.raw_value.length" class="badge badge-pill badge-primary">
+                                    <i class="fa fa-image mr-1"> <t t-esc="record.attachment_ids.raw_value.length"/></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Content -->
+                            <div class="o_kanban_image_flex" style="height: 100px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                                <t t-foreach="record.attachment_ids.raw_value.slice(0, 1)" t-as="attachment_id">
+                                    <img t-att-src="'/web/image/ir.attachment/' + attachment_id + '/datas'"
+                                         class="img-fluid mh-100"
+                                         style="max-width: 50%; max-height: 50%; object-fit: contain; transition: transform 0.2s;"
+                                         alt="Ảnh minh chứng"
+                                         onmouseover="this.style.transform='scale(1.05)'"
+                                         onmouseout="this.style.transform='scale(1)'"/>
+                                </t>
+                                <div t-if="!record.attachment_ids.raw_value.length" class="text-center w-100">
+                                    <i class="fa fa-image fa-3x text-muted mb-2"/>
+                                    <div class="text-muted">Không có hình ảnh</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div class="d-flex justify-content-between align-items-center p-2" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+                                <small class="text-truncate" t-att-title="record.scan_type.raw_value">
+                                    <i class="fa fa-tag mr-1 text-muted"></i>
+                                    <t t-esc="record.scan_type.raw_value || 'Không có tiêu đề'"/>
+                                </small>
+                            </div>
+                        </div>
+                    </t>
+                    
+                    <!-- Kanban Mobile View -->
+                    <t t-name="kanban-box-mobile">
+                        <div class="o_kanban_mobile_card o_kanban_card" t-att-data-id="record.id.raw_value">
+                            <div class="o_kanban_mobile_content">
+                                <div class="o_kanban_mobile_cover">
+                                    <t t-foreach="record.attachment_ids.raw_value.slice(0, 1)" t-as="attachment_id">
+                                        <img t-att-src="'/web/image/ir.attachment/' + attachment_id + '/datas'"
+                                             class="img-fluid"
+                                             style="width: 100%; max-height: 100px; object-fit: cover;"
+                                             readonly="1"/>
+                                    </t>
+                                </div>
+                                <div class="o_kanban_mobile_text">
+                                    <div class="o_text_overflow">
+                                        <strong t-esc="record.scan_type.raw_value"/>
+                                    </div>
+                                    <div t-if="record.attachment_ids.raw_value.length" class="badge badge-pill badge-primary mt-1">
+                                        <i class="fa fa-image mr-1"></i>
+                                        <t t-esc="record.attachment_ids.raw_value.length"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Action for Scan History -->
+    <record id="action_scan_history" model="ir.actions.act_window">
+        <field name="name">Ảnh minh chứng</field>
+        <field name="res_model">stock.picking.scan.history</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có lịch sử quét nào
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item for Scan History -->
+    <!-- <menuitem id="menu_scan_history_root" name="Ảnh minh chứng" sequence="10"/>
+    <menuitem id="menu_scan_history" name="Tất cả ảnh" parent="menu_scan_history_root" 
+              action="action_scan_history"/> -->
+
+</odoo>
