@@ -14,14 +14,12 @@
     <template id="report_po_doc">
         <div class="page" style="background-image: url('/qr_scan_odoo_18/static/src/img/kk_bg.png');background-size: 240mm 270mm;left:0;right:0;z-index:-10;width: 240mm;height: 100%;background-repeat: repeat-y;font-family: Roboto;">
             <div class="row" style="padding-top: 5mm;">
-                <div class="col-3 text-center" style="padding-top:4mm;">
+              <div class="col-3 text-center">
                     <t t-if="doc.qr_code_image">
-                        <img t-att-src="image_data_uri(doc.qr_code_image)" 
-                        style="width: 110px; height: 110px; border: 1px solid #ccc;" 
-                        alt="QR Code"
+                       <img t-att-src="image_data_uri(doc.qr_code_image)" 
+                        style="width: 250px; height: 250px; border: 1px solid #ccc;"
                         width="image"/>
                         <br/>
-                        <small style="font-size: 10px;">Mã QR: <span t-esc="doc.name"/></small>
                     </t>
                 </div>
                 <div class="col-6 text-center">

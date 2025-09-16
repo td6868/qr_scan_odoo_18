@@ -31,7 +31,7 @@ Long description of module's purpose
                     "hr",
                     "hr_expense",
                     "web",
-                    "widget_info_popover",
+                    # "widget_info_popover",
                 ],
 
     # always loaded
