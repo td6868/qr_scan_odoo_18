@@ -144,10 +144,13 @@ class StockPicking(models.Model):
         })  
         return result
     
-    
     def action_print_picking(self):
-        
-        return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize').report_action(self)
+        self.ensure_one()
+        picking_code = self.picking_type_id.code
+        if picking_code == 'outgoing':
+            return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize').report_action(self)
+        else:
+            return self.env.ref('qr_scan_odoo_18.action_report_purchase_order_customize').report_action(self)
     
     
 
