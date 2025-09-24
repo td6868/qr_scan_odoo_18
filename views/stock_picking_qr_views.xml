@@ -9,7 +9,7 @@
             <xpath expr="//button[@name='do_print_picking']" position="replace">
                 <!-- Nút in custom -->
                 <button name="action_print_picking"
-                        string="In phiếu xuất kho"
+                        string="In phiếu"
                         type="object"
                         class="btn-primary"
                         groups="stock.group_stock_user"                        
