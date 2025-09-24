@@ -101,50 +101,54 @@
                             <span style="padding-right: 8mm" t-if="doc.partner_id.name" t-field="doc.partner_id.name"/>
                         </div>
                         <div class="row">                            
-                            <div class="col-5">
+                            <div class="col-6">
                                 <div>
                                     <strong>Địa chỉ:</strong>
-                                    <span t-if="doc.sale_id.partner_shipping_id.street">
-                                        <span t-if="doc.sale_id.partner_shipping_id.street" t-field="doc.sale_id.partner_shipping_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                        <span t-if="doc.sale_id.partner_shipping_id.street2">
+                                    <span t-if="doc.partner_id.street">
+                                        <span t-if="doc.partner_id.street" t-field="doc.partner_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.partner_id.street2">
                                                 ,
                                             </span>
-                                        <span t-if="doc.sale_id.partner_shipping_id.street2" t-field="doc.sale_id.partner_shipping_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                        <span t-if="doc.sale_id.partner_shipping_id.city">
+                                        <span t-if="doc.partner_id.street2" t-field="doc.partner_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.partner_id.city">
                                                 ,
                                             </span>
-                                        <span t-if="doc.sale_id.partner_shipping_id.city" t-field="doc.sale_id.partner_shipping_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                        <span t-if="doc.sale_id.partner_shipping_id.state_id.name">
+                                        <span t-if="doc.partner_id.city" t-field="doc.partner_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.partner_id.state_id.name">
                                                 ,
                                             </span>
-                                        <span t-if="doc.sale_id.partner_shipping_id.state_id.name" t-field="doc.sale_id.partner_shipping_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                        <span t-if="doc.sale_id.partner_shipping_id.country_id.name">
+                                        <span t-if="doc.partner_id.state_id.name" t-field="doc.partner_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.partner_id.country_id.name">
                                                 ,
                                             </span>
-                                        <span t-if="doc.sale_id.partner_shipping_id.country_id.name" t-field="doc.sale_id.partner_shipping_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        <span t-if="doc.partner_id.country_id.name" t-field="doc.partner_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
                                     </span>
                                 </div>
                             </div>
-                            <div class="col-7">
+                            <div class="col-6">
                                 <strong>Địa chỉ nhận hàng:</strong>
-                                <span t-if="doc.partner_id.street">
-                                    <span t-if="doc.partner_id.street" t-field="doc.partner_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                    <span t-if="doc.partner_id.street2">
+                                <span t-if="doc.sale_id.partner_shipping_id">
+                                    <span t-if="doc.sale_id.partner_shipping_id.name">
+                                        <span t-if="doc.sale_id.partner_shipping_id.name" t-field="doc.sale_id.partner_shipping_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                        -
+                                    </span>
+                                    <span t-if="doc.sale_id.partner_shipping_id.street" t-field="doc.sale_id.partner_shipping_id.street" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.sale_id.partner_shipping_id.street2">
                                             ,
                                         </span>
-                                    <span t-if="doc.partner_id.street2" t-field="doc.partner_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                    <span t-if="doc.partner_id.city">
+                                    <span t-if="doc.sale_id.partner_shipping_id.street2" t-field="doc.sale_id.partner_shipping_id.street2" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.sale_id.partner_shipping_id.city">
                                             ,
                                         </span>
-                                    <span t-if="doc.partner_id.city" t-field="doc.partner_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                    <span t-if="doc.partner_id.state_id.name">
+                                    <span t-if="doc.sale_id.partner_shipping_id.city" t-field="doc.sale_id.partner_shipping_id.city" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.sale_id.partner_shipping_id.state_id.name">
                                             ,
                                         </span>
-                                    <span t-if="doc.partner_id.state_id.name" t-field="doc.partner_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
-                                    <span t-if="doc.partner_id.country_id.name">
+                                    <span t-if="doc.sale_id.partner_shipping_id.state_id.name" t-field="doc.sale_id.partner_shipping_id.state_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.sale_id.partner_shipping_id.country_id.name">
                                             ,
                                         </span>
-                                    <span t-if="doc.partner_id.country_id.name" t-field="doc.partner_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
+                                    <span t-if="doc.sale_id.partner_shipping_id.country_id.name" t-field="doc.sale_id.partner_shipping_id.country_id.name" t-options="{&quot;widget&quot;: &quot;text&quot;}"/>
                                 </span>
                             </div>
                         </div>

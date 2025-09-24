@@ -1,6 +1,6 @@
 Mobile-First Location Inventory Styles
-/* Added mobile-inventory- prefix to all classes to avoid conflicts */
-.mobile-inventory-container {
+/* Added mobile-kk-inventory- prefix to all classes to avoid conflicts */
+.mobile-kk-inventory-container {
   background: #ffffff;
   min-height: 100vh;
   padding: 16px;
@@ -8,7 +8,7 @@ Mobile-First Location Inventory Styles
 }
 
 /* Mobile-optimized header */
-.mobile-inventory-header {
+.mobile-kk-inventory-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 20px 16px;
@@ -17,37 +17,37 @@ Mobile-First Location Inventory Styles
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.mobile-inventory-title {
+.mobile-kk-inventory-title {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.mobile-inventory-title i {
+.mobile-kk-inventory-title i {
   font-size: 18px;
 }
 
-.mobile-inventory-title h3 {
+.mobile-kk-inventory-title h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
 }
 
-.mobile-inventory-location-name {
+.mobile-kk-inventory-location-name {
   font-size: 16px;
   font-weight: 500;
   margin-bottom: 16px;
   opacity: 0.9;
 }
 
-.mobile-inventory-stats {
+.mobile-kk-inventory-stats {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.mobile-inventory-stat-item {
+.mobile-kk-inventory-stat-item {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -57,18 +57,18 @@ Mobile-First Location Inventory Styles
   font-size: 14px;
 }
 
-.mobile-inventory-stat-item i {
+.mobile-kk-inventory-stat-item i {
   font-size: 14px;
 }
 
 /* Mobile-optimized action buttons */
-.mobile-inventory-actions {
+.mobile-kk-inventory-actions {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.mobile-inventory-actions .mobile-inventory-btn {
+.mobile-kk-inventory-actions .mobile-kk-inventory-btn {
   flex: 1;
   display: flex;
   align-items: center;
@@ -84,34 +84,34 @@ Mobile-First Location Inventory Styles
   min-height: 48px; /* Touch-friendly height */
 }
 
-.mobile-inventory-btn-add {
+.mobile-kk-inventory-btn-add {
   background: #28a745;
   color: white;
 }
 
-.mobile-inventory-btn-add:hover,
-.mobile-inventory-btn-add:active {
+.mobile-kk-inventory-btn-add:hover,
+.mobile-kk-inventory-btn-add:active {
   background: #218838;
   transform: translateY(-1px);
 }
 
-.mobile-inventory-btn-confirm {
+.mobile-kk-inventory-btn-confirm {
   background: #007bff;
   color: white;
 }
 
-.mobile-inventory-btn-confirm:hover,
-.mobile-inventory-btn-confirm:active {
+.mobile-kk-inventory-btn-confirm:hover,
+.mobile-kk-inventory-btn-confirm:active {
   background: #0056b3;
   transform: translateY(-1px);
 }
 
 /* Mobile-optimized product cards */
-.mobile-inventory-products-section {
+.mobile-kk-inventory-products-section {
   margin-bottom: 24px;
 }
 
-.mobile-inventory-product-card {
+.mobile-kk-inventory-product-card {
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 12px;
@@ -121,22 +121,22 @@ Mobile-First Location Inventory Styles
   transition: transform 0.2s ease;
 }
 
-.mobile-inventory-product-card:active {
+.mobile-kk-inventory-product-card:active {
   transform: scale(0.98);
 }
 
-.mobile-inventory-product-header {
+.mobile-kk-inventory-product-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 16px;
 }
 
-.mobile-inventory-product-info {
+.mobile-kk-inventory-product-info {
   flex: 1;
 }
 
-.mobile-inventory-product-name {
+.mobile-kk-inventory-product-name {
   margin: 0 0 4px 0;
   font-size: 16px;
   font-weight: 600;
@@ -148,7 +148,7 @@ Mobile-First Location Inventory Styles
   flex-wrap: wrap;
 }
 
-.mobile-inventory-badge-new {
+.mobile-kk-inventory-badge-new {
   background: #28a745;
   color: white;
   font-size: 11px;
@@ -157,13 +157,13 @@ Mobile-First Location Inventory Styles
   font-weight: 500;
 }
 
-.mobile-inventory-product-code {
+.mobile-kk-inventory-product-code {
   margin: 0;
   font-size: 13px;
   color: #6c757d;
 }
 
-.mobile-inventory-btn-search {
+.mobile-kk-inventory-btn-search {
   background: #17a2b8;
   color: white;
   border: none;
@@ -177,34 +177,34 @@ Mobile-First Location Inventory Styles
   transition: all 0.2s ease;
 }
 
-.mobile-inventory-btn-search:hover,
-.mobile-inventory-btn-search:active {
+.mobile-kk-inventory-btn-search:hover,
+.mobile-kk-inventory-btn-search:active {
   background: #138496;
   transform: scale(0.95);
 }
 
 /* Mobile-optimized quantities */
-.mobile-inventory-product-quantities {
+.mobile-kk-inventory-product-quantities {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.mobile-inventory-quantity-row {
+.mobile-kk-inventory-quantity-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
 }
 
-.mobile-inventory-quantity-row label {
+.mobile-kk-inventory-quantity-row label {
   font-size: 14px;
   color: #495057;
   font-weight: 500;
   margin: 0;
 }
 
-.mobile-inventory-system-qty {
+.mobile-kk-inventory-system-qty {
   background: #f8f9fa;
   padding: 6px 12px;
   border-radius: 6px;
@@ -213,13 +213,13 @@ Mobile-First Location Inventory Styles
   font-size: 14px;
 }
 
-.mobile-inventory-quantity-input-wrapper {
+.mobile-kk-inventory-quantity-input-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.mobile-inventory-quantity-input {
+.mobile-kk-inventory-quantity-input {
   width: 100px;
   padding: 8px 12px;
   border: 2px solid #e9ecef;
@@ -230,50 +230,50 @@ Mobile-First Location Inventory Styles
   transition: border-color 0.2s ease;
 }
 
-.mobile-inventory-quantity-input:focus {
+.mobile-kk-inventory-quantity-input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-.mobile-inventory-unit-label {
+.mobile-kk-inventory-unit-label {
   font-size: 13px;
   color: #6c757d;
   font-weight: 500;
 }
 
-.mobile-inventory-difference {
+.mobile-kk-inventory-difference {
   font-weight: 600;
   font-size: 14px;
   padding: 4px 8px;
   border-radius: 6px;
 }
 
-.mobile-inventory-difference.mobile-inventory-positive {
+.mobile-kk-inventory-difference.mobile-kk-inventory-positive {
   background: #d4edda;
   color: #155724;
 }
 
-.mobile-inventory-difference.mobile-inventory-negative {
+.mobile-kk-inventory-difference.mobile-kk-inventory-negative {
   background: #f8d7da;
   color: #721c24;
 }
 
-.mobile-inventory-difference.mobile-inventory-neutral {
+.mobile-kk-inventory-difference.mobile-kk-inventory-neutral {
   background: #f8f9fa;
   color: #6c757d;
 }
 
 /* Mobile-optimized summary */
-.mobile-inventory-summary-section {
+.mobile-kk-inventory-summary-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.mobile-inventory-summary-card,
-.mobile-inventory-notes-card {
+.mobile-kk-inventory-summary-card,
+.mobile-kk-inventory-notes-card {
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 12px;
@@ -281,21 +281,21 @@ Mobile-First Location Inventory Styles
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.mobile-inventory-summary-card h4,
-.mobile-inventory-notes-card h4 {
+.mobile-kk-inventory-summary-card h4,
+.mobile-kk-inventory-notes-card h4 {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
   color: #2c3e50;
 }
 
-.mobile-inventory-summary-stats {
+.mobile-kk-inventory-summary-stats {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.mobile-inventory-summary-item {
+.mobile-kk-inventory-summary-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -303,22 +303,22 @@ Mobile-First Location Inventory Styles
   border-bottom: 1px solid #f8f9fa;
 }
 
-.mobile-inventory-summary-item:last-child {
+.mobile-kk-inventory-summary-item:last-child {
   border-bottom: none;
 }
 
-.mobile-inventory-summary-item .mobile-inventory-label {
+.mobile-kk-inventory-summary-item .mobile-kk-inventory-label {
   font-size: 14px;
   color: #6c757d;
 }
 
-.mobile-inventory-summary-item .mobile-inventory-value {
+.mobile-kk-inventory-summary-item .mobile-kk-inventory-value {
   font-size: 15px;
   font-weight: 600;
   color: #2c3e50;
 }
 
-.mobile-inventory-notes-input {
+.mobile-kk-inventory-notes-input {
   width: 100%;
   padding: 12px;
   border: 2px solid #e9ecef;
@@ -330,32 +330,32 @@ Mobile-First Location Inventory Styles
   transition: border-color 0.2s ease;
 }
 
-.mobile-inventory-notes-input:focus {
+.mobile-kk-inventory-notes-input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 /* Loading state */
-.mobile-inventory-loading-state {
+.mobile-kk-inventory-loading-state {
   text-align: center;
   padding: 40px 20px;
   color: #6c757d;
 }
 
-.mobile-inventory-loading-state i {
+.mobile-kk-inventory-loading-state i {
   font-size: 24px;
   margin-bottom: 12px;
   display: block;
 }
 
-.mobile-inventory-loading-state p {
+.mobile-kk-inventory-loading-state p {
   margin: 0;
   font-size: 15px;
 }
 
 /* Mobile-optimized modal */
-.mobile-inventory-modal-overlay {
+.mobile-kk-inventory-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -369,7 +369,7 @@ Mobile-First Location Inventory Styles
   padding: 20px;
 }
 
-.mobile-inventory-modal-container {
+.mobile-kk-inventory-modal-container {
   background: white;
   border-radius: 12px;
   width: 100%;
@@ -379,7 +379,7 @@ Mobile-First Location Inventory Styles
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.mobile-inventory-modal-header {
+.mobile-kk-inventory-modal-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 16px 20px;
@@ -388,7 +388,7 @@ Mobile-First Location Inventory Styles
   align-items: center;
 }
 
-.mobile-inventory-modal-header h4 {
+.mobile-kk-inventory-modal-header h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -397,7 +397,7 @@ Mobile-First Location Inventory Styles
   gap: 8px;
 }
 
-.mobile-inventory-btn-close {
+.mobile-kk-inventory-btn-close {
   background: none;
   border: none;
   color: white;
@@ -408,25 +408,25 @@ Mobile-First Location Inventory Styles
   transition: background-color 0.2s ease;
 }
 
-.mobile-inventory-btn-close:hover,
-.mobile-inventory-btn-close:active {
+.mobile-kk-inventory-btn-close:hover,
+.mobile-kk-inventory-btn-close:active {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.mobile-inventory-modal-body {
+.mobile-kk-inventory-modal-body {
   padding: 20px;
   max-height: 60vh;
   overflow-y: auto;
 }
 
-.mobile-inventory-modal-footer {
+.mobile-kk-inventory-modal-footer {
   padding: 16px 20px;
   border-top: 1px solid #e9ecef;
   display: flex;
   justify-content: flex-end;
 }
 
-.mobile-inventory-btn-secondary {
+.mobile-kk-inventory-btn-secondary {
   background: #6c757d;
   color: white;
   border: none;
@@ -437,17 +437,17 @@ Mobile-First Location Inventory Styles
   transition: background-color 0.2s ease;
 }
 
-.mobile-inventory-btn-secondary:hover,
-.mobile-inventory-btn-secondary:active {
+.mobile-kk-inventory-btn-secondary:hover,
+.mobile-kk-inventory-btn-secondary:active {
   background: #545b62;
 }
 
 /* Animations */
-.mobile-inventory-container {
-  animation: mobile-inventory-slideInUp 0.3s ease-out;
+.mobile-kk-inventory-container {
+  animation: mobile-kk-inventory-slideInUp 0.3s ease-out;
 }
 
-@keyframes mobile-inventory-slideInUp {
+@keyframes mobile-kk-inventory-slideInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -458,11 +458,11 @@ Mobile-First Location Inventory Styles
   }
 }
 
-.mobile-inventory-product-card {
-  animation: mobile-inventory-fadeInUp 0.3s ease-out;
+.mobile-kk-inventory-product-card {
+  animation: mobile-kk-inventory-fadeInUp 0.3s ease-out;
 }
 
-@keyframes mobile-inventory-fadeInUp {
+@keyframes mobile-kk-inventory-fadeInUp {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -475,32 +475,32 @@ Mobile-First Location Inventory Styles
 
 /* Tablet adjustments */
 @media (min-width: 768px) {
-  .mobile-inventory-container {
+  .mobile-kk-inventory-container {
     padding: 24px;
     max-width: 800px;
     margin: 0 auto;
   }
 
-  .mobile-inventory-actions {
+  .mobile-kk-inventory-actions {
     max-width: 400px;
   }
 
-  .mobile-inventory-summary-section {
+  .mobile-kk-inventory-summary-section {
     flex-direction: row;
   }
 
-  .mobile-inventory-summary-card,
-  .mobile-inventory-notes-card {
+  .mobile-kk-inventory-summary-card,
+  .mobile-kk-inventory-notes-card {
     flex: 1;
   }
 
-  .mobile-inventory-product-quantities {
+  .mobile-kk-inventory-product-quantities {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 16px;
   }
 
-  .mobile-inventory-quantity-row {
+  .mobile-kk-inventory-quantity-row {
     flex: 1;
     min-width: 200px;
     flex-direction: column;
@@ -511,27 +511,27 @@ Mobile-First Location Inventory Styles
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .mobile-inventory-container {
+  .mobile-kk-inventory-container {
     background: #1a1a1a;
     color: #ffffff;
   }
 
-  .mobile-inventory-product-card,
-  .mobile-inventory-summary-card,
-  .mobile-inventory-notes-card {
+  .mobile-kk-inventory-product-card,
+  .mobile-kk-inventory-summary-card,
+  .mobile-kk-inventory-notes-card {
     background: #2d2d2d;
     border-color: #404040;
     color: #ffffff;
   }
 
-  .mobile-inventory-quantity-input,
-  .mobile-inventory-notes-input {
+  .mobile-kk-inventory-quantity-input,
+  .mobile-kk-inventory-notes-input {
     background: #3d3d3d;
     border-color: #505050;
     color: #ffffff;
   }
 
-  .mobile-inventory-system-qty {
+  .mobile-kk-inventory-system-qty {
     background: #3d3d3d;
     color: #ffffff;
   }
@@ -539,27 +539,27 @@ Mobile-First Location Inventory Styles
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
-  .mobile-inventory-product-card,
-  .mobile-inventory-summary-card,
-  .mobile-inventory-notes-card {
+  .mobile-kk-inventory-product-card,
+  .mobile-kk-inventory-summary-card,
+  .mobile-kk-inventory-notes-card {
     border-width: 2px;
   }
 
-  .mobile-inventory-quantity-input,
-  .mobile-inventory-notes-input {
+  .mobile-kk-inventory-quantity-input,
+  .mobile-kk-inventory-notes-input {
     border-width: 3px;
   }
 
-  .mobile-inventory-btn {
+  .mobile-kk-inventory-btn {
     border: 2px solid currentColor;
   }
 }
 
 /* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
+/* @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
+} */
