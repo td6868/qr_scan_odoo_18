@@ -23,7 +23,7 @@
                     class="oe_stat_button"
                     icon="fa-image"
                     string="Ảnh minh chứng"
-                    invisible="state != 'done'"/>
+                    invisible="image_count == 0"/>
             </xpath>
 
             <notebook position="inside">

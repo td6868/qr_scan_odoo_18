@@ -176,7 +176,7 @@
                                                 </div>
                                                 <t t-if="!state.capturedImages.length || state.captureMethod === 'camera'">
                                                     <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                    <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
+                                                    <!-- <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button> -->
                                                     <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
                                                 </t>
                                             </div>
@@ -213,9 +213,6 @@
                                                                 <div class="card-body p-2">
                                                                     <small class="text-muted d-block"><t t-esc="image.timestamp"/></small>
                                                                     <div class="btn-group btn-group-sm w-100 mt-2">
-                                                                        <button class="btn btn-outline-primary" t-on-click="() => this.viewImage(image_index, 'prepare')" title="Xem">
-                                                                            <i class="fa fa-eye"></i>
-                                                                        </button>
                                                                         <button class="btn btn-outline-danger" t-on-click="() => this.removeImage(image_index, 'prepare')" title="Xóa">
                                                                             <i class="fa fa-trash"></i>
                                                                         </button>
@@ -278,7 +275,7 @@
                                                                 <div>
                                                                     <label t-att-for="'quantity-confirmed-' + line_index" class="form-label small text-muted fw-medium">
                                                                         <i class="fa fa-check-circle me-1 text-success"></i>
-                                                                        Số lượng Yêu cầu / Xác nhận
+                                                                        Số lượng Xác nhận/ Yêu cầu
                                                                     </label>
                                                                     <div class="input-group">
                                                                         <input
@@ -410,7 +407,6 @@
                                                 </div>
                                                 <t t-if="!state.capturedImages.length || state.captureMethod === 'camera'">
                                                     <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                    <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
                                                     <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
                                                 </t>
                                             </div>
@@ -577,7 +573,7 @@
                                                 </div>
                                                 <t t-if="!state.capturedImages.length || state.captureMethod === 'camera'">
                                                     <video t-ref="video" autoplay="true" class="camera-preview"></video>
-                                                    <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button>
+                                                    <!-- <button class="btn btn-outline-primary" t-on-click="startCamera">Bật camera</button> -->
                                                     <button class="btn btn-success ms-2" t-on-click="captureImage">Chụp ảnh</button>
                                                 </t>
                                             </div>

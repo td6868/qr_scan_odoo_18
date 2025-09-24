@@ -80,14 +80,22 @@ export class PrepareScanHandler extends BaseScanHandler {
       )
       console.log("update_scan_info result:", scanResult)
 
-      // console.log("Calling update_move_line_confirm with moveLineConfirms:", moveLineConfirms)
-      // const confirmResult = await this.orm.call("stock.picking", "update_move_line_confirm", [
-      //   [this.component.state.scannedPickingId],
-      //   moveLineConfirms,
-      // ])
-      // console.log("update_move_line_confirm result:", confirmResult)
-
       this.notification.add("Đã lưu tất cả thông tin thành công!", { type: "success" })
+
+      try {
+        await this.orm.call(
+          "stock.picking", 
+          "button_validate", 
+          [this.component.state.scannedPickingId],
+          { 
+            
+          }
+        )
+        this.notification.add("Đã xác nhận và lưu thông tin vận chuyển thành công!", { type: "success" })
+      } catch (validateError) {
+        console.error("Lỗi xác nhận phiếu giao hàng:", validateError)
+        throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu giao hàng: " + validateError.message)
+      }
 
       this.component._updateState({ showProductConfirmArea: false })
       this.component.resetMode()

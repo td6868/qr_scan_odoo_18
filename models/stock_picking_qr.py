@@ -10,6 +10,7 @@ class StockPicking(models.Model):
     qr_code_image = fields.Binary("QR Code", attachment=True)
     qr_code_data = fields.Char("QR Code Content")
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
+    image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
         
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")

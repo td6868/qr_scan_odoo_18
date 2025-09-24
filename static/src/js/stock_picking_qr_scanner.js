@@ -353,6 +353,12 @@ export class StockPickingQrScanner extends Component {
   // UI helper methods
   onCaptureMethodChange(method) {
     this._updateState({ captureMethod: method })
+    if (method === 'camera') {
+      // Đợi DOM cập nhật để phần tử <video> được mount trước khi bật camera
+      setTimeout(() => {
+        this.startCamera()
+      }, 100)
+    }
   }
 
   saveImages() {
@@ -399,10 +405,6 @@ export class StockPickingQrScanner extends Component {
     }
   }
 
-  viewImage(index, type) {
-    // Implement image viewer modal
-    console.log("View image:", index, type)
-  }
 
   saveProductConfirm() {
     if (!this.state.scannedPickingId || this.state.moveLines.length === 0) {
