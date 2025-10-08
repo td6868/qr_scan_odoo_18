@@ -59,7 +59,7 @@
                                         <div class="col-md-6">
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('prepare')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-box fa-3x mb-3 text-info"></i>
+                                                    <i class="fa fa-upload fa-3x mb-3 text-info"></i>
                                                     <h5>Xuất kho</h5>
                                                     <p class="small">Quét QR, chụp ảnh và xác nhận xuất kho</p>
                                                 </div>
@@ -200,7 +200,15 @@
                                                 </div>
                                             </div>
 
-                                            <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4">
+                                            <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4 gap-2">
+                                                <div class="d-flex justify-content-between mt-3 mb-3">
+                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
+                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
+                                                    </button>
+                                                    <button class="btn btn-success" t-on-click="saveImages">
+                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                    </button>
+                                                </div>
                                                 <h6 class="mb-3">
                                                     <i class="fa fa-images me-2"></i>
                                                     Ảnh đã chụp (<t t-esc="state.capturedImages.length"/>)
@@ -221,15 +229,7 @@
                                                             </div>
                                                         </div>
                                                     </t>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-3">
-                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
-                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
-                                                    </button>
-                                                    <button class="btn btn-success" t-on-click="saveImages">
-                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
-                                                    </button>
-                                                </div>
+                                                </div>                                                
                                             </div>
                                         </div>
 
@@ -253,6 +253,14 @@
                                         <!-- Khu vực xác nhận sản phẩm  -->
                                         <div t-if="state.showProductConfirmArea" class="product-confirm-container mt-4">
                                             <h4 class="mb-3">Xác nhận sản phẩm giao hàng</h4>
+                                            <div class="mt-4 d-flex justify-content-end mb-3">
+                                                <button class="btn btn-secondary" t-on-click="checkProductConfirm">
+                                                    <i class="fa fa-check me-2"></i>Check
+                                                </button>                                                
+                                                <button class="btn btn-primary ms-2" t-on-click="saveProductConfirm">
+                                                    <i class="fa fa-save me-2"></i>Lưu xác nhận sản phẩm
+                                                </button>
+                                            </div>
                                             <div class="row g-3 g-md-4">
                                                 <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                     <div class="col-12 col-sm-6 col-lg-4">
@@ -317,12 +325,7 @@
                                                         </div>
                                                     </div>
                                                 </t>
-                                            </div>
-                                            <div class="mt-4 d-flex justify-content-end">
-                                                <button class="btn btn-primary" t-on-click="saveProductConfirm">
-                                                    <i class="fa fa-save me-2"></i>Lưu xác nhận sản phẩm
-                                                </button>
-                                            </div>
+                                            </div>                                            
                                         </div>
                                     </div>
 
@@ -433,6 +436,14 @@
 
                                             <!-- Danh sách ảnh vận chuyển đã chụp  -->
                                             <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4">
+                                                <div class="d-flex justify-content-between mt-3 mb-3">
+                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
+                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
+                                                    </button>
+                                                    <button class="btn btn-success" t-on-click="saveImages">
+                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                    </button>
+                                                </div>
                                                 <h6 class="mb-3">
                                                     <i class="fa fa-images me-2"></i>
                                                     Ảnh vận chuyển đã chụp (<t t-esc="state.capturedImages.length"/>)
@@ -456,15 +467,7 @@
                                                             </div>
                                                         </div>
                                                     </t>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-3">
-                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
-                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
-                                                    </button>
-                                                    <button class="btn btn-success" t-on-click="saveImages">
-                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
-                                                    </button>
-                                                </div>
+                                                </div>                                                
                                             </div>
                                         </div>
                                         
@@ -600,6 +603,14 @@
 
                                             <!-- Danh sách ảnh kiểm hàng đã chụp -->
                                             <div t-if="state.capturedImages.length > 0" class="captured-images-list mt-4">
+                                                <div class="d-flex justify-content-between mt-3 mb-3">
+                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
+                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
+                                                    </button>
+                                                    <button class="btn btn-success" t-on-click="saveCheckingImages">
+                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
+                                                    </button>
+                                                </div>
                                                 <h6 class="mb-3">
                                                     <i class="fa fa-images me-2"></i>
                                                     Ảnh kiểm hàng đã chụp (<t t-esc="state.capturedImages.length"/>)
@@ -623,21 +634,18 @@
                                                             </div>
                                                         </div>
                                                     </t>
-                                                </div>
-                                                <div class="d-flex justify-content-between mt-3">
-                                                    <button class="btn btn-outline-primary" t-on-click="addMoreImages">
-                                                        <i class="fa fa-plus me-2"></i>Chụp/Upload thêm
-                                                    </button>
-                                                    <button class="btn btn-success" t-on-click="saveCheckingImages">
-                                                        <i class="fa fa-arrow-right me-2"></i>Tiếp tục
-                                                    </button>
-                                                </div>
+                                                </div>                                                
                                             </div>
                                         </div>
                                         
                                         <!-- Khu vực xác nhận sản phẩm kiểm hàng -->
                                         <div t-if="state.showProductConfirmArea" class="product-confirm-container mt-4">
                                             <h4 class="mb-3">Xác nhận sản phẩm kiểm hàng</h4>
+                                            <div class="mt-4 d-flex justify-content-end mb-3">
+                                                <button class="btn btn-warning" t-on-click="saveProductConfirm">
+                                                    <i class="fa fa-save me-2"></i>Lưu thông tin kiểm hàng
+                                                </button>
+                                            </div>
                                             <div class="row g-3 g-md-4">
                                                 <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                     <div class="col-12 col-sm-6 col-lg-4">
@@ -713,12 +721,6 @@
                                                         t-on-input="onScanNoteInput">
                                                     </textarea>
                                                 </div>
-                                            </div>
-                                            
-                                            <div class="mt-4 d-flex justify-content-end">
-                                                <button class="btn btn-warning" t-on-click="saveProductConfirm">
-                                                    <i class="fa fa-save me-2"></i>Lưu thông tin kiểm hàng
-                                                </button>
                                             </div>
                                         </div>
                                     </div>

@@ -70,15 +70,13 @@ export class StockPickingQrScanner extends Component {
 
       // Capture methods
       captureMethod: null,
-
-      
     }
-
 
     // Core components - khởi tạo sau khi có services
     this.qrScanner = new QRScanner()
     this.qrProcessor = new QRProcessor(this.orm, this.notification)
     this.cameraManager = new CameraManager()
+    this.fileManager = new FileManager()
 
     // Context từ action
     const context = this.env.services.action.currentController?.action?.context || {}
@@ -95,7 +93,10 @@ export class StockPickingQrScanner extends Component {
 
     onMounted(() => {
     })
+  }
 
+  async checkProductConfirm() {
+    await this.handlers.prepare.checkProductQuantities();
   }
 
   /**
@@ -470,7 +471,7 @@ export class StockPickingQrScanner extends Component {
   }
 
   // ========== LOCATION INVENTORY METHODS ==========
-  
+
   onLocationQuantityUpdate(event) {
     const quantId = parseInt(event.target.dataset.quantId)
     const newQuantity = parseFloat(event.target.value) || 0

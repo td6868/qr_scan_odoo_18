@@ -101,9 +101,30 @@ export class QRScanner extends Component {
    */
   _parseQRData(data) {
     try {
-      const keyValuePairs = data.split("\n")
-      const scannedData = {}
+      const content = (data || '').trim()
 
+      // New compact format: id.code (no ':')
+      if (content.includes('.') && !content.includes(':')) {
+        const [idPart, codePart] = content.split('.', 1).concat(content.split('.').slice(1).join('.'))
+        const recordId = Number.parseInt(idPart)
+        const code = Number.parseInt(codePart)
+        const codeMap = { 1: 'stock.picking', 2: 'stock.location' }
+        const model = codeMap[code]
+        if (!Number.isNaN(recordId) && model) {
+          return {
+            isValid: true,
+            model,
+            recordId,
+            rawData: data,
+            parsedData: { ID: String(recordId), ModelCode: String(code) },
+          }
+        }
+        return { isValid: false, error: 'Mã QR không hợp lệ (định dạng id.code)!' }
+      }
+
+      // Backward compatibility: key-value pairs separated by new lines
+      const keyValuePairs = content.split("\n")
+      const scannedData = {}
       for (const pair of keyValuePairs) {
         const [key, value] = pair.split(":")
         if (key && value) {
@@ -111,8 +132,7 @@ export class QRScanner extends Component {
         }
       }
 
-      // Bắt buộc phải có Model
-      if (!scannedData.hasOwnProperty("Model")) {
+      if (!Object.prototype.hasOwnProperty.call(scannedData, 'Model')) {
         return { isValid: false, error: "QR không chứa thông tin model" }
       }
 
@@ -121,8 +141,8 @@ export class QRScanner extends Component {
 
       return {
         isValid: true,
-        model: model,                  // vd: "stock.picking", "stock.location"
-        recordId: recordId,            // nếu không có ID sẽ = null
+        model,                  // vd: "stock.picking", "stock.location"
+        recordId,               // nếu không có ID sẽ = null
         rawData: data,
         parsedData: scannedData,       // giữ nguyên các key-value parse được
       }

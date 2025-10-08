@@ -11,7 +11,7 @@ class MultiModelQRService(models.TransientModel):
         """Generate QR code for any record"""
         if not model_name:
             model_name = record._name
-            
+        
         qr_data = self._build_qr_data(record, model_name)
         
         # Kiểm tra xem record có field qr_code_image và qr_code_data không
@@ -25,48 +25,27 @@ class MultiModelQRService(models.TransientModel):
             return self._create_qr_image(qr_data)
 
     def _build_qr_data(self, record, model_name):
-        """Build QR data string based on model type"""
-        qr_builders = {
-            'stock.picking': self._build_picking_qr_data,
-            'stock.location': self._build_location_qr_data,
+        """Build compact QR data in format: '<id>.<code>'
+        Model codes:
+          stock.picking -> 1
+          stock.location -> 2
+        Unknown models -> code 0
+        """
+        model_code_map = {
+            'stock.picking': 1,
+            'stock.location': 2,
         }
-        
-        builder_func = qr_builders.get(model_name, self._build_generic_qr_data)
-        return builder_func(record)
+        code = model_code_map.get(model_name, 0)
+        # Ensure we return strictly: id.code
+        return f"{record.id}.{code}"
     
-    def _build_picking_qr_data(self, picking):
-        """Build QR data for stock picking"""
-        qr_data = f"Model: stock.picking\n"
-        # qr_data += f"Picking: {picking.name}\n"
-        qr_data += f"ID: {picking.id}\n"
-        return qr_data
-
-    def _build_location_qr_data(self, location):
-        """Build QR data for stock location"""
-        qr_data = f"Model: stock.location\n"
-        # qr_data += f"Name: {location.name}\n"
-        qr_data += f"ID: {location.id}\n"
-        return qr_data
-
-    def _build_generic_qr_data(self, record):
-        """Build generic QR data for any model"""
-        qr_data = f"Model: {record._name}\n"
-        
-        # Tự động lấy các field phổ biến
-        common_fields = ['name', 'display_name', 'id']
-        
-        for field_name in common_fields:
-            if hasattr(record, field_name):
-                value = getattr(record, field_name)
-                if value:
-                    qr_data += f"{field_name.title()}: {value}\n"
-            
-        return qr_data
+    # Các builder cũ không còn dùng nữa vì đã chuyển sang định dạng rút gọn
+    # để giảm số lượng ký tự trong QR.
    
     def _create_qr_image(self, qr_data):
         """Create QR image from data"""
         qr = qrcode.QRCode(
-            version=3,
+            version=None,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
             box_size=8,
             border=4,
@@ -81,20 +60,44 @@ class MultiModelQRService(models.TransientModel):
     
 
     def parse_qr_data(self, qr_content):
-        """Parse QR content and return model info"""
-        lines = qr_content.strip().split('\n')
+        """Parse compact QR content '<id>.<code>' and return model info.
+        Backward compatible: if content contains 'Model:' style, try to parse it too.
+        """
+        content = (qr_content or '').strip()
+        if not content:
+            return {'model': None, 'record_id': None, 'is_valid': False}
+
+        # New compact format: id.code
+        if '.' in content and ':' not in content:
+            try:
+                id_part, code_part = content.split('.', 1)
+                record_id = int(id_part)
+                code = int(code_part)
+                code_model_map = {
+                    1: 'stock.picking',
+                    2: 'stock.location',
+                }
+                model = code_model_map.get(code)
+                return {
+                    'model': model,
+                    'record_id': record_id,
+                    'is_valid': bool(model and record_id > 0),
+                }
+            except Exception:
+                return {'model': None, 'record_id': None, 'is_valid': False}
+
+        # Fallback old multiline format
+        lines = content.split('\n')
         result = {}
-        
         for line in lines:
             if ':' in line:
                 key, value = line.split(':', 1)
                 result[key.strip().lower()] = value.strip()
-        
+
+        model = result.get('model')
+        rec_id = int(result.get('id', 0)) if result.get('id', '').isdigit() else None
         return {
-            'model': result.get('model'),
-            'picking_name': result.get('picking'),
-            'picking_id': int(result.get('id', 0)) if result.get('id', '').isdigit() else None,
-            'customer': result.get('customer'),
-            'date': result.get('date'),
-            'is_valid': bool(result.get('model') == 'stock.picking' and result.get('id'))
+            'model': model,
+            'record_id': rec_id,
+            'is_valid': bool(model in ('stock.picking', 'stock.location') and rec_id),
         }

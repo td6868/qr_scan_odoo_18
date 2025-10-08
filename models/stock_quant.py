@@ -160,6 +160,41 @@ class StockQuant(models.Model):
             }
 
     @api.model
+    def get_product_available_quantity(self, product_id):
+        """
+        Lấy số lượng có sẵn của một sản phẩm cụ thể trên toàn bộ kho.
+        """
+        try:
+            domain = [
+                ('product_id', '=', product_id),
+                ('location_id.usage', '=', 'internal')
+            ]
+            _logger.info(f"[STOCK.QUANT] Searching quants for product {product_id} with domain: {domain}")
+
+            quants = self.search(domain)
+            _logger.info(f"[STOCK.QUANT] Found {len(quants)} quants for product {product_id}")
+            
+            total_quantity = 0
+            
+            for quant in quants:
+                _logger.info(f"[STOCK.QUANT] Quant ID {quant.id}: quantity={quant.quantity}, reserved={quant.reserved_quantity}")
+                total_quantity += quant.quantity
+            
+            total_available_quantity = total_quantity
+            _logger.info(f"[STOCK.QUANT] Product {product_id}: Total quantity={total_quantity}, Available={total_available_quantity}")
+            
+            if total_available_quantity < 0:
+                _logger.warning(f"[STOCK.QUANT] Negative available quantity for product {product_id}")
+                raise ValidationError("Số lượng tồn kho không đủ để chuẩn bị hàng!")
+            
+            return max(0, total_available_quantity)  # Ensure we don't return negative
+        
+        except Exception as e:
+            _logger.error(f"[STOCK.QUANT] Error getting product available quantity for product {product_id}: {str(e)}", exc_info=True)
+            return 0
+
+
+    @api.model
     def search_products_for_inventory(self, search_term='', limit=20):
         """
         Tìm kiếm sản phẩm để thêm vào kiểm kê

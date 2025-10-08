@@ -100,9 +100,62 @@ export class PrepareScanHandler extends BaseScanHandler {
       this.component._updateState({ showProductConfirmArea: false })
       this.component.resetMode()
     } catch (error) {
-      console.error("Lỗi lưu dữ liệu:", error)
-      this.notification.add("Lỗi lưu dữ liệu: " + error.message, { type: "danger" })
+      // Extract the actual error message from the server response
+      let errorMessage = "Lỗi lưu dữ liệu"
+      
+      // Check if it's an Odoo server error
+      if (error && error.data && error.data.message) {
+        errorMessage = error.data.message
+      } 
+      // Check for network or other errors
+      else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      // Display the error to the user
+      this.notification.add(errorMessage, { 
+        type: "danger",
+        sticky: true, // Make the notification stay until dismissed
+      })
     }
+  }
+
+  async checkProductQuantities() {
+    const { moveLines } = this.component.state;
+    const updatedMoveLines = [];
+
+    for (const moveLine of moveLines) {
+      const productId = moveLine.product_id;
+      const enteredQuantity = moveLine.quantity_confirmed;
+
+      try {
+        // Fetch actual quantity from Odoo (assuming a method exists or needs to be created)
+        // For now, let's simulate this with a direct ORM call to get product quantity
+        const actualQuantity = await this.orm.call(
+          "stock.quant",
+          "get_product_available_quantity",
+          [productId]
+        );
+
+        if (enteredQuantity > actualQuantity) {
+          this.notification.add(
+            `Số lượng nhập cho sản phẩm ${moveLine.product_name} (${enteredQuantity}) lớn hơn số lượng thực tế trong kho (${actualQuantity}). Đã cập nhật lại thành ${actualQuantity}.`,
+            { type: "warning" }
+          );
+          updatedMoveLines.push({ ...moveLine, quantity_confirmed: actualQuantity });
+        } else {
+          updatedMoveLines.push(moveLine);
+        }
+      } catch (error) {
+        console.error(`Error checking quantity for product ${moveLine.product_name}:`, error);
+        this.notification.add(
+          `Lỗi khi kiểm tra số lượng cho sản phẩm ${moveLine.product_name}: ${error.message}`,
+          { type: "danger" }
+        );
+        updatedMoveLines.push(moveLine); // Keep original if error occurs
+      }
+    }
+    this.component._updateState({ moveLines: updatedMoveLines });
   }
 
 }
