@@ -473,7 +473,8 @@ export class StockPickingQrScanner extends Component {
   // ========== LOCATION INVENTORY METHODS ==========
 
   onLocationQuantityUpdate(event) {
-    const quantId = parseInt(event.target.dataset.quantId)
+    // Keep raw ID to support temporary string IDs like "new_..."
+    const quantId = event.target.dataset.quantId
     const newQuantity = parseFloat(event.target.value) || 0
     
     if (newQuantity < 0) {
@@ -632,11 +633,15 @@ export class StockPickingQrScanner extends Component {
   }
   
   onDeleteProductFromInventory(event) {
-    const productId = parseInt(event.target.dataset.productId)
-    const quantId = parseInt(event.target.dataset.quantId)
+    const dataset = event.currentTarget.dataset
+    const key = Object.keys(dataset)[0]
+    const value = dataset[key]  // "12343.1"
+    const productId = parseInt(value.split('.')[0])
+    // Keep raw ID to support temporary string IDs like "new_..."
+    const quantId = event.currentTarget.dataset.quantId
     
     // Tìm thông tin sản phẩm
-    const quant = this.state.quants.find(q => q.id === quantId)
+    const quant = this.state.quants.find(q => String(q.id) === String(quantId))
     if (!quant) {
       this.notification.add("Không tìm thấy sản phẩm", { type: "warning" })
       return
@@ -668,7 +673,11 @@ export class StockPickingQrScanner extends Component {
   }
   
   onSearchProductOtherLocations(event) {
-    const productId = parseInt(event.target.dataset.productId)
+    const dataset = event.currentTarget.dataset
+    const key = Object.keys(dataset)[0]
+    const value = dataset[key]  // "12343.1"
+    const productId = parseInt(value.split('.')[0])
+
     const handler = this.handlers.kiemke
     if (handler) {
       handler.searchProductInOtherLocations(productId).then(locations => {

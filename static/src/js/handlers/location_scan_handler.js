@@ -106,7 +106,8 @@ export class LocationScanHandler extends BaseScanHandler {
    */
   async updateProductQuantity(quantId, newQuantity) {
     try {
-      const quant = this.quants.find(q => q.id === quantId)
+      // Hỗ trợ cả ID số (số lượng hiện có) và ID chuỗi (số lượng mới...)
+      const quant = this.quants.find(q => String(q.id) === String(quantId))
       if (!quant) {
         throw new Error('Không tìm thấy sản phẩm')
       }
@@ -136,20 +137,23 @@ export class LocationScanHandler extends BaseScanHandler {
       if (existingQuant) {
         throw new Error('Sản phẩm đã tồn tại trong vị trí này')
       }
-
-      // Tìm kiếm sản phẩm thông qua inventory processor
-      const products = await this.orm.call(
-        'stock.quant',
-        'search_products_for_inventory',
-        [],
-        { search_term: productId.toString(), limit: 20 }
+      // Đọc trực tiếp sản phẩm theo ID được chọn để đảm bảo chính xác
+      const records = await this.orm.call(
+        'product.product',
+        'read',
+        [[productId], ['display_name', 'default_code', 'uom_id', 'type']]
       )
-
-      if (!products || products.length === 0) {
+      if (!records || records.length === 0) {
         throw new Error('Không tìm thấy sản phẩm')
       }
-
-      const productInfo = products[0]
+      const rec = records[0]
+      const productInfo = {
+        id: productId,
+        name: rec.display_name,
+        default_code: rec.default_code || '',
+        uom_name: Array.isArray(rec.uom_id) ? rec.uom_id[1] : '',
+        type: rec.type,
+      }
       
       // Tạo quant mới
       const newQuant = {
@@ -296,7 +300,17 @@ export class LocationScanHandler extends BaseScanHandler {
    */
   async removeProductFromInventory(productId) {
     try {
-      // Gọi remove_product_from_inventory để xóa sản phẩm
+      // Kiểm tra nếu là sản phẩm mới thêm (chưa lưu)
+      const target = this.quants.find(q => q.product_id === productId)
+      if (target && target.is_new) {
+        // Xóa local, không gọi backend
+        this.quants = this.quants.filter(q => q.product_id !== productId)
+        this.component._updateState({ quants: [...this.quants] })
+        this.notification.add(`Đã xóa sản phẩm mới khỏi danh sách`, { type: 'success' })
+        return
+      }
+
+      // Gọi remove_product_from_inventory để xóa sản phẩm đã tồn tại
       const result = await this.orm.call(
         'stock.quant',
         'remove_product_from_inventory',

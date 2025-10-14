@@ -58,13 +58,13 @@
                                             title="Tìm ở vị trí khác">
                                         <i class="fa fa-search"></i>
                                     </button>
-                                    <button class="mobile-kk-inventory-btn-delete" 
+                                    <!-- <button class="mobile-kk-inventory-btn-delete" 
                                             t-att-data-product-id="quant.product_id"
                                             t-att-data-quant-id="quant.id"
                                             t-on-click="onDeleteProductFromInventory"
                                             title="Xóa sản phẩm">
                                         <i class="fa fa-trash"> Xóa </i>
-                                    </button>
+                                    </button> -->
                                 </div>
                             </div>
                             

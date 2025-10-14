@@ -12,5 +12,18 @@
             </field>
             <field name="binding_model_id" ref="stock.model_stock_location"/>
         </record>
+
+        <record id="A4_report_stock_picking" model="report.paperformat">
+            <field name="name">A4 phiếu giao hàng</field>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">0</field>
+            <field name="margin_left">0</field>
+            <field name="margin_right">0</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">10</field>
+            <field name="dpi">90</field>
+        </record>
     </data>
 </odoo>

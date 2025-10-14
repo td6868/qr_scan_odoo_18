@@ -48,7 +48,8 @@ export class QRProcessor {
    */
   async _processLocationQR(qrInfo, context) {
     // Lấy thông tin location từ database
-    const location = await this._fetchLocation(qrInfo.recordId)
+    // qrInfo.recordId đối với stock.location sẽ là id_loc_qr
+    const location = await this._fetchLocationByQrId(qrInfo.recordId)
 
     return {
       model: "stock.location",
@@ -76,8 +77,8 @@ export class QRProcessor {
   /**
    * Lấy thông tin location từ database
    */
-  async _fetchLocation(locationId) {
-    const domain = [["id", "=", locationId]]
+  async _fetchLocationByQrId(idLocQr) {
+    const domain = [["id_loc_qr", "=", idLocQr]]
     const locations = await this.orm.call("stock.location", "search_read", [domain])
 
     if (!locations || locations.length === 0) {

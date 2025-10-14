@@ -7,6 +7,7 @@ class StockLocation(models.Model):
     
     qr_code_image = fields.Binary(string="QR Code Image", attachment=True, store=True)
     qr_code_data = fields.Text(string="QR Code Data")
+    id_loc_qr = fields.Integer(string="ID QR", index=True, help="Mã định danh dùng để tạo và quét QR cho vị trí kho")
     
     def generate_qr_code(self):
         """Tạo QR code cho record sử dụng multi-model service"""
@@ -16,16 +17,20 @@ class StockLocation(models.Model):
 
     def create(self, vals_list):
         records = super().create(vals_list)
-        # Tạo QR code cho các record mới
+        # Đảm bảo có id_loc_qr cho các record mới trước khi tạo QR
         for record in records:
+            if not record.id_loc_qr:
+                # Mặc định dùng ID record nếu chưa có quy tắc riêng
+                record.sudo().write({'id_loc_qr': record.id})
+            # Tạo QR code cho các record mới
             if record.name:
                 record.generate_qr_code()
         return records
 
     def write(self, vals):
         res = super().write(vals)
-        # Nếu name thay đổi, tạo lại QR code
-        if "name" in vals:
+        # Nếu name hoặc id_loc_qr thay đổi, tạo lại QR code
+        if "name" in vals or "id_loc_qr" in vals:
             for rec in self:
                 rec.generate_qr_code()
         return res

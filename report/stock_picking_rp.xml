@@ -207,7 +207,7 @@
                                         <span t-field="ml.product_uom_qty"/>
                                     </td>
                                     <td style="width: 10%" class="text-left">
-                                        <span/>
+                                        <span t-field="ml.sale_line_id.note"/>
                                     </td>
                                 </tr>
                             </t>

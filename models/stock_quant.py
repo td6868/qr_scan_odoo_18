@@ -41,7 +41,8 @@ class StockQuant(models.Model):
             quants = self.search([
                 ('product_id', '=', product_id),
                 ('location_id', '!=', exclude_location_id),
-                ('quantity', '>', 0)
+                ('quantity', '>', 0),
+                ('location_id.usage', '=', 'internal')
             ])
 
             result = []
@@ -103,6 +104,7 @@ class StockQuant(models.Model):
             move._action_done()
 
             # Cập nhật quantity của quant thành counted_quantity
+            self.sudo().write({'quantity': counted_quantity})
             self.sudo().write({'inventory_quantity': counted_quantity})
 
             _logger.info(f"[STOCK.QUANT] Updated inventory for {self.product_id.display_name}: {current_qty} -> {counted_quantity}")

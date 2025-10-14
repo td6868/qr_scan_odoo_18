@@ -37,6 +37,10 @@ class MultiModelQRService(models.TransientModel):
         }
         code = model_code_map.get(model_name, 0)
         # Ensure we return strictly: id.code
+        # Với stock.location: sử dụng id_loc_qr thay vì id của record
+        if model_name == 'stock.location':
+            loc_id_for_qr = getattr(record, 'id_loc_qr', None) or record.id
+            return f"{int(loc_id_for_qr)}.{code}"
         return f"{record.id}.{code}"
     
     # Các builder cũ không còn dùng nữa vì đã chuyển sang định dạng rút gọn
