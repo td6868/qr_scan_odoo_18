@@ -384,11 +384,7 @@ export class StockPickingQrScanner extends Component {
 
     this._updateState({ showShippingTypeArea: false })
 
-    if (this.state.selectedShippingType === "delivery") {
-      this._updateState({ showCaptureArea: true })
-    } else {
-      this._updateState({ showNoteArea: true })
-    }
+    this._updateState({ showCaptureArea: true })
   }
 
   addMoreImages() {
@@ -470,7 +466,9 @@ export class StockPickingQrScanner extends Component {
     })
   }
 
+// ************************************************************
   // ========== LOCATION INVENTORY METHODS ==========
+// ************************************************************
 
   onLocationQuantityUpdate(event) {
     // Keep raw ID to support temporary string IDs like "new_..."

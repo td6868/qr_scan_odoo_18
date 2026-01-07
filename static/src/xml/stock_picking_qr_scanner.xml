@@ -60,7 +60,7 @@
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('prepare')">
                                                 <div class="card-body text-center">
                                                     <i class="fa fa-upload fa-3x mb-3 text-info"></i>
-                                                    <h5>Xuất kho</h5>
+                                                    <h5>Chuẩn bị hàng</h5>
                                                     <p class="small">Quét QR, chụp ảnh và xác nhận xuất kho</p>
                                                 </div>
                                             </div>
@@ -69,8 +69,8 @@
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.setScanMode('shipping')">
                                                 <div class="card-body text-center">
                                                     <i class="fa fa-truck fa-3x mb-3 text-info"></i>
-                                                    <h5>Vận chuyển</h5>
-                                                    <p class="small">Quét QR và điền thông tin giao vận</p>
+                                                    <h5>Đóng hàng</h5>
+                                                    <p class="small">Quét QR và điền thông tin đóng hàng</p>
                                                 </div>
                                             </div>
                                         </div>

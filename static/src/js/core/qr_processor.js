@@ -111,6 +111,9 @@ export class QRProcessor {
         if (picking.is_shipped) {
           throw new Error("Phiếu xuất kho này đã được vận chuyển rồi!")
         }
+        if (!picking.is_prepared) {
+          throw new Error("Phiếu chưa được quét chuẩn bị!")
+        }
         if (scan_type === "outgoing" && picking.picking_type_code !== "outgoing") {
           throw new Error("QR này không phải của phiếu xuất kho!")
         }

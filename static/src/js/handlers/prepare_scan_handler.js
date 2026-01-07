@@ -85,16 +85,13 @@ export class PrepareScanHandler extends BaseScanHandler {
       try {
         await this.orm.call(
           "stock.picking", 
-          "button_validate", 
           [this.component.state.scannedPickingId],
           { 
             
           }
         )
-        this.notification.add("Đã xác nhận và lưu thông tin vận chuyển thành công!", { type: "success" })
+        this.notification.add("Đã xác nhận và lưu thông tin chuẩn bị hàng thành công!", { type: "success" })
       } catch (validateError) {
-        console.error("Lỗi xác nhận phiếu giao hàng:", validateError)
-        throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu giao hàng: " + validateError.message)
       }
 
       this.component._updateState({ showProductConfirmArea: false })

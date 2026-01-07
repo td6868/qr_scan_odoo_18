@@ -30,10 +30,10 @@ class StockPicking(models.Model):
         for record in self:
             record.is_scanned = bool(record.scan_history_ids)                
        
-    def action_done(self):
-        """Override action_done để tạo QR khi picking được hoàn thành"""
-        result = super().action_done()
-        return result
+    # def action_done(self):
+    #     """Override action_done để tạo QR khi picking được hoàn thành"""
+    #     result = super().action_done()
+    #     return result
     
     def get_current_user_info(self):
         """Method để lấy thông tin user hiện tại"""
@@ -74,53 +74,53 @@ class StockPicking(models.Model):
             shipping_company=shipping_company
         )
 
-    def update_move_line_confirm(self, confirmed_lines):    
-        """Cập nhật xác nhận move lines -cập nhật quantity"""
+    # def update_move_line_confirm(self, confirmed_lines):    
+    #     """Cập nhật xác nhận move lines -cập nhật quantity"""
         
-        if not confirmed_lines:
-            return {'status': 'error', 'message': 'Không có dữ liệu xác nhận'}
+    #     if not confirmed_lines:
+    #         return {'status': 'error', 'message': 'Không có dữ liệu xác nhận'}
         
-        move_ids = [line['move_id'] for line in confirmed_lines]
-        moves = self.env['stock.move'].browse(move_ids).with_context(active_test=False)
+    #     move_ids = [line['move_id'] for line in confirmed_lines]
+    #     moves = self.env['stock.move'].browse(move_ids).with_context(active_test=False)
         
-        # Kiểm tra tất cả moves có thuộc phiếu xuất kho này không
-        invalid_moves = moves.filtered(lambda m: m.picking_id.id != self.id)
-        if invalid_moves:
-            raise ValidationError(
-                f"Một số sản phẩm không thuộc phiếu xuất kho này: {', '.join(invalid_moves.mapped('product_id.name'))}"
-            )
+    #     # Kiểm tra tất cả moves có thuộc phiếu xuất kho này không
+    #     invalid_moves = moves.filtered(lambda m: m.picking_id.id != self.id)
+    #     if invalid_moves:
+    #         raise ValidationError(
+    #             f"Một số sản phẩm không thuộc phiếu xuất kho này: {', '.join(invalid_moves.mapped('product_id.name'))}"
+    #         )
         
-        confirm_vals = []
-        for line in confirmed_lines:
-            move_id = line.get('move_id')
-            quantity = float(line.get('quantity_confirmed', 0.0))
-            note = line.get('confirm_note', '')
+    #     confirm_vals = []
+    #     for line in confirmed_lines:
+    #         move_id = line.get('move_id')
+    #         quantity = float(line.get('quantity_confirmed', 0.0))
+    #         note = line.get('confirm_note', '')
 
-            move = moves.filtered(lambda m: m.id == move_id)
-            if not move:
-                continue
+    #         move = moves.filtered(lambda m: m.id == move_id)
+    #         if not move:
+    #             continue
 
-            if quantity > move.product_uom_qty:
-                raise ValidationError(
-                    f"Sản phẩm '{move.product_id.display_name}' xác nhận {quantity} vượt quá nhu cầu {move.product_uom_qty}"
-                )
+    #         if quantity > move.product_uom_qty:
+    #             raise ValidationError(
+    #                 f"Sản phẩm '{move.product_id.display_name}' xác nhận {quantity} vượt quá nhu cầu {move.product_uom_qty}"
+    #             )
 
-            # Tạo bản ghi xác nhận
-            confirm_vals.append({
-                'move_id': move_id,
-                'product_id': move.product_id.id,
-                'quantity_confirmed': quantity,
-                'confirm_note': note,
-                'confirm_user_id': self.env.uid,
-                'confirm_date': fields.Datetime.now(),
-            })
+    #         # Tạo bản ghi xác nhận
+    #         confirm_vals.append({
+    #             'move_id': move_id,
+    #             'product_id': move.product_id.id,
+    #             'quantity_confirmed': quantity,
+    #             'confirm_note': note,
+    #             'confirm_user_id': self.env.uid,
+    #             'confirm_date': fields.Datetime.now(),
+    #         })
 
-            move.write({'quantity': quantity})
+    #         move.write({'quantity': quantity})
 
-        if confirm_vals:
-            self.env['stock.move.line.confirm'].create(confirm_vals)
+    #     if confirm_vals:
+    #         self.env['stock.move.line.confirm'].create(confirm_vals)
 
-        return {'status': 'success', 'message': 'Đã xác nhận và cập nhật số lượng thành công'}
+    #     return {'status': 'success', 'message': 'Đã xác nhận và cập nhật số lượng thành công'}
 
     @api.depends('scan_history_ids.move_line_confirmed_ids')
     def _compute_move_line_confirmed_ids(self):

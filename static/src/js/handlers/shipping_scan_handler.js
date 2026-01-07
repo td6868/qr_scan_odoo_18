@@ -7,7 +7,7 @@ export class ShippingScanHandler extends BaseScanHandler {
   _buildSuccessMessage(picking, context) {
     return `
             <div class="alert alert-success">
-                <h4><i class="fa fa-truck me-2"></i>Quét thành công - Chế độ vận chuyển!</h4>
+                <h4><i class="fa fa-truck me-2"></i>Quét thành công - Chế độ đóng hàng!</h4>
                 <p><strong>Phiếu xuất kho:</strong> ${picking.name}</p>
                 <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || "N/A"}</p>
                 <p><strong>Trạng thái:</strong> <span class="badge bg-info">Đã chuẩn bị hàng</span></p>
@@ -20,11 +20,11 @@ export class ShippingScanHandler extends BaseScanHandler {
   
     try {
       let imagesData = []
-      if (shippingType === "delivery" && images && images.length > 0) {
+      if (images && images.length > 0) {
         imagesData = images.map((img, index) => ({
           data: img.data.includes(',') ? img.data.split(",")[1] : img.data,
           name: img.name,
-          description: `Ảnh minh chứng vận chuyển #${index + 1}`,
+          description: `Ảnh minh chứng đóng hàng #${index + 1}`,
         }))
       }
   
@@ -51,16 +51,16 @@ export class ShippingScanHandler extends BaseScanHandler {
             
           }
         )
-        this.notification.add("Đã xác nhận và lưu thông tin vận chuyển thành công!", { type: "success" })
+        this.notification.add("Đã xác nhận và lưu thông tin đóng hàng thành công!", { type: "success" })
       } catch (validateError) {
-        console.error("Lỗi xác nhận phiếu giao hàng:", validateError)
-        throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu giao hàng: " + validateError.message)
+        console.error("Lỗi xác nhận phiếu đóng hàng:", validateError)
+        throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu đóng hàng: " + validateError.message)
       }
   
       this.component._updateState({ showNoteArea: false })
       this.component.resetMode()
     } catch (error) {
-      console.error("Lỗi lưu dữ liệu vận chuyển:", error)
+      console.error("Lỗi lưu dữ liệu đóng hàng:", error)
       this.notification.add(error.message || "Lỗi lưu dữ liệu: " + error.message, { type: "danger" })
     }
   }
