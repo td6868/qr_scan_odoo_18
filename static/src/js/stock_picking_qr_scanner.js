@@ -381,10 +381,10 @@ export class StockPickingQrScanner extends Component {
       this._showNotification("Vui lòng chọn loại vận chuyển!", "warning")
       return
     }
-
-    this._updateState({ showShippingTypeArea: false })
-
-    this._updateState({ showCaptureArea: true })
+    this._updateState({ 
+      showShippingTypeArea: false,
+      showProductConfirmArea: true,
+    })
   }
 
   addMoreImages() {
@@ -448,6 +448,11 @@ export class StockPickingQrScanner extends Component {
 
       },
     })
+  }
+
+  saveProductShipping() {
+    this._updateState({ showProductConfirmArea: false })
+    this._updateState({ showCaptureArea: true })
   }
 
   saveReceiveData() {

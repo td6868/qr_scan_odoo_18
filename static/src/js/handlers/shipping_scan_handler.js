@@ -1,5 +1,5 @@
 /**
- * Shipping Scan Handler - Xử lý logic cho chế độ vận chuyển
+ * Shipping Scan Handler - Xử lý logic cho chế độ đóng hàng
  */
 import { BaseScanHandler } from "./base_scan_handler.js"
 
@@ -15,8 +15,41 @@ export class ShippingScanHandler extends BaseScanHandler {
         `
   }
 
+  async _loadRequiredData(picking, context) {
+    // Load move lines cho việc xác nhận sản phẩm
+    await this._loadMoveLines(picking.id)
+  }
+
+  async _loadMoveLines(pickingId) {
+    try {
+      const moveLines = await this.orm.call("stock.picking", "read", [[pickingId], ["move_ids_without_package"]])
+
+      if (moveLines && moveLines[0] && moveLines[0].move_ids_without_package) {
+        const moves = await this.orm.call("stock.move", "read", [
+          moveLines[0].move_ids_without_package,
+          ["product_id", "product_uom_qty", "product_uom", "quantity"],
+        ])
+
+        const newMoveLines = moves.map((move) => ({
+          id: move.id,
+          product_id: move.product_id[0],
+          product_name: move.product_id[1],
+          quantity: move.product_uom_qty,
+          quantity_confirmed: move.quantity,
+          uom: move.product_uom[1],
+          confirm_note: "",
+        }))
+
+        this.component._updateState({ moveLines: newMoveLines })
+      }
+    } catch (error) {
+      console.error("Lỗi load move lines:", error)
+      this.notification.add("Lỗi tải danh sách sản phẩm!", { type: "danger" })
+    }
+  }
+
   async saveToDatabase(data) {
-    const { images, scanNote, shippingType, shippingPhone, shippingCompany } = data
+    const { images, scanNote, moveLineConfirms, shippingType, shippingPhone, shippingCompany } = data
   
     try {
       let imagesData = []
@@ -28,7 +61,7 @@ export class ShippingScanHandler extends BaseScanHandler {
         }))
       }
   
-      // Lưu thông tin vận chuyển
+      // Lưu thông tin đóng hàng
       await this.orm.call("stock.picking", "update_scan_info", 
         [this.component.state.scannedPickingId],
         {
@@ -37,6 +70,7 @@ export class ShippingScanHandler extends BaseScanHandler {
           shipping_type: shippingType,
           shipping_phone: shippingPhone,
           shipping_company: shippingCompany,
+          move_line_confirms: moveLineConfirms,
           scan_mode: this.component.state.scanMode,
         }
       )

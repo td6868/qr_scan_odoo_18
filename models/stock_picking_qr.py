@@ -11,6 +11,7 @@ class StockPicking(models.Model):
     qr_code_data = fields.Char("QR Code Content")
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
     image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
+    is_prepared = fields.Boolean("Đã chuẩn bị", default=False)
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -55,7 +56,8 @@ class StockPicking(models.Model):
 
     def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
                     scan_mode='', shipping_type=None, 
-                    shipping_phone=None, shipping_company=None):        
+                    shipping_phone=None, shipping_company=None,
+                    is_prepared=False):        
         """Method để cập nhật thông tin scan"""
         self.ensure_one()
         
@@ -71,7 +73,8 @@ class StockPicking(models.Model):
             move_line_confirms=move_line_confirms,
             shipping_type=shipping_type,
             shipping_phone=shipping_phone,
-            shipping_company=shipping_company
+            shipping_company=shipping_company,
+            is_prepared=is_prepared,
         )
 
     # def update_move_line_confirm(self, confirmed_lines):    

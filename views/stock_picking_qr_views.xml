@@ -262,7 +262,7 @@
                                         </kanban>
                                     </field>
                                 </group>
-                                <group string="Xác nhận sản phẩm" invisible="scan_type != 'prepare'">
+                                <group string="Xác nhận sản phẩm" invisible="scan_type != 'prepare' and scan_type != 'shipping'">
                                     <field name="move_line_confirmed_ids">
                                         <list>
                                             <field name="product_id"/>

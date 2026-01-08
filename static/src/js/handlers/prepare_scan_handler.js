@@ -75,24 +75,13 @@ export class PrepareScanHandler extends BaseScanHandler {
           images_data: imagesData,
           scan_note: scanNote,
           move_line_confirms: moveLineConfirms,
+          is_prepared: true,
           scan_mode: this.component.state.scanMode,
         }
       )
       console.log("update_scan_info result:", scanResult)
 
       this.notification.add("Đã lưu tất cả thông tin thành công!", { type: "success" })
-
-      try {
-        await this.orm.call(
-          "stock.picking", 
-          [this.component.state.scannedPickingId],
-          { 
-            
-          }
-        )
-        this.notification.add("Đã xác nhận và lưu thông tin chuẩn bị hàng thành công!", { type: "success" })
-      } catch (validateError) {
-      }
 
       this.component._updateState({ showProductConfirmArea: false })
       this.component.resetMode()

@@ -34,3 +34,13 @@ class PrepareScanProcessor(models.TransientModel):
             # Catch any other exceptions and format them for the frontend
             error_msg = f"Lỗi xác thực: {str(e) or 'Đã xảy ra lỗi không xác định'}"
             raise ValidationError(error_msg)
+
+    def _process_additional_data(self, scan_history, **kwargs):
+        """After creating prepare scan history, mark picking as prepared.
+        This enables the frontend and shipping processor to validate correctly.
+        """
+        super()._process_additional_data(scan_history, **kwargs)
+        picking = scan_history.picking_id
+        # Only set if not already prepared to avoid unnecessary writes
+        if picking and not picking.is_prepared:
+            picking.write({'is_prepared': True})

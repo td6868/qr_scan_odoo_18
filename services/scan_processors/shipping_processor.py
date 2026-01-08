@@ -9,6 +9,9 @@ class ShippingScanProcessor(models.TransientModel):
     def _get_scan_type(self):
         return 'shipping'
 
+    def _supports_move_confirmations(self):
+        return True
+
     def _get_specific_scan_vals(self, **kwargs):
         return {
             'shipping_type': kwargs.get('shipping_type'),
