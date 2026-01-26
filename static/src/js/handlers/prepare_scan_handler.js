@@ -83,6 +83,21 @@ export class PrepareScanHandler extends BaseScanHandler {
 
       this.notification.add("Đã lưu tất cả thông tin thành công!", { type: "success" })
 
+      // Xác nhận đơn ngay khi quét chuẩn bị hàng
+      try {
+        await this.orm.call(
+          "stock.picking", 
+          "button_validate", 
+          [this.component.state.scannedPickingId],
+          { 
+            
+          }
+        )
+        this.notification.add("Đã xác nhận và lưu thông tin chuẩn bị hàng thành công!", { type: "success" })
+      } catch (validateError) {
+        this.notification.add(validateError.data.message, { type: "danger" })
+      }
+
       this.component._updateState({ showProductConfirmArea: false })
       this.component.resetMode()
     } catch (error) {
