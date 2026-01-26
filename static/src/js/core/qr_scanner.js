@@ -20,25 +20,66 @@ export class QRScanner extends Component {
    */
   async startScanning(onSuccess, onError) {
     try {
+      // 1. Kiểm tra nếu đang chạy trong App Odoo Mobile (Sử dụng Native Scanner)
+      if (this.env && this.env.services && this.env.services.mobile && this.env.services.mobile.methods.scanBarcode) {
+        try {
+          const result = await this.env.services.mobile.methods.scanBarcode();
+          if (result) {
+            this._handleScanSuccess(result, onSuccess);
+          }
+          return; // Thoát vì đã dùng scanner của App
+        } catch (mobileError) {
+          console.warn("Lỗi quét bằng App Odoo, chuyển sang quét bằng trình duyệt:", mobileError);
+        }
+      }
+
+      // 2. Chạy quét bằng Trình duyệt (HTML5Qrcode) - Yêu cầu HTTPS
+      if (!window.isSecureContext && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        throw new Error("Android yêu cầu kết nối HTTPS để bật Camera. Hãy kiểm tra lại địa chỉ web.");
+      }
+
       this.stopScanning()
       this.isScanning = true
 
-      // Import Html5Qrcode dynamically để tránh lỗi
-      // const { Html5Qrcode } = await import("html5-qrcode")
-      const scanner = new Html5Qrcode("reader")
-      const config = { fps: 20, qrbox: { width: 250, height: 250 } }
+      // Đảm bảo phần tử hiển thị camera sẵn sàng
+      const readerEl = document.getElementById("reader")
+      if (readerEl) {
+        readerEl.classList.remove("d-none")
+      }
 
-      await scanner.start(
-        { facingMode: "environment" },
-        config,
-        (data) => this._handleScanSuccess(data, onSuccess),
-        (err) => this._handleScanError(err, onError),
-      )
+      const scanner = new Html5Qrcode("reader")
+      const config = {
+        fps: 20,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      }
+
+      try {
+        // Thử bật camera sau (environment)
+        await scanner.start(
+          { facingMode: "environment" },
+          config,
+          (data) => this._handleScanSuccess(data, onSuccess),
+          (err) => this._handleScanError(err, onError),
+        )
+      } catch (e) {
+        console.warn("Camera sau lỗi, thử chế độ mặc định:", e);
+        await scanner.start(
+          { facingMode: "user" },
+          config,
+          (data) => this._handleScanSuccess(data, onSuccess),
+          (err) => this._handleScanError(err, onError),
+        )
+      }
 
       this.qrScanner = scanner
     } catch (error) {
       this.isScanning = false
-      if (onError) onError("Không thể khởi động camera: " + error.message)
+      let errMsg = error.message;
+      if (error.name === "NotAllowedError") errMsg = "Bạn đã chặn quyền Camera trong trình duyệt.";
+      if (error.name === "NotFoundError") errMsg = "Không tìm thấy thiết bị Camera.";
+
+      if (onError) onError("Lỗi: " + errMsg)
     }
   }
 
