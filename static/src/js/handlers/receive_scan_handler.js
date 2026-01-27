@@ -9,7 +9,7 @@ export class ReceiveScanHandler extends BaseScanHandler {
             <div class="alert alert-success">
                 <h4><i class="fa fa-download me-2"></i>Quét thành công - Chế độ nhận hàng!</h4>
                 <p><strong>Phiếu nhập kho:</strong> ${picking.name}</p>
-                <p><strong>Nhà cung cấp:</strong> ${picking.partner_id[1] || "N/A"}</p>
+                <p><strong>Nhà cung cấp:</strong> ${(picking.partner_id && picking.partner_id[1]) || "N/A"}</p>
             </div>
         `
   }
@@ -18,7 +18,7 @@ export class ReceiveScanHandler extends BaseScanHandler {
     const { scanNote } = data
 
     try {
-      const result = await this.orm.call("stock.picking", "update_scan_info", 
+      const result = await this.orm.call("stock.picking", "update_scan_info",
         [this.component.state.scannedPickingId],
         {
           scan_note: scanNote,

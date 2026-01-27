@@ -9,7 +9,7 @@ export class ShippingScanHandler extends BaseScanHandler {
             <div class="alert alert-success">
                 <h4><i class="fa fa-truck me-2"></i>Quét thành công - Chế độ đóng hàng!</h4>
                 <p><strong>Phiếu xuất kho:</strong> ${picking.name}</p>
-                <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || "N/A"}</p>
+                <p><strong>Khách hàng:</strong> ${(picking.partner_id && picking.partner_id[1]) || "N/A"}</p>
                 <p><strong>Trạng thái:</strong> <span class="badge bg-info">Đã chuẩn bị hàng</span></p>
             </div>
         `
@@ -50,7 +50,7 @@ export class ShippingScanHandler extends BaseScanHandler {
 
   async saveToDatabase(data) {
     const { images, scanNote, moveLineConfirms, shippingType, shippingPhone, shippingCompany } = data
-  
+
     try {
       let imagesData = []
       if (images && images.length > 0) {
@@ -60,13 +60,13 @@ export class ShippingScanHandler extends BaseScanHandler {
           description: `Ảnh minh chứng đóng hàng #${index + 1}`,
         }))
       }
-  
+
       // Lưu thông tin đóng hàng
-      await this.orm.call("stock.picking", "update_scan_info", 
+      await this.orm.call("stock.picking", "update_scan_info",
         [this.component.state.scannedPickingId],
         {
           images_data: imagesData,
-          scan_note: scanNote,          
+          scan_note: scanNote,
           shipping_type: shippingType,
           shipping_phone: shippingPhone,
           shipping_company: shippingCompany,
@@ -74,15 +74,15 @@ export class ShippingScanHandler extends BaseScanHandler {
           scan_mode: this.component.state.scanMode,
         }
       )
-  
+
       // Xác nhận phiếu giao hàng
       try {
         await this.orm.call(
-          "stock.picking", 
-          "button_validate", 
+          "stock.picking",
+          "button_validate",
           [this.component.state.scannedPickingId],
-          { 
-            
+          {
+
           }
         )
         this.notification.add("Đã xác nhận và lưu thông tin đóng hàng thành công!", { type: "success" })
@@ -90,7 +90,7 @@ export class ShippingScanHandler extends BaseScanHandler {
         console.error("Lỗi xác nhận phiếu đóng hàng:", validateError)
         throw new Error("Đã lưu thông tin nhưng không thể xác nhận phiếu đóng hàng: " + validateError.message)
       }
-  
+
       this.component._updateState({ showNoteArea: false })
       this.component.resetMode()
     } catch (error) {

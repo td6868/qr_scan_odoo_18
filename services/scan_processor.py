@@ -10,7 +10,7 @@ class UniversalScanProcessor(models.TransientModel):
         processors = {
             'stock.picking': {
                 'prepare': 'stock.picking.prepare.processor',
-                'shipping': 'stock.picking.shipping.processor', 
+                'shipping': 'stock.picking.shipping.processor',
                 'receive': 'stock.picking.receive.processor',
                 'checking': 'stock.picking.checking.processor',
             },
@@ -48,7 +48,7 @@ class BaseScanProcessor(models.AbstractModel):
         self._validate_scan_specific(record, **kwargs)
         
         scan_history = self._create_scan_history(record, **kwargs)
-        self._process_images(scan_history, kwargs.get('images_data'))
+        self._process_images(scan_history, kwargs.get(' images_data'))
         self._process_additional_data(scan_history, **kwargs)
         
         return scan_history
@@ -89,10 +89,14 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
 
     def _create_scan_history(self, picking, **kwargs):
         """Create picking scan history record"""
+        # Get user_id from kwargs (passed from API) or use env.user as fallback
+        user_id = kwargs.get('scan_user_id', self.env.user.id if self.env.user else 1)
+        
         scan_vals = {
             'picking_id': picking.id,
             'scan_type': self._get_scan_type(),
             'scan_note': kwargs.get('scan_note'),
+            'scan_user_id': user_id,  # Explicitly set user
         }
         
         # Add specific fields
@@ -117,26 +121,54 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
 
     def _create_move_line_confirms(self, scan_history, move_line_confirms):
         """Create move line confirmations"""
-        for confirm in move_line_confirms:
-            self.env['stock.move.line.confirm'].create({
-                'scan_history_id': scan_history.id,
-                'move_id': confirm['move_id'],
-                'product_id': confirm['product_id'],
-                'quantity_confirmed': confirm['quantity_confirmed'],
-                'confirm_note': confirm['confirm_note'],
-            })
+        for confirm_data in move_line_confirms:
+            # Handle both move_id (single) and move_ids (array from grouping)
+            move_ids = confirm_data.get('move_ids', [])
+            if not move_ids:
+                # Fallback for old format
+                move_id = confirm_data.get('move_id')
+                if move_id:
+                    move_ids = [move_id]
+            
+            if not move_ids:
+                continue
+                
+            # Get common data
+            product_id = confirm_data.get('product_id')
+            quantity_confirmed = float(confirm_data.get('quantity_confirmed', 0))
+            line_note = confirm_data.get('line_note', '') or confirm_data.get('confirm_note', '')
+            
+            # Create confirmation for each move in the group
+            for move_id in move_ids:
+                self.env['stock.move.line.confirm'].create({
+                    'scan_history_id': scan_history.id,
+                    'move_id': move_id,
+                    'product_id': product_id,
+                    'quantity_confirmed': quantity_confirmed / len(move_ids),  # Split quantity evenly
+                    'confirm_note': line_note,
+                })
 
     def _update_moves_quantity(self, picking, move_line_confirms):
         """Update quantity in stock.move"""
         move_confirmed_qty = {}
         for confirm in move_line_confirms:
-            move_id = confirm['move_id']
-            move_confirmed_qty.setdefault(move_id, 0)
-            move_confirmed_qty[move_id] += confirm['quantity_confirmed']
+            # Handle both move_id and move_ids
+            move_ids = confirm.get('move_ids', [])
+            if not move_ids:
+                move_id = confirm.get('move_id')
+                if move_id:
+                    move_ids = [move_id]
+            
+            quantity_confirmed = float(confirm.get('quantity_confirmed', 0))
+            qty_per_move = quantity_confirmed / len(move_ids) if move_ids else 0
+            
+            for move_id in move_ids:
+                move_confirmed_qty.setdefault(move_id, 0)
+                move_confirmed_qty[move_id] += qty_per_move
         
         for move_id, confirmed_qty in move_confirmed_qty.items():
             move = self.env['stock.move'].browse(move_id)
-            if confirmed_qty != move.product_uom_qty:
+            if move.exists():
                 move.write({'quantity': confirmed_qty})
 
 class StockLocationBaseScanProcessor(models.TransientModel):

@@ -26,13 +26,13 @@ export class QRProcessor {
       throw new Error(`Model không được hỗ trợ: ${qrInfo.model}`)
     }
   }
-  
+
   async _processPickingQR(qrInfo, context) {
     // Lấy thông tin picking từ database
     const picking = await this._fetchPicking(qrInfo.recordId)
 
     // Validate picking dựa trên context
-    this._validatePickingForContext(picking, context)
+    await this._validatePickingForContext(picking, context)
 
     return {
       model: "stock.picking",
@@ -65,7 +65,8 @@ export class QRProcessor {
    */
   async _fetchPicking(pickingId) {
     const domain = [["id", "=", pickingId]]
-    const pickings = await this.orm.call("stock.picking", "search_read", [domain])
+    const fields = ["id", "name", "state", "picking_type_code", "partner_id", "is_prepared", "is_shipped"]
+    const pickings = await this.orm.call("stock.picking", "search_read", [domain, fields])
 
     if (!pickings || pickings.length === 0) {
       throw new Error("Không tìm thấy phiếu xuất kho!")
@@ -88,48 +89,22 @@ export class QRProcessor {
     return locations[0]
   }
 
-  /**
-   * Validate picking dựa trên context
-   */
-  _validatePickingForContext(picking, context) {
-    const { scan_type, scan_mode } = context
+  async _validatePickingForContext(picking, context) {
+    const { scan_mode } = context
 
-    // Validate chung
-    if (picking.state === "done" || picking.state === "cancel") {
-      throw new Error(`Không thể quét QR cho phiếu có trạng thái '${picking.state}'`)
-    }
+    // Gọi backend để validate logic phức tạp (bao gồm check history, state, etc.)
+    try {
+      const result = await this.orm.call("stock.picking", "action_validate_qr_scan", [picking.id], {
+        scan_mode: scan_mode
+      });
 
-    // Validate theo scan_mode cụ thể
-    switch (scan_mode) {
-      case "prepare":
-        if (scan_type === "outgoing" && picking.picking_type_code !== "outgoing") {
-          throw new Error("QR này không phải của phiếu xuất kho!")
-        }
-        break
-
-      case "shipping":
-        if (picking.is_shipped) {
-          throw new Error("Phiếu xuất kho này đã được vận chuyển rồi!")
-        }
-        if (!picking.is_prepared) {
-          throw new Error("Phiếu chưa được quét chuẩn bị!")
-        }
-        if (scan_type === "outgoing" && picking.picking_type_code !== "outgoing") {
-          throw new Error("QR này không phải của phiếu xuất kho!")
-        }
-        break
-
-      case "checking":
-        if (scan_type === "incoming" && picking.picking_type_code !== "incoming") {
-          throw new Error("QR này không phải của phiếu nhập kho!")
-        }
-        break
-      case "receive":
-        // Validate cho nhập kho
-        if (scan_type === "incoming" && picking.picking_type_code !== "incoming") {
-          throw new Error("QR này không phải của phiếu nhập kho!")
-        }
-        break
+      if (result && result.status === 'error') {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      // Re-throw if it's our validation error, otherwise format it
+      if (error instanceof Error) throw error;
+      throw new Error("Lỗi xác thực từ hệ thống: " + (error.message || error));
     }
   }
 
@@ -140,7 +115,7 @@ export class QRProcessor {
     const { scan_mode } = context
 
     const actionMap = {
-      prepare: "showCaptureArea",
+      prepare: "showProductConfirmArea",
       shipping: "showShippingTypeArea",
       receive: "showReceiveNoteArea",
       checking: "showCaptureArea",

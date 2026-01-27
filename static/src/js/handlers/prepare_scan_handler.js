@@ -9,7 +9,7 @@ export class PrepareScanHandler extends BaseScanHandler {
             <div class="alert alert-success">
                 <h4><i class="fa fa-check-circle me-2"></i>Quét thành công - Chế độ chuẩn bị hàng!</h4>
                 <p><strong>Phiếu xuất kho:</strong> ${picking.name}</p>
-                <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || "N/A"}</p>
+                <p><strong>Khách hàng:</strong> ${(picking.partner_id && picking.partner_id[1]) || "N/A"}</p>
             </div>
         `
   }
@@ -103,18 +103,18 @@ export class PrepareScanHandler extends BaseScanHandler {
     } catch (error) {
       // Extract the actual error message from the server response
       let errorMessage = "Lỗi lưu dữ liệu"
-      
+
       // Check if it's an Odoo server error
       if (error && error.data && error.data.message) {
         errorMessage = error.data.message
-      } 
+      }
       // Check for network or other errors
       else if (error.message) {
         errorMessage = error.message
       }
-      
+
       // Display the error to the user
-      this.notification.add(errorMessage, { 
+      this.notification.add(errorMessage, {
         type: "danger",
         sticky: true, // Make the notification stay until dismissed
       })

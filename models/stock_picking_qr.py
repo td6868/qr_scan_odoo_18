@@ -11,7 +11,8 @@ class StockPicking(models.Model):
     qr_code_data = fields.Char("QR Code Content")
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
     image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
-    is_prepared = fields.Boolean("Đã chuẩn bị", default=False)
+    is_prepared = fields.Boolean("Đã chuẩn bị", default=False, copy=False)
+    is_shipped = fields.Boolean("Đã giao hàng", default=False, copy=False)
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -76,6 +77,28 @@ class StockPicking(models.Model):
             shipping_company=shipping_company,
             is_prepared=is_prepared,
         )
+
+    def action_validate_qr_scan(self, scan_mode):
+        """Kiểm tra xem record có được phép quét ở mode này không bằng cách sử dụng backend logic"""
+        self.ensure_one()
+        try:
+            scan_type = self._map_scan_mode_to_type(scan_mode)
+            processor = self.env['universal.scan.processor'].get_processor('stock.picking', scan_type)
+            
+            # Gọi các hàm validate trong backend
+            processor._validate_record_state(self)
+            
+            # Đối với shipping, cần giả lập shipping_type để bypass check required nếu chỉ validate bước đầu
+            kwargs = {}
+            if scan_mode == 'shipping':
+                kwargs['shipping_type'] = 'validate_only'
+                
+            processor._validate_scan_specific(self, **kwargs)
+            return {'status': 'success'}
+        except ValidationError as e:
+            return {'status': 'error', 'message': e.args[0]}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
 
     # def update_move_line_confirm(self, confirmed_lines):    
     #     """Cập nhật xác nhận move lines -cập nhật quantity"""

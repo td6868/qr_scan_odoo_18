@@ -27,6 +27,7 @@ export class StockPickingQrScanner extends Component {
     this.camera = useRef("camera");
     this.reader = useRef("reader");
     this.fileInput = useRef("fileInput");
+    this.result = useRef("result");
 
     // Services - lấy từ env thay vì dùng hooks
     this.dialogService = this.env.services.dialog
@@ -153,6 +154,11 @@ export class StockPickingQrScanner extends Component {
    */
   async _handleQRScanSuccess(qrInfo, context) {
     try {
+      // Clear previous success message
+      if (this.result && this.result.el) {
+        this.result.el.innerHTML = "";
+      }
+
       if (!qrInfo.isValid) {
         this._showError(qrInfo.error)
         return
@@ -194,6 +200,11 @@ export class StockPickingQrScanner extends Component {
   async resetMode() {
     await this.qrScanner.stopScanning()
     this.cameraManager.stopCamera()
+
+    // Clear previous success message
+    if (this.result && this.result.el) {
+      this.result.el.innerHTML = "";
+    }
 
     // Reset tất cả states
     this._updateState({
@@ -269,6 +280,20 @@ export class StockPickingQrScanner extends Component {
       return
     }
 
+    // Nếu là chế độ chuẩn bị, đây là bước cuối cùng -> Lưu vào DB
+    if (this.state.scanMode === 'prepare') {
+      this.dialogService.add(ConfirmationDialog, {
+        title: "Xác nhận lưu",
+        body: "Bạn có chắc chắn muốn lưu thông tin chuẩn bị hàng không?",
+        confirm: async () => {
+          const handler = this.handlers.prepare
+          const data = this._collectScanData()
+          await handler.saveToDatabase(data)
+        },
+      })
+      return
+    }
+
     this.notification.add("Đã lưu thông tin quét QR và ảnh chụp thành công!", { type: "success" })
 
     this._updateState({
@@ -276,6 +301,10 @@ export class StockPickingQrScanner extends Component {
       showProductConfirmArea: true,
       showCaptureArea: false,
     })
+
+    if (this.result && this.result.el) {
+      this.result.el.innerHTML = "";
+    }
   }
 
   /**
@@ -327,11 +356,11 @@ export class StockPickingQrScanner extends Component {
     this._updateState({ shippingCompany: ev.target.value })
   }
 
-  onConfirmQuantityInput = (ev, lineIndex) =>{
-      const newMoveLines = [...this.state.moveLines]
-      newMoveLines[lineIndex].quantity_confirmed = Number.parseFloat(ev.target.value) || 0
-      this._updateState({ moveLines: newMoveLines })
-    }
+  onConfirmQuantityInput = (ev, lineIndex) => {
+    const newMoveLines = [...this.state.moveLines]
+    newMoveLines[lineIndex].quantity_confirmed = Number.parseFloat(ev.target.value) || 0
+    this._updateState({ moveLines: newMoveLines })
+  }
 
   onConfirmNoteInput = (ev, lineIndex) => {
     try {
@@ -367,6 +396,9 @@ export class StockPickingQrScanner extends Component {
       showCaptureArea: false,
       showNoteArea: true,
     })
+    if (this.result && this.result.el) {
+      this.result.el.innerHTML = "";
+    }
   }
 
   saveCheckingImages() {
@@ -381,7 +413,7 @@ export class StockPickingQrScanner extends Component {
       this._showNotification("Vui lòng chọn loại vận chuyển!", "warning")
       return
     }
-    this._updateState({ 
+    this._updateState({
       showShippingTypeArea: false,
       showProductConfirmArea: true,
     })
@@ -409,6 +441,18 @@ export class StockPickingQrScanner extends Component {
       return
     }
 
+    // Nếu ở chế độ chuẩn bị hàng, chuyển sang bước chụp ảnh
+    if (this.state.scanMode === 'prepare') {
+      this._updateState({
+        showProductConfirmArea: false,
+        showCaptureArea: true,
+      })
+      if (this.result && this.result.el) {
+        this.result.el.innerHTML = "";
+      }
+      return
+    }
+
     this.dialogService.add(ConfirmationDialog, {
       title: "Xác nhận lưu",
       body: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
@@ -431,7 +475,7 @@ export class StockPickingQrScanner extends Component {
     if (!this.state.scannedPickingId) {
       this.notification.add("Không có thông tin sản phẩm để xác nhận.", { type: "danger" })
       return
-    } 
+    }
 
     this.dialogService.add(ConfirmationDialog, {
       title: "Xác nhận lưu",
@@ -471,27 +515,27 @@ export class StockPickingQrScanner extends Component {
     })
   }
 
-// ************************************************************
+  // ************************************************************
   // ========== LOCATION INVENTORY METHODS ==========
-// ************************************************************
+  // ************************************************************
 
   onLocationQuantityUpdate(event) {
     // Keep raw ID to support temporary string IDs like "new_..."
     const quantId = event.target.dataset.quantId
     const newQuantity = parseFloat(event.target.value) || 0
-    
+
     if (newQuantity < 0) {
       this.notification.add("Số lượng không âm", { type: "warning" })
       event.target.value = 0
       return
     }
-    
+
     const handler = this.handlers.kiemke
     if (handler) {
       handler.updateProductQuantity(quantId, newQuantity)
     }
   }
-  
+
   onAddNewProduct() {
     // Hiển thị dialog tìm kiếm và chọn sản phẩm
     this.dialogService.add(ConfirmationDialog, {
@@ -521,28 +565,28 @@ export class StockPickingQrScanner extends Component {
       confirm: async () => {
         const productSearchInput = document.getElementById('productSearchInput')
         const quantityInput = document.getElementById('newProductQuantity')
-        
+
         const selectedProductId = productSearchInput.dataset.selectedProductId
         if (!selectedProductId) {
           this.notification.add("Vui lòng chọn sản phẩm", { type: "warning" })
           return
         }
-        
+
         const productId = parseInt(selectedProductId)
         const quantity = parseFloat(quantityInput.value) || 0
-        
+
         if (quantity <= 0) {
           this.notification.add("Số lượng phải lớn hơn 0", { type: "warning" })
           return
         }
-        
+
         const handler = this.handlers.kiemke
         if (handler) {
           await handler.addNewProduct(productId, quantity)
         }
       },
     })
-    
+
     // Setup search functionality
     setTimeout(() => {
       this._setupProductSearch()
@@ -552,18 +596,18 @@ export class StockPickingQrScanner extends Component {
   _setupProductSearch() {
     const searchInput = document.getElementById('productSearchInput')
     const productDropdown = document.getElementById('newProductSelect')
-    
+
     if (!searchInput || !productDropdown) return
-    
+
     let searchTimeout
-    
+
     searchInput.addEventListener('input', (e) => {
       clearTimeout(searchTimeout)
       const searchTerm = e.target.value.trim()
-      
+
       // Clear selected product when typing
       delete searchInput.dataset.selectedProductId
-      
+
       searchTimeout = setTimeout(async () => {
         if (searchTerm.length >= 2) {
           await this._searchAndLoadProducts(searchTerm, productDropdown)
@@ -573,32 +617,32 @@ export class StockPickingQrScanner extends Component {
         }
       }, 300) // Debounce 300ms
     })
-    
+
     // Setup dropdown click handlers
     productDropdown.addEventListener('click', (e) => {
       if (e.target.classList.contains('dropdown-item') && e.target.dataset.productId) {
         const productId = e.target.dataset.productId
         const productName = e.target.textContent
-        
+
         // Set selected product
         searchInput.value = productName
         searchInput.dataset.selectedProductId = productId
-        
+
         // Close dropdown
         document.getElementById("newProductSelect").classList.remove("show");
       }
     })
-    
+
     // Focus on search input
     searchInput.focus()
   }
-  
+
   async _searchAndLoadProducts(searchTerm, dropdownElement) {
     try {
       dropdownElement.innerHTML = '<li><span class="dropdown-item-text">Đang tìm kiếm...</span></li>'
-      
+
       console.log('Searching for products with term:', searchTerm)
-      
+
       const products = await this.orm.call(
         'stock.quant',
         'search_products_for_inventory',
@@ -608,11 +652,11 @@ export class StockPickingQrScanner extends Component {
           limit: 50
         }
       )
-      
+
       console.log('Products received from backend:', products)
-      
+
       dropdownElement.innerHTML = ''
-      
+
       if (products && products.length > 0) {
         products.forEach(product => {
           const listItem = document.createElement('li')
@@ -634,7 +678,7 @@ export class StockPickingQrScanner extends Component {
       dropdownElement.innerHTML = '<li><span class="dropdown-item-text">Lỗi tìm kiếm</span></li>'
     }
   }
-  
+
   onDeleteProductFromInventory(event) {
     const dataset = event.currentTarget.dataset
     const key = Object.keys(dataset)[0]
@@ -642,14 +686,14 @@ export class StockPickingQrScanner extends Component {
     const productId = parseInt(value.split('.')[0])
     // Keep raw ID to support temporary string IDs like "new_..."
     const quantId = event.currentTarget.dataset.quantId
-    
+
     // Tìm thông tin sản phẩm
     const quant = this.state.quants.find(q => String(q.id) === String(quantId))
     if (!quant) {
       this.notification.add("Không tìm thấy sản phẩm", { type: "warning" })
       return
     }
-    
+
     this.dialogService.add(ConfirmationDialog, {
       title: "Xác nhận xóa sản phẩm",
       body: `Bạn có chắc chắn muốn xóa sản phẩm "${quant.product_name}" khỏi vị trí này không? Hành động này không thể hoàn tác.`,
@@ -674,7 +718,7 @@ export class StockPickingQrScanner extends Component {
       },
     })
   }
-  
+
   onSearchProductOtherLocations(event) {
     const dataset = event.currentTarget.dataset
     const key = Object.keys(dataset)[0]
@@ -688,14 +732,14 @@ export class StockPickingQrScanner extends Component {
       })
     }
   }
-  
+
   _showOtherLocationsModal(locations) {
     let contentHtml;
     console.log("locations:", locations);               // In object rõ ràng trong console
     console.log("json:", JSON.stringify(locations));   // In ra dạng chuỗi JSON
 
     if (locations && locations.length > 0) {
-        const rows = locations.map(loc => `
+      const rows = locations.map(loc => `
             <tr>
                 <td>${loc.location_name}</td>
                 <td>${loc.quantity}</td>
@@ -705,7 +749,7 @@ export class StockPickingQrScanner extends Component {
             </tr>
         `).join("");
 
-        contentHtml = `
+      contentHtml = `
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -724,7 +768,7 @@ export class StockPickingQrScanner extends Component {
             </div>
         `;
     } else {
-        contentHtml = `
+      contentHtml = `
             <div class="text-center text-muted">
                 <p>Không tìm thấy sản phẩm ở vị trí khác</p>
             </div>
@@ -734,7 +778,7 @@ export class StockPickingQrScanner extends Component {
     this.dialogService.add(ConfirmationDialog, {
       title: "Sản phẩm ở vị trí khác",
       body: markup(contentHtml),
-      confirm: () => {}, // Empty confirm function
+      confirm: () => { }, // Empty confirm function
       confirmText: "Đóng"
     });
   }
@@ -744,5 +788,5 @@ export class StockPickingQrScanner extends Component {
 // Sử dụng template từ file XML hiện có
 StockPickingQrScanner.template = "qr_scan_odoo_18.StockPickingQrScanner"
 registry.category("actions").add("action_stock_picking_qr_scanner_outgoing", StockPickingQrScanner)
-registry.category("actions").add("action_stock_picking_qr_scanner_incoming", StockPickingQrScanner) 
+registry.category("actions").add("action_stock_picking_qr_scanner_incoming", StockPickingQrScanner)
 registry.category("actions").add("action_stock_picking_qr_scanner_inventory", StockPickingQrScanner)

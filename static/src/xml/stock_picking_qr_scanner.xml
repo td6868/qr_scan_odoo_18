@@ -159,8 +159,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="mt-3 text-center">
-                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this._updateState(
-                                                        {showCaptureArea: false, showModeSelector: true})">
+                                                    <button class="btn btn-outline-secondary btn-sm" t-on-click="() => this.resetMode()">
                                                         <i class="fa fa-arrow-left me-1"></i>Quay lại
                                                     </button>
                                                 </div>
@@ -245,7 +244,7 @@
                                             </div>
                                             <div class="mt-3 d-flex justify-content-end">
                                                 <button class="btn btn-primary" t-on-click="saveImgScanData">
-                                                    <i class="fa fa-save me-2"></i>Lưu thông tin
+                                                    <i class="fa fa-save me-2"></i>Xác nhận và Lưu (Hoàn tất)
                                                 </button>
                                             </div>
                                         </div>
@@ -258,7 +257,7 @@
                                                     <i class="fa fa-check me-2"></i>Check
                                                 </button>                                                
                                                 <button class="btn btn-primary ms-2" t-on-click="saveProductConfirm">
-                                                    <i class="fa fa-save me-2"></i>Lưu xác nhận sản phẩm
+                                                    <i class="fa fa-arrow-right me-2"></i>Tiếp tục (Chụp ảnh)
                                                 </button>
                                             </div>
                                             <div class="row g-3 g-md-4">

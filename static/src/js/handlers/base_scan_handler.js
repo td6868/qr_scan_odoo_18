@@ -43,7 +43,7 @@ export class BaseScanHandler {
             <div class="alert alert-success">
                 <h4><i class="fa fa-check-circle me-2"></i>Quét thành công!</h4>
                 <p><strong>Phiếu:</strong> ${picking.name}</p>
-                <p><strong>Khách hàng:</strong> ${picking.partner_id[1] || "N/A"}</p>
+                <p><strong>Khách hàng:</strong> ${(picking.partner_id && picking.partner_id[1]) || "N/A"}</p>
             </div>
         `
   }

@@ -9,7 +9,7 @@ export class CheckingScanHandler extends BaseScanHandler {
             <div class="alert alert-success">
                 <h4><i class="fa fa-check-square me-2"></i>Quét thành công - Chế độ kiểm hàng!</h4>
                 <p><strong>Phiếu nhập kho:</strong> ${picking.name}</p>
-                <p><strong>Nhà cung cấp:</strong> ${picking.partner_id[1] || "N/A"}</p>
+                <p><strong>Nhà cung cấp:</strong> ${(picking.partner_id && picking.partner_id[1]) || "N/A"}</p>
             </div>
         `
   }
@@ -18,7 +18,7 @@ export class CheckingScanHandler extends BaseScanHandler {
     // Load move lines cho việc kiểm hàng
     await this._loadMoveLines(picking.id)
     this.component._updateState({
-        showCaptureArea: true
+      showCaptureArea: true
     })
 
   }
