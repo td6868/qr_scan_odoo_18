@@ -58,7 +58,7 @@ class StockPicking(models.Model):
     def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
                     scan_mode='', shipping_type=None, 
                     shipping_phone=None, shipping_company=None,
-                    is_prepared=False):        
+                    is_prepared=False, scan_user_id=None):        
         """Method để cập nhật thông tin scan"""
         self.ensure_one()
         
@@ -76,6 +76,7 @@ class StockPicking(models.Model):
             shipping_phone=shipping_phone,
             shipping_company=shipping_company,
             is_prepared=is_prepared,
+            scan_user_id=scan_user_id,
         )
 
     def action_validate_qr_scan(self, scan_mode):
@@ -301,7 +302,7 @@ class StockPickingScanHistory(models.Model):
             if not img_data or (isinstance(img_data, str)) or not img_data.get('data'):
                 continue
                 
-            attachment = self.env['ir.attachment'].create({
+            attachment = self.env['ir.attachment'].sudo().create({
                 'name': img_data.get('name', f'Prepare_Image_{i+1}_{fields.Datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'),
                 'type': 'binary',
                 'datas': img_data['data'],

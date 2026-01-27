@@ -48,7 +48,7 @@ class BaseScanProcessor(models.AbstractModel):
         self._validate_scan_specific(record, **kwargs)
         
         scan_history = self._create_scan_history(record, **kwargs)
-        self._process_images(scan_history, kwargs.get(' images_data'))
+        self._process_images(scan_history, kwargs.get('images_data'))
         self._process_additional_data(scan_history, **kwargs)
         
         return scan_history
@@ -90,7 +90,10 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
     def _create_scan_history(self, picking, **kwargs):
         """Create picking scan history record"""
         # Get user_id from kwargs (passed from API) or use env.user as fallback
-        user_id = kwargs.get('scan_user_id', self.env.user.id if self.env.user else 1)
+        user_id = kwargs.get('scan_user_id')
+        if not user_id:
+            # Fallback to env.user, but use sudo to avoid singleton error
+            user_id = self.env.user.id if self.env.user else 1
         
         scan_vals = {
             'picking_id': picking.id,
@@ -102,7 +105,8 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
         # Add specific fields
         scan_vals.update(self._get_specific_scan_vals(**kwargs))
         
-        return self.env['stock.picking.scan.history'].create(scan_vals)
+        # Use sudo() to ensure creation works with auth='none'
+        return self.env['stock.picking.scan.history'].sudo().create(scan_vals)
 
     def _get_specific_scan_vals(self, **kwargs):
         """Override in subclasses for specific fields"""
@@ -140,7 +144,7 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
             
             # Create confirmation for each move in the group
             for move_id in move_ids:
-                self.env['stock.move.line.confirm'].create({
+                self.env['stock.move.line.confirm'].sudo().create({
                     'scan_history_id': scan_history.id,
                     'move_id': move_id,
                     'product_id': product_id,
@@ -188,7 +192,7 @@ class StockLocationBaseScanProcessor(models.TransientModel):
             'location_id': location.id,
             'scan_type': self._get_scan_type(),
             'scan_note': kwargs.get('scan_note'),
-            'user_id': self.env.user.id,
+            'user_id': kwargs.get('scan_user_id', self.env.user.id if self.env.user else 1),
             'scan_date': fields.Datetime.now(),
         }
         history = self.env['stock.location.scan.history'].create(scan_vals)

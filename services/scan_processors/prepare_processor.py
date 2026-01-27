@@ -23,8 +23,8 @@ class PrepareScanProcessor(models.TransientModel):
             if not picking.move_line_ids:
                 raise ValidationError("Không thể xác nhận: Phiếu này không có sản phẩm để chuẩn bị!")
             
-            # Check user permission
-            if not self.env.user.has_group('stock.group_stock_user'):
+            # Check user permission (only if we have a user in env - skip for auth='none')
+            if self.env.user and not self.env.user.has_group('stock.group_stock_user'):
                 raise ValidationError("Lỗi quyền truy cập: Bạn không có quyền thực hiện chức năng chuẩn bị hàng!")
                 
         except ValidationError as ve:
