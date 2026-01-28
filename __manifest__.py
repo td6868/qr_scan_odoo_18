@@ -41,6 +41,7 @@ Long description of module's purpose
         'report/stock_picking_rp.xml',
         'report/report_po_china.xml',
         'report/report_po_kk.xml',
+        'report/stock_picking_rp_2.xml',
         'views/stock_picking_qr_views.xml',
         'views/stock_location_views.xml',
         'views/scan_history_stock_location_views.xml',

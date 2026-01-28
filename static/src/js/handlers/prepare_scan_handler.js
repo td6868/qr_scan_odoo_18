@@ -34,7 +34,7 @@ export class PrepareScanHandler extends BaseScanHandler {
           product_id: move.product_id[0],
           product_name: move.product_id[1],
           quantity: move.product_uom_qty,
-          quantity_confirmed: move.product_uom_qty,
+          quantity_confirmed: move.quantity,
           uom: move.product_uom[1],
           confirm_note: "",
         }))

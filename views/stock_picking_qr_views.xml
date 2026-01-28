@@ -15,6 +15,17 @@
                         groups="stock.group_stock_user"                        
                         data-hotkey="o"/>
             </xpath>
+            <xpath expr="//header" position="inside">
+                <field name="picking_type_code" invisible="1"/>
+                <!-- Nút in custom -->
+                <button name="action_print_picking_2"
+                        string="In phiếu (Điền)"
+                        type="object"
+                        class="btn-primary"
+                        groups="stock.group_stock_user"                        
+                        data-hotkey="o"
+                        invisible="picking_type_code != 'outgoing'"/>
+            </xpath>
             <xpath expr="//button[@name='%(stock.action_report_delivery)d']" position="replace"/>
 
             <xpath expr="//div[@name='button_box']" position="inside">

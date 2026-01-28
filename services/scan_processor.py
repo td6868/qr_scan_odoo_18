@@ -1,5 +1,8 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class UniversalScanProcessor(models.TransientModel):
     _name = 'universal.scan.processor'
@@ -51,7 +54,38 @@ class BaseScanProcessor(models.AbstractModel):
         self._process_images(scan_history, kwargs.get('images_data'))
         self._process_additional_data(scan_history, **kwargs)
         
+        # Auto-validate if requested or if it's picking prepare/package
+        if kwargs.get('auto_validate', True):
+            self._auto_validate(record, **kwargs)  # Pass kwargs để lấy scan_user_id
+            
         return scan_history
+
+    def _auto_validate(self, record, **kwargs):
+        """Logic to auto-validate record after scan"""
+        if not hasattr(record, 'button_validate'):
+            return
+            
+        if record.state in ['done', 'cancel']:
+            _logger.info("Skipping auto-validate: record %s already in state %s", record.name, record.state)
+            return
+        
+        try:
+            _logger.info("Auto-validating record %s (state: %s)", record.name, record.state)
+            
+            # Get user from scan_user_id if available (important for auth='none' APIs)
+            user_id = kwargs.get('scan_user_id')
+            if user_id:
+                # Use sudo() with specified user to avoid "partner_id IN (false)" error
+                record_with_user = record.sudo().with_user(user_id)
+            else:
+                # Fallback to sudo() without specific user
+                record_with_user = record.sudo()
+            
+            record_with_user.button_validate()
+            _logger.info("Auto-validation successful for %s", record.name)
+        except Exception as e:
+            _logger.error("Auto-validate failed for %s: %s", record.name, str(e), exc_info=True)
+            raise  # Re-raise exception để transaction rollback đúng cách
 
     def _validate_record_state(self, record):
         """Base validation for record state - override in subclasses"""

@@ -56,12 +56,22 @@ class QRScanAPI(http.Controller):
         
         # Sử dụng auth='none' để bypass session check tự động của Odoo
         picking_id = params.get('picking_id')
-        _logger.info(">>> Extracted picking_id: %s (type: %s)", picking_id, type(picking_id))
+        mode = params.get('mode')  # Get mode from App
+        _logger.info(">>> Extracted picking_id: %s (type: %s), mode: %s", picking_id, type(picking_id), mode)
         
         picking = self._get_picking(picking_id)
         if not picking or not picking.exists():
             _logger.warning("Picking ID %s NOT FOUND", picking_id)
             return {'status': 'error', 'message': 'Phiếu không tồn tại trên hệ thống'}
+        
+        # VALIDATION: Check if trying to ship without preparing first
+        if mode == 'shipping' and not picking.is_prepared:
+            _logger.warning("Picking %s - Cannot ship: not prepared yet", picking.name)
+            return {
+                'status': 'error',
+                'message': 'Phải chuẩn bị hàng trước khi đóng gói!\nVui lòng quét QR và chọn "Chuẩn bị hàng" trước.',
+                'error_code': 'NOT_PREPARED'
+            }
             
         _logger.info("Found picking: %s with %s moves", picking.name, len(picking.move_ids))
             
@@ -70,6 +80,8 @@ class QRScanAPI(http.Controller):
             if move.state == 'cancel': continue
             key = (move.product_id.id, move.product_uom.id, move.location_id.id)
             if key not in grouped_data:
+                # Lấy số lượng tồn kho tại vị trí nguồn
+                qty_available = move.product_id.with_context(location=move.location_id.id).qty_available
                 grouped_data[key] = {
                     'move_ids': [move.id],
                     'product_id': move.product_id.id,
@@ -78,6 +90,7 @@ class QRScanAPI(http.Controller):
                     'location_name': move.location_id.display_name,
                     'quantity': move.product_uom_qty,
                     'quantity_confirmed': move.quantity,
+                    'quantity_available': qty_available,  # Số lượng tồn kho
                 }
             else:
                 grouped_data[key]['move_ids'].append(move.id)
@@ -118,9 +131,11 @@ class QRScanAPI(http.Controller):
                 scan_note=params.get('scan_note', ''),
                 move_line_confirms=params.get('move_line_confirms', []),
                 scan_mode='prepare',
-                scan_user_id=user_id  # Pass user explicitly
+                scan_user_id=user_id,
+                auto_validate=True # Processor sẽ tự động gọi button_validate
             )
-            return {'status': 'success', 'message': 'Lưu chuẩn bị thành công'}
+            
+            return {'status': 'success', 'message': 'Chuẩn bị và xác nhận hàng thành công!'}
         except Exception as e:
             _logger.error("Prepare API Error: %s", str(e), exc_info=True)
             return {'status': 'error', 'message': str(e)}
@@ -149,12 +164,11 @@ class QRScanAPI(http.Controller):
                 shipping_type=params.get('shipping_type'),
                 shipping_phone=params.get('shipping_phone'),
                 shipping_company=params.get('shipping_company'),
-                scan_user_id=user_id
+                scan_user_id=user_id,
+                auto_validate=True
             )
             
-            if picking.state not in ['done', 'cancel']:
-                picking.button_validate()
-            return {'status': 'success', 'message': 'Lưu đóng gói thành công'}
+            return {'status': 'success', 'message': 'Đóng gói và xác nhận phiếu thành công!'}
         except Exception as e:
             _logger.error("Package API Error: %s", str(e), exc_info=True)
             return {'status': 'error', 'message': str(e)}

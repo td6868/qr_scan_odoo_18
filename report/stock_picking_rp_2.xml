@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <odoo>
 
-    <template id="report_picking_customize_layout">
+    <template id="report_picking_customize_layout_2">
         <div class="header">
             <!-- <div class="row" t-if="doc.sale_id.company_int.vend_code == 'HV'"
                  t-attf-style="position: relative;background-image: url('/khoakim_18/static/src/img/hv_head.jpg');background-size: 240mm 43mm;width: 240mm;height: 43mm;padding-top: 2mm;padding-bottom: 13mm;font-family: Roboto;">
@@ -46,7 +46,7 @@
 
     </template>
 
-    <template id="report_picking_customize_doc">
+    <template id="report_picking_customize_doc_2">
         <div class="page" style="background-image: url('/khoakim_18/static/src/img/kk_bg.png');background-size: 240mm 270mm;left:0;right:0;z-index:-10;width: 240mm;height: 100%;background-repeat: repeat-y;font-family: Roboto;">
             <div class="row" style="padding-top: 5mm;">
                 <div class="col-3 text-center" style="padding-top:4mm;">
@@ -158,6 +158,10 @@
                                     <div>SLg Nhu cầu</div>
                                     <div style="font-size: 13px;">(Qty)</div>
                                 </th>
+                                <th name="th_quantity" class="text-center">
+                                    <div>SLg Giao</div>
+                                    <div style="font-size: 13px;">(Qty)</div>
+                                </th>
                                 <th name="th_note" class="text-center">
                                     <div>Ghi chú</div>
                                     <div style="font-size: 13px;">(Note)</div>
@@ -172,6 +176,7 @@
                                 <t t-if="product_moves">
                                     <t t-set="seq" t-value="seq + 1"/>
                                     <t t-set="total_qty" t-value="sum(product_moves.mapped('quantity'))"/>
+                                    <t t-set="total_product_uom_qty" t-value="sum(product_moves.mapped('product_uom_qty'))"/>
                                     <t t-set="first_move" t-value="product_moves[0]"/>
                                     <tr>
                                         <td style="width: 5%" name="td_seq" class="text-center">
@@ -191,7 +196,9 @@
                                             <span t-field="first_move.product_uom"/>
                                         </td>
                                         <td style="width: 10%; text-align: center;">
-                                            <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
+                                            <span t-esc="total_product_uom_qty" t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                        <td style="width: 10%; text-align: center;">
                                         </td>
                                         <td style="width: 15%" class="text-left">
                                             <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/>
@@ -235,15 +242,14 @@
         </div>
     </template>
 
-    <template id="report_stock_picking_khoakim">
+    <template id="report_stock_picking_khoakim_2">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
-                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
+                <t t-call="qr_scan_odoo_18.report_picking_customize_layout_2">
+                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc_2" t-lang="doc.partner_id.lang"/>
                 </t>
             </t>
         </t>
     </template>
 
 </odoo>
-

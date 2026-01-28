@@ -58,7 +58,7 @@ class StockPicking(models.Model):
     def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
                     scan_mode='', shipping_type=None, 
                     shipping_phone=None, shipping_company=None,
-                    is_prepared=False, scan_user_id=None):        
+                    is_prepared=False, scan_user_id=None, auto_validate=True):        
         """Method để cập nhật thông tin scan"""
         self.ensure_one()
         
@@ -77,6 +77,7 @@ class StockPicking(models.Model):
             shipping_company=shipping_company,
             is_prepared=is_prepared,
             scan_user_id=scan_user_id,
+            auto_validate=auto_validate,
         )
 
     def action_validate_qr_scan(self, scan_mode):
@@ -179,6 +180,12 @@ class StockPicking(models.Model):
             return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize').report_action(self)
         else:
             return self.env.ref('qr_scan_odoo_18.action_report_purchase_order_customize').report_action(self)
+
+    def action_print_picking_2(self):
+        self.ensure_one()
+        picking_code = self.picking_type_id.code
+        if picking_code == 'outgoing':
+            return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_2').report_action(self)    
     
     
 
