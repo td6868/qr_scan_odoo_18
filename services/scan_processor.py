@@ -32,15 +32,6 @@ class UniversalScanProcessor(models.TransientModel):
         
         return self.env[processor_model].create({})
 
-class StockPickingScanProcessor(models.TransientModel):
-    _name = 'stock.picking.scan.processor'
-    _description = 'Stock Picking Scan Processor Service (Deprecated - use universal.scan.processor)'
-
-    def get_processor(self, scan_type):
-        """Backward compatibility method"""
-        universal_processor = self.env['universal.scan.processor']
-        return universal_processor.get_processor('stock.picking', scan_type)
-
 class BaseScanProcessor(models.AbstractModel):
     _name = 'base.scan.processor'
     _description = 'Base Scan Processor for All Models'
@@ -158,12 +149,20 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
         return False
 
     def _create_move_line_confirms(self, scan_history, move_line_confirms):
-        """Create move line confirmations"""
+        """Create move line confirmations using Sequential Fill (FIFO) logic
+        
+        Logic: Fill moves in order by ID (oldest first). Each move is filled 
+        completely before moving to the next one.
+        
+        Example with Move1(demand=5), Move2(demand=6):
+        - Confirmed=1  -> Move1=1, Move2=0
+        - Confirmed=8  -> Move1=5, Move2=3
+        - Confirmed=11 -> Move1=5, Move2=6
+        """
         for confirm_data in move_line_confirms:
             # Handle both move_id (single) and move_ids (array from grouping)
             move_ids = confirm_data.get('move_ids', [])
             if not move_ids:
-                # Fallback for old format
                 move_id = confirm_data.get('move_id')
                 if move_id:
                     move_ids = [move_id]
@@ -176,19 +175,40 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
             quantity_confirmed = float(confirm_data.get('quantity_confirmed', 0))
             line_note = confirm_data.get('line_note', '') or confirm_data.get('confirm_note', '')
             
-            # Create confirmation for each move in the group
-            for move_id in move_ids:
-                self.env['stock.move.line.confirm'].sudo().create({
-                    'scan_history_id': scan_history.id,
-                    'move_id': move_id,
-                    'product_id': product_id,
-                    'quantity_confirmed': quantity_confirmed / len(move_ids),  # Split quantity evenly
-                    'confirm_note': line_note,
-                })
+            # Fetch moves and sort by ID ascending (oldest first = FIFO)
+            moves = self.env['stock.move'].browse(move_ids).sorted(key=lambda m: m.id)
+            
+            # Sequential fill: allocate quantity to each move in order
+            remaining_qty = quantity_confirmed
+            for move in moves:
+                if not move.exists() or remaining_qty <= 0:
+                    continue
+                
+                # Allocate: min of remaining quantity and move's demand
+                allocated_qty = min(remaining_qty, move.product_uom_qty)
+                remaining_qty -= allocated_qty
+                
+                # Only create confirmation if quantity > 0
+                if allocated_qty > 0:
+                    self.env['stock.move.line.confirm'].sudo().create({
+                        'scan_history_id': scan_history.id,
+                        'move_id': move.id,
+                        'product_id': product_id,
+                        'quantity_confirmed': allocated_qty,
+                        'confirm_note': line_note,
+                    })
 
     def _update_moves_quantity(self, picking, move_line_confirms):
-        """Update quantity in stock.move"""
-        move_confirmed_qty = {}
+        """Update quantity (quantity done) in stock.move using Sequential Fill (FIFO) logic.
+        
+        This sets the 'quantity' field (quantity done) to match confirmed quantities.
+        The 'product_uom_qty' (demand) is kept intact.
+        When validated, Odoo will create a backorder for (product_uom_qty - quantity).
+        
+        FIFO Logic: Fill moves in order of ID (oldest first).
+        """
+        # Step 1: Group confirmations by move_ids and sum quantities
+        grouped_confirms = {}
         for confirm in move_line_confirms:
             # Handle both move_id and move_ids
             move_ids = confirm.get('move_ids', [])
@@ -197,16 +217,47 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
                 if move_id:
                     move_ids = [move_id]
             
-            quantity_confirmed = float(confirm.get('quantity_confirmed', 0))
-            qty_per_move = quantity_confirmed / len(move_ids) if move_ids else 0
+            if not move_ids:
+                continue
             
-            for move_id in move_ids:
-                move_confirmed_qty.setdefault(move_id, 0)
-                move_confirmed_qty[move_id] += qty_per_move
+            # Create a hashable key for grouping
+            key = tuple(sorted(move_ids))
+            quantity_confirmed = float(confirm.get('quantity_confirmed', 0))
+            
+            if key not in grouped_confirms:
+                grouped_confirms[key] = 0
+            grouped_confirms[key] += quantity_confirmed
         
+        # Step 2: Apply FIFO allocation for each group
+        move_confirmed_qty = {}
+        for move_ids_tuple, total_quantity in grouped_confirms.items():
+            # Fetch moves and sort by ID ascending (FIFO - oldest first)
+            moves = self.env['stock.move'].browse(list(move_ids_tuple)).sorted(key=lambda m: m.id)
+            
+            # Initialize all moves in this group to 0
+            for move in moves:
+                if move.exists():
+                    move_confirmed_qty[move.id] = 0
+            
+            # Sequential fill: allocate to moves in order
+            remaining_qty = total_quantity
+            for move in moves:
+                if not move.exists() or remaining_qty <= 0:
+                    continue
+                
+                # Allocate up to the move's original demand
+                allocated_qty = min(remaining_qty, move.product_uom_qty)
+                remaining_qty -= allocated_qty
+                
+                if allocated_qty > 0:
+                    move_confirmed_qty[move.id] = allocated_qty
+        
+        # Step 3: Update quantity (quantity done) for each move
         for move_id, confirmed_qty in move_confirmed_qty.items():
             move = self.env['stock.move'].browse(move_id)
             if move.exists():
+                # Write to 'quantity' field (quantity done)
+                # Keep product_uom_qty (demand) intact
                 move.write({'quantity': confirmed_qty})
 
 class StockLocationBaseScanProcessor(models.TransientModel):

@@ -155,7 +155,7 @@
                                     <div style="font-size: 13px;">(Unit)</div>
                                 </th>
                                 <th name="th_quantity_rev" class="text-center">
-                                    <div>SLg Nhu cầu</div>
+                                    <div>SLg xác nhận</div>
                                     <div style="font-size: 13px;">(Qty)</div>
                                 </th>
                                 <th name="th_note" class="text-center">

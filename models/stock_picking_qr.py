@@ -13,6 +13,18 @@ class StockPicking(models.Model):
     image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
     is_prepared = fields.Boolean("Đã chuẩn bị", default=False, copy=False)
     is_shipped = fields.Boolean("Đã giao hàng", default=False, copy=False)
+    state = fields.Selection(
+        selection_add=[
+            ('assigned_task', 'Đã giao việc'),
+            ('done',)
+        ],
+        tracking=True
+    )
+
+    def assign_task(self):
+        """Giao việc cho user"""
+        self.ensure_one()
+        self.state = 'assigned_task'
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -63,8 +75,8 @@ class StockPicking(models.Model):
         self.ensure_one()
         
         scan_type = self._map_scan_mode_to_type(scan_mode)
-        scan_processor = self.env['stock.picking.scan.processor']
-        processor = scan_processor.get_processor(scan_type)
+        universal_processor = self.env['universal.scan.processor']
+        processor = universal_processor.get_processor('stock.picking', scan_type)
         
         return processor.process_scan(
             self,

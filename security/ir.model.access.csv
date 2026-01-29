@@ -6,8 +6,6 @@ access_stock_picking_scan_history_user,stock.picking.scan.history.user,model_sto
 access_stock_picking_scan_history_manager,stock.picking.scan.history.manager,model_stock_picking_scan_history,stock.group_stock_manager,1,1,1,1
 access_multi_model_qr_service_user,multi.model.qr.service.user,model_multi_model_qr_service,stock.group_stock_user,1,1,1,0
 access_multi_model_qr_service_manager,multi.model.qr.service.manager,model_multi_model_qr_service,stock.group_stock_manager,1,1,1,1
-access_stock_picking_scan_processor_user,stock.picking.scan.processor.user,model_stock_picking_scan_processor,stock.group_stock_user,1,1,1,0
-access_stock_picking_scan_processor_manager,stock.picking.scan.processor.manager,model_stock_picking_scan_processor,stock.group_stock_manager,1,1,1,1
 access_stock_picking_prepare_processor_user,stock.picking.prepare.processor.user,model_stock_picking_prepare_processor,stock.group_stock_user,1,1,1,0
 access_stock_picking_prepare_processor_manager,stock.picking.prepare.processor.manager,model_stock_picking_prepare_processor,stock.group_stock_manager,1,1,1,1
 access_stock_picking_shipping_processor_user,stock.picking.shipping.processor.user,model_stock_picking_shipping_processor,stock.group_stock_user,1,1,1,0
