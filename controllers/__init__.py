@@ -2,3 +2,4 @@
 
 from . import controllers
 from . import api
+from . import dashboard_api

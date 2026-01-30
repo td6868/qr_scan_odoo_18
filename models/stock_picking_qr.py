@@ -13,18 +13,56 @@ class StockPicking(models.Model):
     image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
     is_prepared = fields.Boolean("Đã chuẩn bị", default=False, copy=False)
     is_shipped = fields.Boolean("Đã giao hàng", default=False, copy=False)
-    state = fields.Selection(
-        selection_add=[
-            ('assigned_task', 'Đã giao việc'),
-            ('done',)
-        ],
-        tracking=True
+    
+    # Trường hiển thị trạng thái quét mới nhất
+    latest_scan_type = fields.Selection([
+        ('prepare', 'Chuẩn bị hàng'),
+        ('shipping', 'Vận chuyển'),
+        ('receive', 'Nhận hàng'),
+        ('checking', 'Nhập kho'),
+        ('assigned_task', 'Đã giao việc'),
+    ], string="Trạng thái quét mới nhất", compute='_compute_latest_scan_type', store=True)
+
+    is_assigned = fields.Boolean("Đã giao việc", compute='_compute_latest_scan_type', store=True)
+    
+    # Trường phương thức vận chuyển - có thể chỉnh sửa bởi nhân viên kho
+    shipping_method = fields.Many2one(
+        'delivery.carrier',
+        string="Phương thức vận chuyển",
+        compute='_compute_shipping_method',
+        store=True,
+        readonly=False,
+        help="Phương thức vận chuyển. Mặc định lấy từ đơn hàng nhưng có thể thay đổi."
     )
+    
+    @api.depends('sale_id.shipping_method')
+    def _compute_shipping_method(self):
+        """Tính toán shipping_method từ sale order, nhưng cho phép override"""
+        for record in self:
+            # Chỉ set giá trị mặc định nếu chưa có
+            if not record.shipping_method and record.sale_id and record.sale_id.shipping_method:
+                record.shipping_method = record.sale_id.shipping_method
+    
+    @api.depends('scan_history_ids.scan_type', 'scan_history_ids.scan_date')
+    def _compute_latest_scan_type(self):
+        """Tính toán trạng thái quét mới nhất từ lịch sử quét"""
+        for record in self:
+            latest_scan = record.scan_history_ids.sorted('scan_date', reverse=True)[:1]
+            record.latest_scan_type = latest_scan.scan_type if latest_scan else False
+            
+            # Kiểm tra xem đã từng có bản ghi assigned_task chưa
+            record.is_assigned = any(h.scan_type == 'assigned_task' for h in record.scan_history_ids)
 
     def assign_task(self):
-        """Giao việc cho user"""
+        """Giao việc cho user - tạo bản ghi lịch sử quét"""
         self.ensure_one()
-        self.state = 'assigned_task'
+        self.env['stock.picking.scan.history'].create({
+            'picking_id': self.id,
+            'scan_type': 'assigned_task',
+            'scan_user_id': self.env.uid,
+            'scan_date': fields.Datetime.now(),
+            'scan_note': 'Đã giao việc'
+        })
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -281,7 +319,8 @@ class StockPickingScanHistory(models.Model):
         ('prepare', 'Chuẩn bị hàng'),
         ('shipping', 'Vận chuyển'),
         ('receive', 'Nhận hàng'),
-        ('checking', 'Nhập kho')
+        ('checking', 'Nhập kho'),
+        ('assigned_task', 'Đã giao việc'),
     ], string="Loại quét", required=True,)
     
     picking_id = fields.Many2one('stock.picking', string="Phiếu xuất/nhập kho", required=True, ondelete='cascade')

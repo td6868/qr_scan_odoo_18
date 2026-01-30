@@ -6,10 +6,7 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='state']" position="attributes">
-                <field name="state" widget="statusbar" 
-                    statusbar_visible="draft,waiting,confirmed,assigned,assigned_task,done,cancel"
-                    invisible="picking_type_code == 'incoming'"/>
+            <xpath expr="//field[@name='picking_properties']" position="replace">
             </xpath>
             <xpath expr="//button[@name='do_print_picking']" position="replace">
                 <!-- Nút in custom -->
@@ -35,7 +32,19 @@
                         type="object"
                         class="btn-primary"
                         groups="stock.group_stock_user"
-                        invisible="state != 'assigned'"/>
+                        invisible="state != 'assigned' or is_assigned == True"/>
+            </xpath>
+            
+            <!-- Thêm shipping_method và latest_scan_type vào vùng header (khung đỏ trong ảnh) -->
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="shipping_method" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="latest_scan_type" readonly="1" widget="badge" 
+                       decoration-info="latest_scan_type == 'assigned_task'"
+                       decoration-success="latest_scan_type == 'prepare'"
+                       decoration-warning="latest_scan_type == 'shipping'"
+                       decoration-primary="latest_scan_type == 'receive'"
+                       decoration-danger="latest_scan_type == 'checking'"/>
+                <field name="is_assigned" invisible="1"/>
             </xpath>
             <!-- Ẩn nút Xác nhận màu xám (o_btn_validate) mặc định của Odoo cho phiếu xuất kho -->
             <xpath expr="//button[@name='button_validate' and contains(@class, 'o_btn_validate')]" position="attributes">
@@ -328,7 +337,8 @@
         <field name="inherit_id" ref="stock.view_picking_internal_search"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='available']" position="after">
-                <filter string="Đã giao việc" name="assigned_task" domain="[('state', '=', 'assigned_task')]"/>
+                <filter string="Đã giao việc" name="assigned_task" 
+                        domain="[('scan_history_ids.scan_type', '=', 'assigned_task')]"/>
             </xpath>
         </field>
     </record>
