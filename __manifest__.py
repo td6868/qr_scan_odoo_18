@@ -48,6 +48,11 @@ Long description of module's purpose
         'views/scan_history_views.xml',
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
+        
+        'data/default_dashboards.xml',
+        'views/dashboard_hub_views.xml',
+        'views/dashboard_item_views.xml',
+        'views/dashboard_hub_menus.xml',
     ],
     
     # 'css': [
@@ -62,6 +67,7 @@ Long description of module's purpose
             # 'qr_scan_odoo_18/static/src/js/stock_picking_scaner.js',
             'qr_scan_odoo_18/static/src/css/stock_picking_qr_scanner.css',
             'qr_scan_odoo_18/static/src/css/location_inventory.css',
+            'qr_scan_odoo_18/static/src/css/dashboard_hub.css',
             'qr_scan_odoo_18/static/lib/html5-qrcode/html5-qrcode.min.js',
             'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
 

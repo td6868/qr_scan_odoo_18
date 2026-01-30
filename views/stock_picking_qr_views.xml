@@ -38,6 +38,7 @@
             <!-- Thêm shipping_method và latest_scan_type vào vùng header (khung đỏ trong ảnh) -->
             <xpath expr="//field[@name='origin']" position="after">
                 <field name="shipping_method" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="delivery_note" placeholder="Nhập ghi chú giao hàng..."/>
                 <field name="latest_scan_type" readonly="1" widget="badge" 
                        decoration-info="latest_scan_type == 'assigned_task'"
                        decoration-success="latest_scan_type == 'prepare'"

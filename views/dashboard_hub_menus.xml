@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_dashboard_hub_root"
+              name="📊 Dashboards"
+              sequence="5"
+              web_icon="qr_scan_odoo_18,static/description/dashboard_icon.png"/>
+
+    <!-- Dashboard Hub (User View) -->
+    <menuitem id="menu_dashboard_hub"
+              name="Tất cả Dashboard"
+              parent="menu_dashboard_hub_root"
+              action="action_dashboard_hub"
+              sequence="1"/>
+
+    <!-- Dashboard Management (Admin View) -->
+    <menuitem id="menu_dashboard_item_admin"
+              name="Quản lý Dashboard"
+              parent="menu_dashboard_hub_root"
+              action="action_dashboard_item_admin"
+              groups="base.group_system"
+              sequence="100"/>
+</odoo>

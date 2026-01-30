@@ -18,3 +18,5 @@ access_stock_location_user,stock.location.qr.code.user,model_stock_location,stoc
 access_stock_location_manager,stock.location.qr.code.manager,model_stock_location,stock.group_stock_manager,1,1,1,1
 access_stock_location_scan_history_user,stock.location.scan.history.user,model_stock_location_scan_history,base.group_user,1,1,1,1
 access_stock_location_scan_history_manager,stock.location.scan.history.manager,model_stock_location_scan_history,stock.group_stock_manager,1,1,1,1
+access_dashboard_item_user,access.dashboard.item.user,model_dashboard_item,base.group_user,1,0,0,0
+access_dashboard_item_manager,access.dashboard.item.manager,model_dashboard_item,base.group_system,1,1,1,1

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Hub Kanban View (Grid Cards) -->
+    <record id="view_dashboard_hub_kanban" model="ir.ui.view">
+        <field name="name">dashboard.hub.kanban</field>
+        <field name="model">dashboard.item</field>
+        <field name="arch" type="xml">
+            <kanban class="o_dashboard_hub_kanban" create="false" edit="false" delete="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="url"/>
+                <field name="icon"/>
+                <field name="color"/>
+                <field name="open_new_tab"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_dashboard_card" 
+                             t-attf-class="card-#{record.color.raw_value}">
+                            <div class="o_dashboard_card_header">
+                                <i t-attf-class="fa #{record.icon.raw_value} fa-3x"/>
+                            </div>
+                            <div class="o_dashboard_card_body">
+                                <h4><field name="name"/></h4>
+                                <p><field name="description"/></p>
+                            </div>
+                            <div class="o_dashboard_card_footer">
+                                <a t-attf-href="#{record.url.raw_value}" 
+                                   t-att-target="record.open_new_tab.raw_value and '_blank' or '_self'"
+                                   class="btn btn-sm btn-primary">
+                                    Mở Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Hub Action -->
+    <record id="action_dashboard_hub" model="ir.actions.act_window">
+        <field name="name">📊 Trung tâm Dashboard</field>
+        <field name="res_model">dashboard.item</field>
+        <field name="view_mode">kanban</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chào mừng đến với Dashboard Hub!
+            </p>
+            <p>
+                Chọn một dashboard để bắt đầu phân tích dữ liệu.
+            </p>
+        </field>
+    </record>
+</odoo>

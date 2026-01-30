@@ -106,12 +106,16 @@ class StockPickingDashboardAPI(http.Controller):
             Picking = request.env['stock.picking']
             total_count = Picking.search_count(domain)
             
+            # Sắp xếp: Ưu tiên assigned_task_date ASC (cũ nhất trước), NULL cuối cùng
+            # Sau đó mới đến scheduled_date DESC
+            order_clause = 'assigned_task_date ASC NULLS LAST, scheduled_date DESC'
+            
             # Fetch với prefetch để giảm số lần query database
             pickings = Picking.search(
                 domain, 
                 limit=limit, 
                 offset=(page - 1) * limit, 
-                order='scheduled_date desc'
+                order=order_clause
             )
             
             # Prefetch related fields để tránh N+1 query problem
@@ -119,6 +123,7 @@ class StockPickingDashboardAPI(http.Controller):
             pickings.mapped('sale_id.user_id.name')
             pickings.mapped('partner_id.name')
             pickings.mapped('shipping_method.name')
+            pickings.mapped('delivery_note')  # Prefetch delivery note
             
             # Prepare data
             data = []
@@ -152,6 +157,8 @@ class StockPickingDashboardAPI(http.Controller):
                     'state': picking.state,
                     'state_label': state_label,
                     'origin': picking.origin or '',
+                    'note': picking.delivery_note or '',  # Sử dụng delivery_note thay vì note
+                    'assigned_task_date': picking.assigned_task_date.strftime('%Y-%m-%d %H:%M:%S') if picking.assigned_task_date else '',
                 })
             
             # Apply sorting nếu sort_by = 'scan_type'

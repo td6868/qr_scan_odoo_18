@@ -25,6 +25,14 @@ class StockPicking(models.Model):
 
     is_assigned = fields.Boolean("Đã giao việc", compute='_compute_latest_scan_type', store=True)
     
+    # Trường lưu thời gian giao việc (để sort)
+    assigned_task_date = fields.Datetime(
+        string="Thời gian giao việc",
+        compute='_compute_latest_scan_type',
+        store=True,
+        help="Thời gian giao việc cho nhân viên (scan_date của assigned_task)"
+    )
+    
     # Trường phương thức vận chuyển - có thể chỉnh sửa bởi nhân viên kho
     shipping_method = fields.Many2one(
         'delivery.carrier',
@@ -33,6 +41,12 @@ class StockPicking(models.Model):
         store=True,
         readonly=False,
         help="Phương thức vận chuyển. Mặc định lấy từ đơn hàng nhưng có thể thay đổi."
+    )
+    
+    # Trường ghi chú giao hàng
+    delivery_note = fields.Text(
+        string="Ghi chú giao hàng",
+        help="Ghi chú dành cho nhân viên giao hàng và kho"
     )
     
     @api.depends('sale_id.shipping_method')
@@ -52,6 +66,12 @@ class StockPicking(models.Model):
             
             # Kiểm tra xem đã từng có bản ghi assigned_task chưa
             record.is_assigned = any(h.scan_type == 'assigned_task' for h in record.scan_history_ids)
+            
+            # Lấy thời gian giao việc (assigned_task) đầu tiên
+            assigned_task_history = record.scan_history_ids.filtered(
+                lambda h: h.scan_type == 'assigned_task'
+            ).sorted('scan_date')[:1]  # Lấy assigned_task đầu tiên (cũ nhất)
+            record.assigned_task_date = assigned_task_history.scan_date if assigned_task_history else False
 
     def assign_task(self):
         """Giao việc cho user - tạo bản ghi lịch sử quét"""

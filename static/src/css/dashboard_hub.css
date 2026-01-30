@@ -1,0 +1,120 @@
+/* Dashboard Hub Kanban View Styling */
+.o_dashboard_hub_kanban {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: calc(100vh - 100px);
+}
+
+.o_dashboard_hub_kanban .o_kanban_record {
+    margin: 15px;
+    width: 280px !important;
+    max-width: 280px;
+}
+
+.o_dashboard_card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.o_dashboard_card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.o_dashboard_card_header {
+    padding: 30px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.o_dashboard_card_header i {
+    color: #667eea;
+}
+
+/* Color Variants */
+.card-primary .o_dashboard_card_header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-primary .o_dashboard_card_header i {
+    color: white;
+}
+
+.card-success .o_dashboard_card_header {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.card-success .o_dashboard_card_header i {
+    color: white;
+}
+
+.card-warning .o_dashboard_card_header {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+}
+
+.card-warning .o_dashboard_card_header i {
+    color: white;
+}
+
+.card-danger .o_dashboard_card_header {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+}
+
+.card-danger .o_dashboard_card_header i {
+    color: white;
+}
+
+.card-info .o_dashboard_card_header {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+}
+
+.card-info .o_dashboard_card_header i {
+    color: white;
+}
+
+.card-purple .o_dashboard_card_header {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+}
+
+.card-purple .o_dashboard_card_header i {
+    color: white;
+}
+
+.o_dashboard_card_body {
+    padding: 20px;
+    flex: 1;
+}
+
+.o_dashboard_card_body h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 10px 0;
+}
+
+.o_dashboard_card_body p {
+    font-size: 14px;
+    color: #718096;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.o_dashboard_card_footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e2e8f0;
+    background: #f7fafc;
+}
+
+.o_dashboard_card_footer .btn {
+    width: 100%;
+    font-weight: 600;
+    border-radius: 8px;
+}
