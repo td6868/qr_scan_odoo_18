@@ -9,18 +9,21 @@ from datetime import datetime, timedelta
 
 class StockPickingDashboardAPI(http.Controller):
     
-    @http.route('/dashboard/stock_picking', type='http', auth='user', website=True)
+    @http.route('/dashboard/stock_picking', type='http', auth='user', website=False, sitemap=False)
     def render_dashboard(self, **kwargs):
         """Phục vụ file index.html của React Dashboard"""
         # Đường dẫn tới file index.html trong static
         path = get_resource_path('qr_scan_odoo_18', 'static', 'dashboard', 'index.html')
+        
         if not path or not os.path.exists(path):
-            return "Dashboard files not found. Please build the frontend and copy to static/dashboard."
+            return "<h3>Lỗi: Không tìm thấy file Dashboard!</h3><p>Vui lòng kiểm tra thư mục 'static/dashboard' trong module 'qr_scan_odoo_18'.</p>"
             
-        with open(path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-            
-        return html_content
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            return html_content
+        except Exception as e:
+            return "<h3>Lỗi hệ thống:</h3><p>%s</p>" % str(e)
     
     # Mapping trạng thái sang tiếng Việt
     STATE_LABELS_VI = {
