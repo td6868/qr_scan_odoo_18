@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import http
+from odoo import http, fields
 from odoo.http import request
 import json
 import os
@@ -143,10 +143,14 @@ class StockPickingDashboardAPI(http.Controller):
                     'shipping': 3,
                 }.get(latest_scan_type, 99)
                 
+                # Chuyển đổi múi giờ từ UTC trong DB sang múi giờ người dùng
+                scheduled_date_local = fields.Datetime.context_timestamp(request.env.user, picking.scheduled_date) if picking.scheduled_date else None
+                assigned_date_local = fields.Datetime.context_timestamp(request.env.user, picking.assigned_task_date) if picking.assigned_task_date else None
+                
                 data.append({
                     'id': picking.id,
                     'name': picking.name,
-                    'date': picking.scheduled_date.strftime('%Y-%m-%d %H:%M:%S') if picking.scheduled_date else '',
+                    'date': scheduled_date_local.strftime('%Y-%m-%d %H:%M:%S') if scheduled_date_local else '',
                     'sale_order': picking.sale_id.name if picking.sale_id else '',
                     'customer': picking.partner_id.name if picking.partner_id else '',
                     'salesperson': picking.sale_id.user_id.name if picking.sale_id and picking.sale_id.user_id else '',
@@ -158,7 +162,7 @@ class StockPickingDashboardAPI(http.Controller):
                     'state_label': state_label,
                     'origin': picking.origin or '',
                     'note': picking.delivery_note or '',  # Sử dụng delivery_note thay vì note
-                    'assigned_task_date': picking.assigned_task_date.strftime('%Y-%m-%d %H:%M:%S') if picking.assigned_task_date else '',
+                    'assigned_task_date': assigned_date_local.strftime('%Y-%m-%d %H:%M:%S') if assigned_date_local else '',
                 })
             
             # Apply sorting nếu sort_by = 'scan_type'
