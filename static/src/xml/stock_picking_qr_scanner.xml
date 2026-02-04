@@ -263,13 +263,13 @@
                                             <div class="row g-3 g-md-4">
                                                 <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                     <div class="col-12 col-sm-6 col-lg-4">
-                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative bg-white">
+                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative {{line.is_invalid ? 'bg-danger-subtle' : 'bg-white'}}">
                                                             <!-- Status indicator bar  -->
-                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 bg-success" style="height: 3px;"></div>
+                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 {{line.is_invalid ? 'bg-danger' : 'bg-success'}}" style="height: 3px;"></div>
                                                             
-                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 bg-success-subtle">
+                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 {{line.is_invalid ? 'bg-danger text-white' : 'bg-success-subtle'}}">
                                                                 <div class="d-flex align-items-center flex-grow-1">
-                                                                    <i t-attf-class="fa fa-box me-2 text-success"/>
+                                                                    <i t-attf-class="fa fa-box me-2 {{line.is_invalid ? 'text-white' : 'text-success'}}"/>
                                                                     <div>
                                                                         <h6 class="card-title mb-1 fw-semibold">
                                                                             <t t-esc="line.product_name" />
@@ -377,13 +377,13 @@
                                             <div class="row g-3 g-md-4">
                                                 <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                     <div class="col-12 col-sm-6 col-lg-4">
-                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative bg-white">
+                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative {{line.is_invalid ? 'bg-danger-subtle' : 'bg-white'}}">
                                                             <!-- Status indicator bar  -->
-                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 bg-success" style="height: 3px;"></div>
+                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 {{line.is_invalid ? 'bg-danger' : 'bg-success'}}" style="height: 3px;"></div>
                                                             
-                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 bg-success-subtle">
+                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 {{line.is_invalid ? 'bg-danger text-white' : 'bg-success-subtle'}}">
                                                                 <div class="d-flex align-items-center flex-grow-1">
-                                                                    <i t-attf-class="fa fa-box me-2 text-success"/>
+                                                                    <i t-attf-class="fa fa-box me-2 {{line.is_invalid ? 'text-white' : 'text-success'}}"/>
                                                                     <div>
                                                                         <h6 class="card-title mb-1 fw-semibold">
                                                                             <t t-esc="line.product_name" />
@@ -726,13 +726,13 @@
                                             <div class="row g-3 g-md-4">
                                                 <t t-foreach="state.moveLines" t-as="line" t-foreach-index="line_index" t-key="line_index">
                                                     <div class="col-12 col-sm-6 col-lg-4">
-                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative bg-white">
+                                                        <div t-attf-class="card shadow-sm h-100 border-0 position-relative {{line.is_invalid ? 'bg-danger-subtle' : 'bg-white'}}">
                                                             <!-- Status indicator bar -->
-                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 bg-warning" style="height: 3px;"></div>
+                                                            <div t-attf-class="position-absolute top-0 start-0 w-100 {{line.is_invalid ? 'bg-danger' : 'bg-warning'}}" style="height: 3px;"></div>
                                                             
-                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 bg-warning-subtle">
+                                                            <div t-attf-class="card-header d-flex justify-content-between align-items-center border-0 {{line.is_invalid ? 'bg-danger text-white' : 'bg-warning-subtle'}}">
                                                                 <div class="d-flex align-items-center flex-grow-1">
-                                                                    <i t-attf-class="fa fa-check-square me-2 text-warning"/>
+                                                                    <i t-attf-class="fa fa-check-square me-2 {{line.is_invalid ? 'text-white' : 'text-warning'}}"/>
                                                                     <div>
                                                                         <h6 class="card-title mb-1 fw-semibold">
                                                                             <t t-esc="line.product_name" />

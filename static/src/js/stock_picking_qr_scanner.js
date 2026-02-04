@@ -97,7 +97,7 @@ export class StockPickingQrScanner extends Component {
   }
 
   async checkProductConfirm() {
-    await this.handlers.prepare.checkProductQuantities();
+    return await this.handlers.prepare.checkProductQuantities();
   }
 
   /**
@@ -435,9 +435,14 @@ export class StockPickingQrScanner extends Component {
   }
 
 
-  saveProductConfirm() {
+  async saveProductConfirm() {
     if (!this.state.scannedPickingId || this.state.moveLines.length === 0) {
       this.notification.add("Không có thông tin sản phẩm để xác nhận.", { type: "danger" })
+      return
+    }
+
+    const isValid = await this.checkProductConfirm();
+    if (!isValid) {
       return
     }
 

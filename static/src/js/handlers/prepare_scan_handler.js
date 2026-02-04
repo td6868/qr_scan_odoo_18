@@ -86,11 +86,11 @@ export class PrepareScanHandler extends BaseScanHandler {
       // Xác nhận đơn ngay khi quét chuẩn bị hàng
       try {
         await this.orm.call(
-          "stock.picking", 
-          "button_validate", 
+          "stock.picking",
+          "button_validate",
           [this.component.state.scannedPickingId],
-          { 
-            
+          {
+
           }
         )
         this.notification.add("Đã xác nhận và lưu thông tin chuẩn bị hàng thành công!", { type: "success" })
@@ -123,40 +123,54 @@ export class PrepareScanHandler extends BaseScanHandler {
 
   async checkProductQuantities() {
     const { moveLines } = this.component.state;
+    console.log("Checking moveLines:", JSON.stringify(moveLines, null, 2));
     const updatedMoveLines = [];
+    let isValid = true;
 
     for (const moveLine of moveLines) {
       const productId = moveLine.product_id;
-      const enteredQuantity = moveLine.quantity_confirmed;
+      const enteredQuantity = parseFloat(moveLine.quantity_confirmed) || 0;
+      const demandQuantity = parseFloat(moveLine.quantity) || 0; // Đây là product_uom_qty được gán vào key 'quantity' khi load
+      let lineInvalid = false;
 
       try {
-        // Fetch actual quantity from Odoo (assuming a method exists or needs to be created)
-        // For now, let's simulate this with a direct ORM call to get product quantity
+        // Fetch actual quantity from Odoo
         const actualQuantity = await this.orm.call(
           "stock.quant",
           "get_product_available_quantity",
           [productId]
         );
+        console.log(`Product: ${moveLine.product_name}, Entered: ${enteredQuantity}, Demand: ${demandQuantity}, Stock: ${actualQuantity}`);
 
         if (enteredQuantity > actualQuantity) {
           this.notification.add(
-            `Số lượng nhập cho sản phẩm ${moveLine.product_name} (${enteredQuantity}) lớn hơn số lượng thực tế trong kho (${actualQuantity}). Đã cập nhật lại thành ${actualQuantity}.`,
-            { type: "warning" }
+            `Số lượng nhập cho sản phẩm ${moveLine.product_name} (${enteredQuantity}) lớn hơn số lượng thực tế trong kho (${actualQuantity}).`,
+            { type: "danger" }
           );
-          updatedMoveLines.push({ ...moveLine, quantity_confirmed: actualQuantity });
-        } else {
-          updatedMoveLines.push(moveLine);
+          isValid = false;
+          lineInvalid = true;
+        } else if (enteredQuantity > demandQuantity) {
+          this.notification.add(
+            `Số lượng nhập cho sản phẩm ${moveLine.product_name} (${enteredQuantity}) lớn hơn nhu cầu (${demandQuantity}).`,
+            { type: "danger" }
+          );
+          isValid = false;
+          lineInvalid = true;
         }
+
+        updatedMoveLines.push({ ...moveLine, is_invalid: lineInvalid });
       } catch (error) {
         console.error(`Error checking quantity for product ${moveLine.product_name}:`, error);
         this.notification.add(
           `Lỗi khi kiểm tra số lượng cho sản phẩm ${moveLine.product_name}: ${error.message}`,
           { type: "danger" }
         );
-        updatedMoveLines.push(moveLine); // Keep original if error occurs
+        isValid = false;
+        updatedMoveLines.push({ ...moveLine, is_invalid: true });
       }
     }
     this.component._updateState({ moveLines: updatedMoveLines });
+    return isValid;
   }
 
 }

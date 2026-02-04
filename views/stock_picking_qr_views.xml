@@ -474,13 +474,5 @@
               parent="menu_stock_qr_scanner_parent"
               action="action_stock_picking_qr_scanner_incoming"
               sequence="20"/>
-
-    <!-- <menuitem id="menu_stock_qr_scanner_inventory"
-              name="Quét QR kiểm kê kho"
-              parent="menu_stock_qr_scanner_parent"
-              action="action_stock_picking_qr_scanner_inventory"
-              sequence="30"/> -->
-
-    <!-- Đã bỏ menu "Xác nhận sản phẩm" theo yêu cầu -->
     
 </odoo>

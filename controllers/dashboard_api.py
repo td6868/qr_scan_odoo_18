@@ -163,6 +163,7 @@ class StockPickingDashboardAPI(http.Controller):
                     'origin': picking.origin or '',
                     'note': picking.delivery_note or '',  # Sử dụng delivery_note thay vì note
                     'assigned_task_date': assigned_date_local.strftime('%Y-%m-%d %H:%M:%S') if assigned_date_local else '',
+                    'sale_id': picking.sale_id.id if picking.sale_id else False,
                 })
             
             # Apply sorting nếu sort_by = 'scan_type'
@@ -216,6 +217,7 @@ class StockPickingDashboardAPI(http.Controller):
                     'shipping_method': picking.shipping_method.name if picking.shipping_method else '',
                     'scan_date': latest_scan.scan_date.strftime('%Y-%m-%d %H:%M:%S') if latest_scan and latest_scan.scan_date else '',
                     'scan_user': latest_scan.scan_user_id.name if latest_scan and latest_scan.scan_user_id else '',
+                    'sale_id': picking.sale_id.id if picking.sale_id else False,
                 })
             
             return {

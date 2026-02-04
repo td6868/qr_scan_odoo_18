@@ -83,6 +83,7 @@ class StockPicking(models.Model):
             'scan_date': fields.Datetime.now(),
             'scan_note': 'Đã giao việc'
         })
+        return self.action_print_picking()
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -391,3 +392,15 @@ class StockPickingScanHistory(models.Model):
             })
             attachments.append(attachment.id)
         return attachments
+
+    def _compute_display_name(self):
+        for record in self:
+            if record.scan_date:
+                local_dt = fields.Datetime.context_timestamp(
+                    record,
+                    record.scan_date
+                )
+                scan_date_7 = local_dt.strftime('%Y-%m-%d %H:%M:%S')
+                record.display_name = f"{record.picking_id.name} - {scan_date_7}"
+            else:
+                record.display_name = record.picking_id.name
