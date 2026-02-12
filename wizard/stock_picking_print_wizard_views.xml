@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_picking_print_wizard_form" model="ir.ui.view">
+        <field name="name">stock.picking.print.wizard.form</field>
+        <field name="model">stock.picking.print.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Chọn loại phiếu in">
+                <group>
+                    <field name="picking_id" invisible="1"/>
+                    <field name="report_type" widget="radio"/>
+                </group>
+                <group invisible="report_type != 'type_3'">
+                    <field name="sender_info"/>
+                    <field name="recipient_info"/>
+                </group>
+                <footer>
+                    <button string="In phiếu" name="action_print" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Hủy" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_picking_print_wizard" model="ir.actions.act_window">
+        <field name="name">Chọn loại phiếu in</field>
+        <field name="res_model">stock.picking.print.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

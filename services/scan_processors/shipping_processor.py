@@ -20,17 +20,14 @@ class ShippingScanProcessor(models.TransientModel):
         }
 
     def _validate_scan_specific(self, picking, **kwargs):
-        """Validate shipping scan specific rules"""
-        # Nếu đang ở chế độ validate ban đầu, bỏ qua check loại vận chuyển
+        """Validate shipping scan specific rules
+        
+        Note: Most validation is now done in API layer for early feedback.
+        This is a safety net for direct model calls.
+        """
+        # Validate shipping type (skip if validate_only mode)
         if kwargs.get('shipping_type') != 'validate_only' and not kwargs.get('shipping_type'):
             raise ValidationError("Vui lòng chọn loại vận chuyển!")
-        
-        if picking.is_shipped:
-            raise ValidationError("Phiếu xuất kho này đã được vận chuyển rồi!")
-        
-        # Check history instead of boolean field
-        if not picking.scan_history_ids.filtered(lambda h: h.scan_type == 'prepare'):
-            raise ValidationError("Phải chuẩn bị hàng trước khi vận chuyển!")
 
     def _process_additional_data(self, scan_history, **kwargs):
         """Mark picking as shipped after processing"""

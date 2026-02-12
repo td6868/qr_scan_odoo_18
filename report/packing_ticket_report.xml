@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_packing_ticket">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family: 'Roboto', sans-serif; color: #000;">
+                        <style>
+                            .ticket {
+                                width: 100%;
+                                padding: 5px;
+                                page-break-inside: avoid;
+                            }
+                            
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                            }
+                            td {
+                                padding: 3px;
+                                vertical-align: top;
+                            }
+                            
+                            .qr-cell {
+                                width: 180px;
+                            }
+                            .qr-img {
+                                width: 250px;
+                                height: 250px;
+                            }
+                            .picking-name {
+                                font-size: 15px;
+                                font-weight: bold;
+                                margin-top: 2px;
+                                text-align: center;
+                            }
+                            
+                            .header-cell {
+                                text-align: center;
+                                vertical-align: middle;
+                            }
+                            .fragile {
+                                font-size: 36px;
+                                font-weight: 900;
+                                color: #ff0000;
+                            }
+                            .order-label {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin-top: 3px;
+                            }
+                            .order-name {
+                                font-size: 32px;
+                                font-weight: 900;
+                            }
+                            
+                            .transport-row {
+                                font-size: 22px;
+                                font-weight: bold;
+                                margin-top: 8px;
+                            }
+                            .blue-underline {
+                                display: inline-block;
+                                width: 65%;
+                                border-bottom: 3px solid #0000FF;
+                                margin-left: 8px;
+                                min-height: 3px;
+                            }
+                            
+                            .info-section {
+                                margin-top: 10px;
+                            }
+                            .info-title {
+                                font-weight: bold;
+                                font-size: 20px;
+                                text-decoration: underline;
+                                margin-bottom: 5px;
+                            }
+                            .info-content {
+                                font-size: 18px;
+                                line-height: 1.25;
+                            }
+                            .info-label {
+                                font-weight: bold;
+                            }
+                        </style>
+                        
+                        <div class="ticket">
+                            <!-- Header: QR + Info -->
+                            <table>
+                                <tr>
+                                    <td class="qr-cell">
+                                        <t t-if="doc.qr_code_image">
+                                            <img t-att-src="image_data_uri(doc.qr_code_image)" class="qr-img" alt="QR"/>
+                                        </t>
+                                        <div class="picking-name"><span t-field="doc.name"/></div>
+                                    </td>
+                                    <td class="header-cell">
+                                        <div class="fragile">HÀNG DỄ VỠ</div>
+                                        <!-- <div class="transport-row">
+                                            <t t-if="doc.transport_id">
+                                                Nhà xe: <span t-field="doc.transport_id.name"/>
+                                            </t>
+                                        </div> -->
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Info: Sender + Recipient -->
+                            <table class="info-section">
+                                <tr>
+                                    <td style="width: 50%; padding-right: 15px;">
+                                        <div class="info-title">THÔNG TIN NGƯỜI GỬI:</div>
+                                        <div class="info-content">
+                                            <div><span class="info-label">Họ tên:</span> <span t-esc="doc.sender_info"/></div>
+                                            <div style="margin-top: 8px;"><span class="info-label">Ghi chú:</span> <span t-esc="doc.delivery_note or ''"/></div>
+                                        </div>
+                                    </td>
+                                    <td style="width: 50%; padding-left: 15px;">
+                                        <div class="info-title">THÔNG TIN NGƯỜI NHẬN:</div>
+                                        <div class="info-content">
+                                            <div><span class="info-label">Họ tên:</span> <span t-esc="doc.recipient_info"/></div>
+                                            <div style="margin-top: 4px;"><span class="info-label">Địa chỉ:</span> <span t-esc="doc.partner_id.contact_address"/></div>
+                                            <div style="margin-top: 4px;"><span class="info-label">Số ĐT:</span> <span t-esc="doc.partner_id.phone or doc.partner_id.mobile or ''"/></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

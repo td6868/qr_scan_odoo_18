@@ -42,6 +42,8 @@ Long description of module's purpose
         'report/report_po_china.xml',
         'report/report_po_kk.xml',
         'report/stock_picking_rp_2.xml',
+        'report/packing_ticket_report.xml',
+        
         'views/stock_picking_qr_views.xml',
         'views/stock_location_views.xml',
         'views/scan_history_stock_location_views.xml',
@@ -49,6 +51,7 @@ Long description of module's purpose
         'views/sale.xml',
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
+        'wizard/stock_picking_print_wizard_views.xml',
         
         'data/default_dashboards.xml',
         'views/dashboard_hub_views.xml',

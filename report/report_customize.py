@@ -1,4 +1,4 @@
-from odoo import api, models
+from odoo import api, models, fields
 class StockPickingReportKhoakim(models.AbstractModel):
     _name = 'report.qr_scan_odoo_18.report_stock_picking_khoakim'
     _description = 'Mẫu in phiếu xuất kho Khoa Kim'

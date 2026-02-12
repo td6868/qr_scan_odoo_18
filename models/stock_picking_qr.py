@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 import qrcode
 import base64
 from io import BytesIO
@@ -46,8 +46,28 @@ class StockPicking(models.Model):
     # Trường ghi chú giao hàng
     delivery_note = fields.Text(
         string="Ghi chú giao hàng",
-        help="Ghi chú dành cho nhân viên giao hàng và kho"
+        help="Ghi chú dành cho nhân viên giao hàng và kho",
+        copy=False
     )
+
+    sender_info = fields.Char(
+        string='Người gửi (Phiếu gửi xe)',
+        compute='_compute_print_info',
+        store=True, readonly=False, copy=False
+    )
+    recipient_info = fields.Char(
+        string='Người nhận (Phiếu gửi xe)',
+        compute='_compute_print_info',
+        store=True, readonly=False, copy=False
+    )
+    
+    @api.depends('user_id', 'partner_id')
+    def _compute_print_info(self):
+        for record in self:
+            if not record.sender_info:
+                record.sender_info = record.user_id.name or self.env.user.name
+            if not record.recipient_info:
+                record.recipient_info = record.partner_id.name or ''
     
     @api.depends('sale_id.shipping_method')
     def _compute_shipping_method(self):
@@ -83,7 +103,7 @@ class StockPicking(models.Model):
             'scan_date': fields.Datetime.now(),
             'scan_note': 'Đã giao việc'
         })
-        return self.action_print_picking()
+        return self.action_open_print_wizard()
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
@@ -257,6 +277,57 @@ class StockPicking(models.Model):
         picking_code = self.picking_type_id.code
         if picking_code == 'outgoing':
             return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_2').report_action(self)    
+
+    def action_print_packing_ticket(self):
+        self.ensure_one()
+        picking_code = self.picking_type_id.code
+        if picking_code == 'outgoing':
+            return self.env.ref('qr_scan_odoo_18.action_report_packing_ticket').report_action(self)    
+    
+    def action_open_print_wizard(self):
+        self.ensure_one()
+        return {
+            'name': _('Chọn loại phiếu in'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking.print.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_id': self.id,
+                'active_ids': [self.id],
+                'default_picking_id': self.id,
+            }
+        }
+    
+    def _get_print_report_options(self):
+        """Trả về danh sách các lựa chọn in phiếu. Có thể override để thêm loại mới."""
+        self.ensure_one()
+        options = [('type_1', 'In phiếu')]
+        # Kiểm tra code linh hoạt hơn (hỗ trợ cả outgoing và delivery)
+        if self.picking_type_id.code in ['outgoing', 'delivery']:
+            options.append(('type_2', 'In phiếu (Điền)'))
+            options.append(('type_3', 'In phiếu (Gửi xe)'))
+        return options
+
+    def _get_report_method_mapping(self):
+        """Trả về mapping giữa loại report và method xử lý tương ứng."""
+        return {
+            'type_1': 'action_print_picking',
+            'type_2': 'action_print_picking_2',
+            'type_3': 'action_print_packing_ticket',
+            # Dễ dàng thêm các loại mới tại đây
+        }
+
+    def action_perform_print(self, report_type):
+        """Thực hiện in dựa trên loại report đã chọn."""
+        self.ensure_one()
+        mapping = self._get_report_method_mapping()
+        method_name = mapping.get(report_type)
+        
+        if method_name and hasattr(self, method_name):
+            return getattr(self, method_name)()
+            
+        return False
     
     
 

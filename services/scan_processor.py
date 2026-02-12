@@ -38,6 +38,19 @@ class BaseScanProcessor(models.AbstractModel):
 
     def process_scan(self, record, **kwargs):
         """Template method for processing scans"""
+        # 1. Identity switch: Do this as early as possible to ensure all tracking works
+        user_id = kwargs.get('scan_user_id')
+        if user_id:
+            user = self.env['res.users'].sudo().browse(user_id)
+            if user.exists():
+                # Switch BOTH the record and the processor (self) to the user's env
+                # Using su=False is crucial for Chatter attribution
+                new_env = self.env(user=user, su=False)
+                record = record.with_env(new_env)
+                self = self.with_env(new_env)
+                _logger.info("Process Scan switched to user: %s (Partner: %s)", user.name, user.partner_id.id)
+
+        # 2. Proceed with user identity
         self._validate_record_state(record)
         self._validate_scan_specific(record, **kwargs)
         
@@ -45,9 +58,9 @@ class BaseScanProcessor(models.AbstractModel):
         self._process_images(scan_history, kwargs.get('images_data'))
         self._process_additional_data(scan_history, **kwargs)
         
-        # Auto-validate if requested or if it's picking prepare/package
+        # Auto-validate if requested
         if kwargs.get('auto_validate', True):
-            self._auto_validate(record, **kwargs)  # Pass kwargs để lấy scan_user_id
+            self._auto_validate(record, **kwargs)
             
         return scan_history
 
@@ -61,18 +74,11 @@ class BaseScanProcessor(models.AbstractModel):
             return
         
         try:
-            _logger.info("Auto-validating record %s (state: %s)", record.name, record.state)
+            _logger.info("Auto-validating record %s (state: %s) as user: %s (UID: %s)", 
+                        record.name, record.state, record.env.user.name, record.env.uid)
             
-            # Get user from scan_user_id if available (important for auth='none' APIs)
-            user_id = kwargs.get('scan_user_id')
-            if user_id:
-                # Use sudo() with specified user to avoid "partner_id IN (false)" error
-                record_with_user = record.sudo().with_user(user_id)
-            else:
-                # Fallback to sudo() without specific user
-                record_with_user = record.sudo()
-            
-            record_with_user.button_validate()
+            # Record already has the correct env from process_scan
+            record.with_context(mail_notrack=False).button_validate()
             _logger.info("Auto-validation successful for %s", record.name)
         except Exception as e:
             _logger.error("Auto-validate failed for %s: %s", record.name, str(e), exc_info=True)
@@ -108,9 +114,18 @@ class StockPickingBaseScanProcessor(BaseScanProcessor):
     _description = 'Base Scan Processor for Stock Picking'
 
     def _validate_record_state(self, picking):
-        """Validate picking state"""
+        """Validate picking state - Safety net only
+        
+        Note: Primary validation is now done in API layer for early feedback.
+        This is kept as a safety net for direct model calls.
+        """
+        # Basic state check
         if picking.state in ['done', 'cancel']:
             raise ValidationError(f"Không thể quét QR cho phiếu có trạng thái '{picking.state}'")
+        
+        # Check sale order state
+        if picking.sale_id and picking.sale_id.state == 'cancel':
+            raise ValidationError(f"Không thể quét phiếu {picking.name} - Đơn hàng {picking.sale_id.name} đã bị hủy")
 
     def _create_scan_history(self, picking, **kwargs):
         """Create picking scan history record"""

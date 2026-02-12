@@ -23,6 +23,17 @@
             <field name="binding_type">report</field>
         </record>
         
+        <record id="action_report_packing_ticket" model="ir.actions.report">
+            <field name="name">Phiếu Gửi Xe</field>
+            <field name="model">stock.picking</field>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="report_type">qweb-html</field>
+            <field name="report_name">qr_scan_odoo_18.report_packing_ticket</field>
+            <field name="report_file">qr_scan_odoo_18.report_packing_ticket</field>
+            <field name="print_report_name">'Phiếu gửi xe - %s - %s' % (object.partner_id.name or '', object.name)</field>
+            <field name="binding_type">report</field>
+        </record>
+        
         <record id="action_report_purchase_order_customize" model="ir.actions.report">
             <field name="name">Phiếu nhập kho</field>
             <field name="model">stock.picking</field>
