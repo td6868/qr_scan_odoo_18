@@ -37,7 +37,7 @@ class StockPickingDashboardAPI(http.Controller):
     
     SCAN_TYPE_LABELS_VI = {
         'prepare': 'Chuẩn bị hàng',
-        'shipping': 'Đóng gói',
+        'shipping': 'Vận chuyển hàng',
         'receive': 'Nhận hàng',
         'checking': 'Nhập kho',
         'assigned_task': 'Đã giao việc',
@@ -193,7 +193,7 @@ class StockPickingDashboardAPI(http.Controller):
             # Domain: Phương thức vận chuyển chứa "Xe tải" hoặc "Xe bus" + scan_type = prepare
             domain = [
                 ('picking_type_code', '=', 'outgoing'),
-                ('scan_history_ids.scan_type', '=', 'prepare'),
+                ('latest_scan_type', '=', 'prepare'),
                 '|',
                 ('shipping_method.name', 'ilike', 'xe tải'),
                 ('shipping_method.name', 'ilike', 'xe bus'),

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== SHIPPING CARRIER COMPANY VIEWS ========== -->
+    
+    <!-- Tree View -->
+    <record id="view_shipping_carrier_company_tree" model="ir.ui.view">
+        <field name="name">shipping.carrier.company.tree</field>
+        <field name="model">shipping.carrier.company</field>
+        <field name="arch" type="xml">
+            <list string="Nhà xe">
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="contact_person"/>
+                <field name="address"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_shipping_carrier_company_form" model="ir.ui.view">
+        <field name="name">shipping.carrier.company.form</field>
+        <field name="model">shipping.carrier.company</field>
+        <field name="arch" type="xml">
+            <form string="Nhà xe">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pickings" type="object" class="oe_stat_button" icon="fa-truck" string="Phiếu xuất kho">
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Tên nhà xe..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Thông tin liên hệ">
+                            <field name="phone" widget="phone"/>
+                            <field name="phone_secondary" widget="phone"/>
+                            <field name="contact_person"/>
+                        </group>
+                        <group string="Địa chỉ gửi hàng">
+                            <field name="address" placeholder="Nhập địa chỉ gửi hàng..." nolabel="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tuyến đường" name="routes">
+                            <field name="route_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="origin_city"/>
+                                    <field name="destination_city"/>
+                                    <field name="estimated_days"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Lịch trình xuất bến" name="schedules">
+                            <field name="schedule_ids">
+                                <list editable="bottom">
+                                    <field name="route_id"/>
+                                    <field name="weekday"/>
+                                    <field name="departure_time"/>
+                                    <field name="frequency"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="note">
+                            <field name="note" placeholder="Ghi chú nội bộ về nhà xe..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_shipping_carrier_company_search" model="ir.ui.view">
+        <field name="name">shipping.carrier.company.search</field>
+        <field name="model">shipping.carrier.company</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm nhà xe">
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="contact_person"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_shipping_carrier_company" model="ir.actions.act_window">
+        <field name="name">Nhà xe</field>
+        <field name="res_model">shipping.carrier.company</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo nhà xe mới
+            </p>
+            <p>
+                Quản lý thông tin các nhà xe vận chuyển hàng hóa.
+            </p>
+        </field>
+    </record>
+
+</odoo>

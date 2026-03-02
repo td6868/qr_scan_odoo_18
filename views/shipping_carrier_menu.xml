@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== MENU STRUCTURE ========== -->
+    
+    <!-- Main Menu: Quản lý Nhà xe -->
+    <menuitem id="menu_shipping_carrier_root"
+              name="Quản lý Nhà xe"
+              web_icon="qr_scan_odoo_18,static/description/icon_bus.png"
+              sequence="100"/>
+    
+    <!-- Submenu: Nhà xe -->
+    <menuitem id="menu_shipping_carrier_company"
+              name="Nhà xe"
+              parent="menu_shipping_carrier_root"
+              action="action_shipping_carrier_company"
+              sequence="10"/>
+    
+    <!-- Submenu: Tuyến đường -->
+    <menuitem id="menu_shipping_route"
+              name="Tuyến đường"
+              parent="menu_shipping_carrier_root"
+              action="action_shipping_route"
+              sequence="20"/>
+    
+    <!-- Submenu: Cấu hình -->
+    <menuitem id="menu_shipping_carrier_config"
+              name="Cấu hình"
+              parent="menu_shipping_carrier_root"
+              sequence="100"/>
+
+</odoo>

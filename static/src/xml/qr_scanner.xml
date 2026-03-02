@@ -9,12 +9,12 @@
                                 
                                 <!-- Mode Selector  -->
                                 <div t-if="state.showModeSelector" class="card-header bg-primary text-white">
-                                    <h3 class="mb-3"><i class="fa fa-qrcode me-2"></i>Chọn chế độ quét QR</h3>
+                                    <h3 class="mb-3"><i class="fa fa-qrcode me-2" title="Quét QR"></i>Chọn chế độ quét QR</h3>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.selectTaskType('incoming')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-box fa-3x mb-3 text-info"></i>
+                                                    <i class="fa fa-box fa-3x mb-3 text-info" title="Hộp hàng"></i>
                                                     <h5>Xuất kho</h5>
                                                     <p class="small">Quét QR, chụp ảnh và xác nhận xuất kho</p>
                                                 </div>
@@ -23,7 +23,7 @@
                                         <div class="col-md-6">
                                             <div class="card bg-light text-dark h-100" style="cursor: pointer;" t-on-click="() => this.selectTaskType('outgoing')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-truck fa-3x mb-3 text-info"></i>
+                                                    <i class="fa fa-truck fa-3x mb-3 text-info" title="Vận chuyển"></i>
                                                     <h5>Vận chuyển</h5>
                                                     <p class="small">Quét QR và điền thông tin giao vận</p>
                                                 </div>
@@ -38,7 +38,7 @@
                                             <div class="card bg-light h-100" style="cursor:pointer;"
                                                 t-on-click="() => this.startScan('prepare')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-box-open fa-3x mb-3 text-info"></i>
+                                                    <i class="fa fa-box-open fa-3x mb-3 text-info" title="Mở hộp"></i>
                                                     <h5>Chuẩn bị</h5>
                                                 </div>
                                             </div>
@@ -47,7 +47,7 @@
                                             <div class="card bg-light h-100" style="cursor:pointer;"
                                                 t-on-click="() => this.startScan('shipping')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-truck fa-3x mb-3 text-warning"></i>
+                                                    <i class="fa fa-truck fa-3x mb-3 text-warning" title="Vận chuyển"></i>
                                                     <h5>Vận chuyển</h5>
                                                 </div>
                                             </div>
@@ -58,7 +58,7 @@
                                             <div class="card bg-light h-100" style="cursor:pointer;"
                                                 t-on-click="() => this.startScan('receive')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-truck fa-3x mb-3 text-warning"></i>
+                                                    <i class="fa fa-truck fa-3x mb-3 text-warning" title="Vận chuyển"></i>
                                                     <h5>Xác nhận nhận hàng</h5>
                                                 </div>
                                             </div>
@@ -67,7 +67,7 @@
                                             <div class="card bg-light h-100" style="cursor:pointer;"
                                                 t-on-click="() => this.startScan('checking')">
                                                 <div class="card-body text-center">
-                                                    <i class="fa fa-check fa-3x mb-3 text-success"></i>
+                                                    <i class="fa fa-check fa-3x mb-3 text-success" title="Xác nhận"></i>
                                                     <h5>Kiểm hàng</h5>
                                                 </div>
                                             </div>

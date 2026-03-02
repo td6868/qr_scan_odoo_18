@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== STOCK PICKING - ADD SHIPPING CARRIER FIELDS ========== -->
+    
+    <record id="view_picking_form_shipping_carrier" model="ir.ui.view">
+        <field name="name">stock.picking.form.shipping.carrier</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Add shipping carrier company field after origin field -->
+            <!-- Đã di chuyển sang stock_picking_qr_views.xml để phân bổ layout cân bằng hơn -->
+            <!-- <xpath expr="//field[@name='origin']" position="after">
+                <field name="shipping_carrier_company_id" 
+                       can_create="false"/>
+            </xpath> -->
+            
+            <!-- Add shipping information in a new page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Thông tin gửi xe" name="shipping_carrier_info" 
+                      invisible="shipping_carrier_company_id == False">
+                    <group>
+                        <group string="Nhà xe">
+                            <field name="shipping_carrier_company_id" readonly="1"/>
+                            <field name="shipping_route_id" readonly="1" invisible="shipping_route_id == False"/>
+                            <field name="is_sent_to_carrier" readonly="1"/>
+                        </group>
+                        <group string="Thông tin gửi xe">
+                            <field name="actual_shipping_date" readonly="1"/>
+                            <field name="shipping_confirmed_by" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Thông tin xe">
+                            <field name="shipping_driver_phone" readonly="1"/>
+                            <field name="shipping_vehicle_number" readonly="1"/>
+                            <field name="shipping_tracking_number" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

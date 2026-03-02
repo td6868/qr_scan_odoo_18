@@ -49,6 +49,36 @@ class StockPicking(models.Model):
         help="Ghi chú dành cho nhân viên giao hàng và kho",
         copy=False
     )
+    
+    # ========== SHIPPING CARRIER COMPANY FIELDS ==========
+    shipping_carrier_company_id = fields.Many2one(
+        'shipping.carrier.company',
+        string='Nhà xe',
+        tracking=True,
+        help='Nhà xe vận chuyển hàng hóa'
+    )
+    
+    shipping_route_id = fields.Many2one(
+        'shipping.route',
+        string='Tuyến đường',
+        domain="[('company_ids', '=', shipping_carrier_company_id)]",
+        tracking=True,
+        help='Tuyến đường sẽ gửi xe'
+    )
+
+    demo_bus_company = fields.Text(string="Thông tin gửi xe")
+    
+    # Thông tin gửi xe
+    actual_shipping_date = fields.Datetime('Thời gian gửi xe thực tế', tracking=True)
+    shipping_confirmed_by = fields.Many2one('res.users', 'Người xác nhận gửi xe', readonly=True)
+    shipping_driver_phone = fields.Char('SĐT tài xế', tracking=True)
+    shipping_vehicle_number = fields.Char('Biển số xe', tracking=True)
+    shipping_tracking_number = fields.Char('Mã vận đơn', tracking=True)
+    shipping_qr_code_image = fields.Binary('QR Code phiếu gửi xe', attachment=True)
+    shipping_qr_code_data = fields.Char('Nội dung QR phiếu gửi xe')
+    
+    # Trạng thái gửi xe
+    is_sent_to_carrier = fields.Boolean('Đã gửi xe', default=False, copy=False, tracking=True)
 
     sender_info = fields.Char(
         string='Người gửi (Phiếu gửi xe)',
@@ -61,11 +91,15 @@ class StockPicking(models.Model):
         store=True, readonly=False, copy=False
     )
     
-    @api.depends('user_id', 'partner_id')
+    @api.depends('user_id', 'partner_id', 'sale_id.user_id')
     def _compute_print_info(self):
         for record in self:
-            if not record.sender_info:
-                record.sender_info = record.user_id.name or self.env.user.name
+            if not record.sender_info or record.sender_info == 'OdooBot':
+                # Ưu tiên lấy nhân viên kinh doanh từ đơn hàng (sale_id.user_id)
+                # Nếu không có, lấy người chịu trách nhiệm phiếu (user_id)
+                # Cuối cùng lấy user hiện tại
+                sender_name = record.sale_id.user_id.name or record.user_id.name or self.env.user.name
+                record.sender_info = sender_name
             if not record.recipient_info:
                 record.recipient_info = record.partner_id.name or ''
     
@@ -146,30 +180,20 @@ class StockPicking(models.Model):
         }
         return mapping.get(scan_mode)
 
-    def update_scan_info(self, images_data=None, scan_note=None, move_line_confirms=None, 
-                    scan_mode='', shipping_type=None, 
-                    shipping_phone=None, shipping_company=None,
-                    is_prepared=False, scan_user_id=None, auto_validate=True):        
+    def update_scan_info(self, **kwargs):        
         """Method để cập nhật thông tin scan"""
         self.ensure_one()
         
+        scan_mode = kwargs.get('scan_mode', '')
         scan_type = self._map_scan_mode_to_type(scan_mode)
         universal_processor = self.env['universal.scan.processor']
         processor = universal_processor.get_processor('stock.picking', scan_type)
         
-        return processor.process_scan(
-            self,
-            scan_type=scan_type,
-            images_data=images_data,
-            scan_note=scan_note,
-            move_line_confirms=move_line_confirms,
-            shipping_type=shipping_type,
-            shipping_phone=shipping_phone,
-            shipping_company=shipping_company,
-            is_prepared=is_prepared,
-            scan_user_id=scan_user_id,
-            auto_validate=auto_validate,
-        )
+        # Ghi đè scan_type để controller luồng xử lý biết được loại hành động
+        kwargs['scan_type'] = scan_type
+        
+        return processor.process_scan(self, **kwargs)
+
 
     def action_validate_qr_scan(self, scan_mode):
         """Kiểm tra xem record có được phép quét ở mode này không bằng cách sử dụng backend logic"""
@@ -192,54 +216,6 @@ class StockPicking(models.Model):
             return {'status': 'error', 'message': e.args[0]}
         except Exception as e:
             return {'status': 'error', 'message': str(e)}
-
-    # def update_move_line_confirm(self, confirmed_lines):    
-    #     """Cập nhật xác nhận move lines -cập nhật quantity"""
-        
-    #     if not confirmed_lines:
-    #         return {'status': 'error', 'message': 'Không có dữ liệu xác nhận'}
-        
-    #     move_ids = [line['move_id'] for line in confirmed_lines]
-    #     moves = self.env['stock.move'].browse(move_ids).with_context(active_test=False)
-        
-    #     # Kiểm tra tất cả moves có thuộc phiếu xuất kho này không
-    #     invalid_moves = moves.filtered(lambda m: m.picking_id.id != self.id)
-    #     if invalid_moves:
-    #         raise ValidationError(
-    #             f"Một số sản phẩm không thuộc phiếu xuất kho này: {', '.join(invalid_moves.mapped('product_id.name'))}"
-    #         )
-        
-    #     confirm_vals = []
-    #     for line in confirmed_lines:
-    #         move_id = line.get('move_id')
-    #         quantity = float(line.get('quantity_confirmed', 0.0))
-    #         note = line.get('confirm_note', '')
-
-    #         move = moves.filtered(lambda m: m.id == move_id)
-    #         if not move:
-    #             continue
-
-    #         if quantity > move.product_uom_qty:
-    #             raise ValidationError(
-    #                 f"Sản phẩm '{move.product_id.display_name}' xác nhận {quantity} vượt quá nhu cầu {move.product_uom_qty}"
-    #             )
-
-    #         # Tạo bản ghi xác nhận
-    #         confirm_vals.append({
-    #             'move_id': move_id,
-    #             'product_id': move.product_id.id,
-    #             'quantity_confirmed': quantity,
-    #             'confirm_note': note,
-    #             'confirm_user_id': self.env.uid,
-    #             'confirm_date': fields.Datetime.now(),
-    #         })
-
-    #         move.write({'quantity': quantity})
-
-    #     if confirm_vals:
-    #         self.env['stock.move.line.confirm'].create(confirm_vals)
-
-    #     return {'status': 'success', 'message': 'Đã xác nhận và cập nhật số lượng thành công'}
 
     @api.depends('scan_history_ids.move_line_confirmed_ids')
     def _compute_move_line_confirmed_ids(self):
@@ -329,7 +305,9 @@ class StockPicking(models.Model):
             
         return False
     
-    
+    @api.onchange('shipping_carrier_company_id')
+    def _onchange_shipping_carrier_company_id(self):
+        self.shipping_route_id = False    
 
 class StockMoveLineConfirm(models.Model):
     _name = 'stock.move.line.confirm'
@@ -431,11 +409,11 @@ class StockPickingScanHistory(models.Model):
     
     # Các trường shipping chuyển từ stock.picking sang
     shipping_type = fields.Selection([
-        ('pickup', 'Khách đến lấy hàng'),
-        ('viettelpost', 'Viettel Post'),
-        ('delivery', 'Đặt ship : Xe khách/Xe ...')
+        ('bus', 'Xe khách / Nhà xe'),
+        # ('pickup', 'Khách lấy tại quầy'),
+        # ('viettel', 'Viettel Post'),
     ], string="Loại vận chuyển")
-    shipping_phone = fields.Text("Số điện thoại giao vận")
+    shipping_phone = fields.Char(related = 'picking_id.shipping_driver_phone', readonly=True, string="SĐT tài xế")
     shipping_company = fields.Text("Nhà xe") 
     
     @api.depends('attachment_ids')

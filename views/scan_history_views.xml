@@ -10,10 +10,9 @@
                 <field name="attachment_ids" widget="one2many_kanban" nolabel="1" readonly="1" >
                     <kanban>
                         <templates>
-                            <t t-name="kanban-box" >                                
+                            <t t-name="card">                                
                                 <div class="o_kanban_image"> 
                                     <field name="datas" widget="image" no_open="1" options="{'no_open': True}"/>
-                                    <!-- <img t-att-src="'/web/image/ir.attachment/' + record.id.raw_value + '/datas'" class="img-fluid"/>                                     -->
                                 </div>                                
                             </t>
                         </templates>
@@ -32,21 +31,21 @@
                 <field name="id"/>              
                 <field name="attachment_ids" readonly="1"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div class="o_kanban_card" t-att-data-id="record.id.raw_value">
                             <!-- Card Header -->
                             <div class="o_kanban_card_header d-flex justify-content-between align-items-center p-2" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
                                 <div class="o_kanban_card_header_title">
-                                    <field name="scan_type" class="font-weight-bold text-uppercase" style="font-size: 0.9rem;"/>
+                                    <field name="scan_type" class="fw-bold text-uppercase" style="font-size: 0.9rem;"/>
                                 </div>
-                                <div t-if="record.attachment_ids.raw_value.length" class="badge badge-pill badge-primary">
-                                    <i class="fa fa-image mr-1"> <t t-esc="record.attachment_ids.raw_value.length"/></i>
+                                <div t-if="record.attachment_ids.raw_value.length" class="badge rounded-pill bg-primary">
+                                    <i class="fa fa-image me-1" title="Số lượng ảnh"> <t t-esc="record.attachment_ids.raw_value.length"/></i>
                                 </div>
                             </div>
                             
                             <!-- Image Content -->
                             <div class="o_kanban_image_flex" style="height: 100px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                                <t t-foreach="record.attachment_ids.raw_value.slice(0, 1)" t-as="attachment_id">
+                                <t t-foreach="record.attachment_ids.raw_value.slice(0, 1)" t-as="attachment_id" t-key="attachment_id">
                                     <img t-att-src="'/web/image/ir.attachment/' + attachment_id + '/datas'"
                                          class="img-fluid mh-100"
                                          style="max-width: 50%; max-height: 50%; object-fit: contain; transition: transform 0.2s;"
@@ -55,7 +54,7 @@
                                          onmouseout="this.style.transform='scale(1)'"/>
                                 </t>
                                 <div t-if="!record.attachment_ids.raw_value.length" class="text-center w-100">
-                                    <i class="fa fa-image fa-3x text-muted mb-2"/>
+                                    <i class="fa fa-image fa-3x text-muted mb-2" title="Không có hình ảnh"/>
                                     <div class="text-muted">Không có hình ảnh</div>
                                 </div>
                             </div>
@@ -63,34 +62,9 @@
                             <!-- Footer -->
                             <div class="d-flex justify-content-between align-items-center p-2" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
                                 <small class="text-truncate" t-att-title="record.scan_type.raw_value">
-                                    <i class="fa fa-tag mr-1 text-muted"></i>
+                                    <i class="fa fa-tag me-1 text-muted" title="Loại quét"></i>
                                     <t t-esc="record.scan_type.raw_value || 'Không có tiêu đề'"/>
                                 </small>
-                            </div>
-                        </div>
-                    </t>
-                    
-                    <!-- Kanban Mobile View -->
-                    <t t-name="kanban-box-mobile">
-                        <div class="o_kanban_mobile_card o_kanban_card" t-att-data-id="record.id.raw_value">
-                            <div class="o_kanban_mobile_content">
-                                <div class="o_kanban_mobile_cover">
-                                    <t t-foreach="record.attachment_ids.raw_value.slice(0, 1)" t-as="attachment_id">
-                                        <img t-att-src="'/web/image/ir.attachment/' + attachment_id + '/datas'"
-                                             class="img-fluid"
-                                             style="width: 100%; max-height: 100px; object-fit: cover;"
-                                             readonly="1"/>
-                                    </t>
-                                </div>
-                                <div class="o_kanban_mobile_text">
-                                    <div class="o_text_overflow">
-                                        <strong t-esc="record.scan_type.raw_value"/>
-                                    </div>
-                                    <div t-if="record.attachment_ids.raw_value.length" class="badge badge-pill badge-primary mt-1">
-                                        <i class="fa fa-image mr-1"></i>
-                                        <t t-esc="record.attachment_ids.raw_value.length"/>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </t>

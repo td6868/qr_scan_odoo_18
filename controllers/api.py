@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import http
+from odoo import http, SUPERUSER_ID
 from odoo.http import request
 import json
 import logging
@@ -77,11 +77,12 @@ class QRScanAPI(http.Controller):
         
         # ========== EARLY VALIDATION - Kiểm tra ngay khi quét QR ==========
         
-        # RULE 1: Không cho phép quét những đơn đã có trạng thái done hoặc cancel
-        if picking.state == 'done':
+        # RULE 1: Không cho phép quét CHUẨN BỊ những đơn đã có trạng thái done
+        # (Mode 'shipping' cần phiếu done nên được phép)
+        if mode == 'prepare' and picking.state == 'done':
             return {
                 'status': 'error',
-                'message': f"❌ Không thể quét phiếu {picking.name}\n\nLý do: Phiếu này đã hoàn tất (Done).\nKhông thể quét lại phiếu đã hoàn tất!",
+                'message': f"❌ Không thể quét chuẩn bị phiếu {picking.name}\n\nLý do: Phiếu này đã hoàn tất (Done).\n\nNếu cần gửi xe, vui lòng chọn chế độ 'Gửi xe' thay vì 'Chuẩn bị'.",
                 'error_code': 'PICKING_DONE'
             }
         
@@ -121,28 +122,93 @@ class QRScanAPI(http.Controller):
                 }
         
         elif mode == 'shipping':
-            # RULE 4: Muốn quét đóng gói được thì phải qua bước chuẩn bị
-            has_prepare_history = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'prepare')
-            if not has_prepare_history:
+            # RULE 4.1: Phiếu phải ở trạng thái Done mới được gửi xe
+            if picking.state != 'done':
                 return {
                     'status': 'error',
-                    'message': f"❌ Không thể đóng gói phiếu {picking.name}\n\nLý do: Phiếu này chưa được chuẩn bị!\nVui lòng quét QR và chọn 'Chuẩn bị hàng' trước khi đóng gói.",
-                    'error_code': 'NOT_PREPARED'
+                    'message': f"❌ Không thể gửi xe phiếu {picking.name}\n\nLý do: Phiếu chưa hoàn thành (Done)!\nTrạng thái hiện tại: {dict(picking._fields['state'].selection).get(picking.state)}\n\nVui lòng hoàn thành phiếu xuất kho trước khi gửi xe.",
+                    'error_code': 'NOT_DONE'
                 }
             
-            # Kiểm tra đã đóng gói chưa
-            has_shipping_history = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
-            if has_shipping_history:
-                return {
-                    'status': 'error',
-                    'message': f"⚠️ Phiếu {picking.name} đã được đóng gói rồi!\n\nNgười đóng gói: {has_shipping_history[0].scan_user_id.name}\nThời gian: {has_shipping_history[0].scan_date}\n\nKhông thể đóng gói lại phiếu đã hoàn tất!",
-                    'error_code': 'ALREADY_SHIPPED'
-                }
+            # RULE 4.2: Phiếu phải đã qua bước chuẩn bị (latest_scan_type = 'prepare')
+            # if picking.latest_scan_type != 'prepare':
+            #     current_status = dict(picking._fields['latest_scan_type'].selection).get(picking.latest_scan_type) if picking.latest_scan_type else 'Chưa quét'
+            #     return {
+            #         'status': 'error',
+            #         'message': f"❌ Không thể gửi xe phiếu {picking.name}\n\nLý do: Phiếu chưa được chuẩn bị!\nTrạng thái quét hiện tại: {current_status}\n\nVui lòng quét QR và chọn 'Chuẩn bị hàng' trước khi gửi xe.",
+            #         'error_code': 'NOT_PREPARED'
+            #     }
+            
+            # RULE 4.3: Kiểm tra đã gửi xe chưa (COMMENTED: Cho phép load màn hình gửi xe để nhập chi phí)
+            # has_shipping_history = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
+            # if has_shipping_history:
+            #     return {
+            #         'status': 'error',
+            #         'message': f"⚠️ Phiếu {picking.name} đã được xác nhận gửi xe rồi!\n\nNgười xác nhận: {has_shipping_history[0].scan_user_id.name}\nThời gian: {has_shipping_history[0].scan_date}\n\nKhông thể xác nhận lại phiếu đã hoàn tất!",
+            #         'error_code': 'ALREADY_SHIPPED'
+            #     }
         
         # ========== END EARLY VALIDATION ==========
             
         _logger.info("Found picking: %s with %s moves", picking.name, len(picking.move_ids))
+        
+        # Mode 'shipping' chỉ cần thông tin giao hàng, không cần danh sách sản phẩm
+        if mode == 'shipping':
+            # Lấy thông tin người gửi (NVKD từ sale order hoặc user_id)
+            salesperson = picking.sale_id.user_id if picking.sale_id and picking.sale_id.user_id else picking.user_id
             
+            # Fallback động nếu stored field chưa có giá trị
+            sender_name = picking.sender_info
+            if not sender_name or sender_name == 'OdooBot':
+                sender_name = (salesperson.name if salesperson else '') or ''
+            
+            recipient_name = picking.recipient_info
+            if not recipient_name:
+                recipient_name = picking.partner_id.name or ''
+
+            return {
+                'status': 'success',
+                'mode': 'shipping',
+                'picking': {
+                    'id': picking.id,
+                    'name': picking.name,
+                    'origin': picking.origin or '',
+                    'state': picking.state,
+                    'scheduled_date': picking.scheduled_date.isoformat() if picking.scheduled_date else None,
+                    
+                    # Thông tin người gửi
+                    'sender_info': sender_name,
+                    'sender_phone': salesperson.mobile or salesperson.phone if salesperson else '',
+                    'sender_email': salesperson.email if salesperson else '',
+                    
+                    # Thông tin người nhận
+                    'recipient_info': recipient_name,
+                    'recipient_phone': picking.partner_id.phone or '',
+                    'recipient_address': picking.partner_id.contact_address if picking.partner_id else '',
+                    
+                    # Thông tin nhà xe
+                    # 'shipping_carrier_company_id': picking.shipping_carrier_company_id.id if picking.shipping_carrier_company_id else None,
+                    # 'shipping_carrier_name': picking.shipping_carrier_company_id.name if picking.shipping_carrier_company_id else '',
+                    # 'shipping_carrier_phone': picking.shipping_carrier_company_id.phone if picking.shipping_carrier_company_id else '',
+                    # 'shipping_route_id': picking.shipping_route_id.id if picking.shipping_route_id else None,
+                    # 'shipping_route_name': picking.shipping_route_id.name if picking.shipping_route_id else '',
+                    # 'available_routes': [{'id': r.id, 'name': r.name} for r in picking.shipping_carrier_company_id.route_ids] if getattr(picking.shipping_carrier_company_id, 'route_ids', False) else [],
+
+                    'shipping_carrier_company_id': None,
+                    'shipping_carrier_name': picking.demo_bus_company or '',
+                    'shipping_carrier_phone': '',
+                    'shipping_route_id': None,
+                    'shipping_route_name': '',
+                    'available_routes': [],
+                    
+                    # Trạng thái
+                    'is_prepared': picking.is_prepared,
+                    'is_shipped': getattr(picking, 'is_shipped', False),
+                    'is_sent_to_carrier': getattr(picking, 'is_sent_to_carrier', False),
+                }
+            }
+            
+        # Mode 'prepare' cần danh sách sản phẩm để xác nhận
         grouped_data = {}
         for move in picking.move_ids:
             if move.state == 'cancel': continue
@@ -167,13 +233,22 @@ class QRScanAPI(http.Controller):
 
         return {
             'status': 'success',
+            'mode': 'prepare',
             'picking': {
                 'id': picking.id,
                 'name': picking.name,
                 'state': picking.state,
                 'partner_name': picking.partner_id.name or 'N/A',
+                'partner_phone': picking.partner_id.phone or '',
                 'is_prepared': picking.is_prepared,
                 'is_shipped': getattr(picking, 'is_shipped', False),
+                'is_sent_to_carrier': getattr(picking, 'is_sent_to_carrier', False),
+                # 'shipping_carrier_company_id': picking.shipping_carrier_company_id.id if picking.shipping_carrier_company_id else None,
+                # 'shipping_carrier_name': picking.shipping_carrier_company_id.name or '',
+                # 'shipping_carrier_phone': picking.shipping_carrier_company_id.phone or '',
+                'shipping_carrier_company_id': None,
+                'shipping_carrier_name': picking.demo_bus_company or '',
+                'shipping_carrier_phone': '',
             },
             'move_lines': list(grouped_data.values())
         }
@@ -252,6 +327,10 @@ class QRScanAPI(http.Controller):
                 shipping_type=params.get('shipping_type'),
                 shipping_phone=params.get('shipping_phone'),
                 shipping_company=params.get('shipping_company'),
+                shipping_route_id=params.get('shipping_route_id'),
+                shipping_driver_phone=params.get('shipping_driver_phone'),
+                shipping_vehicle_number=params.get('shipping_vehicle_number'),
+                shipping_tracking_number=params.get('shipping_tracking_number'),
                 scan_user_id=int(user_id),
                 auto_validate=True
             )
@@ -260,3 +339,212 @@ class QRScanAPI(http.Controller):
         except Exception as e:
             _logger.error("Package API Error: %s", str(e), exc_info=True)
             return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/qr/parse', type='json', auth='none', methods=['POST'], csrf=False)
+    def parse_qr_code(self, **params):
+        """Parse QR code và trả về thông tin model"""
+        try:
+            qr_content = params.get('qr_content')
+            if not qr_content:
+                return {'status': 'error', 'message': 'Thiếu nội dung QR code'}
+            
+            qr_service = request.env['multi.model.qr.service'].sudo()
+            parsed = qr_service.parse_qr_data(qr_content)
+            
+            if not parsed.get('is_valid'):
+                return {'status': 'error', 'message': 'QR code không hợp lệ'}
+            
+            result = {
+                'status': 'success',
+                'model': parsed['model'],
+                'record_id': parsed['record_id'],
+            }
+            
+            _logger.info("QR Parsed: %s", result)
+            return result
+            
+        except Exception as e:
+            _logger.error("Parse QR Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/picking/expenses', type='json', auth='none', methods=['POST'], csrf=False)
+    def get_picking_expenses(self, **params):
+        """Lấy danh sách chi phí liên quan đến picking / sale order
+        
+        Params:
+            picking_id: ID phiếu xuất kho
+        Returns:
+            expenses: list of hr.expense records
+            expense_products: list of product có thể dùng làm chi phí
+        """
+        try:
+            picking_id = params.get('picking_id')
+            picking = self._get_picking(picking_id)
+            if not picking or not picking.exists():
+                return {'status': 'error', 'message': 'Phiếu không tồn tại'}
+
+            sale = picking.sale_id
+
+            # Lấy danh sách expense đã có (liên kết qua sale order)
+            expenses = []
+            if sale:
+                exp_records = request.env['hr.expense'].with_user(SUPERUSER_ID).search([
+                    ('sale_id', '=', sale.id)
+                ], order='date desc')
+                for exp in exp_records:
+                    expenses.append({
+                        'id': exp.id,
+                        'name': exp.name,
+                        'total_amount_currency': exp.total_amount_currency,
+                        'date': exp.date.isoformat() if exp.date else '',
+                        'description': exp.description or '',
+                        'state': exp.state,
+                        'employee_name': exp.employee_id.name if exp.employee_id else '',
+                        'product_name': exp.product_id.name if exp.product_id else '',
+                    })
+
+            # Lấy danh sách sản phẩm chi phí (expense products)
+            expense_products = []
+            products = request.env['product.product'].with_user(SUPERUSER_ID).search([
+                ('can_be_expensed', '=', True)
+            ], limit=50)
+            
+            # Ưu tiên "Chi phí vận chuyển đơn hàng" lên đầu tiên
+            products = sorted(products, key=lambda p: 0 if p.name == 'Chi phí vận chuyển đơn hàng' else 1)
+            
+            for p in products:
+                expense_products.append({
+                    'id': p.id,
+                    'name': p.name,
+                    'account_id': p.property_account_expense_id.id if p.property_account_expense_id else None,
+                    'account_name': p.property_account_expense_id.name if p.property_account_expense_id else '',
+                })
+
+            # Thông tin mặc định (NVKD để điền employee_id)
+            salesperson = sale.user_id if sale and sale.user_id else None
+            employee = None
+            if salesperson:
+                employee = request.env['hr.employee'].with_user(SUPERUSER_ID).search([
+                    ('user_id', '=', salesperson.id)
+                ], limit=1)
+
+            default_product = next((p for p in expense_products if p['name'] == 'Chi phí vận chuyển đơn hàng'), None)
+            default_product_id = default_product['id'] if default_product else (expense_products[0]['id'] if expense_products else None)
+
+            return {
+                'status': 'success',
+                'sale_name': sale.name if sale else '',
+                'sale_id': sale.id if sale else None,
+                'picking_name': picking.name,
+                'employee_id': employee.id if employee else None,
+                'employee_name': employee.name if employee else (salesperson.name if salesperson else ''),
+                'expenses': expenses,
+                'expense_products': expense_products,
+                'default_expense_product_id': default_product_id,
+            }
+
+        except Exception as e:
+            _logger.error("Get Expenses Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/picking/expense/save', type='json', auth='none', methods=['POST'], csrf=False)
+    def save_picking_expense(self, **params):
+        """Tạo mới hoặc cập nhật chi phí vận chuyển
+        
+        Params:
+            picking_id: ID phiếu xuất kho
+            expense_id: (optional) ID expense để cập nhật
+            product_id: ID sản phẩm chi phí
+            total_amount_currency: Số tiền
+            description: Nội dung ghi chú
+        """
+        try:
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {'status': 'error', 'message': 'Phiên đăng nhập hết hạn', 'error_code': 'SESSION_EXPIRED'}
+
+            picking_id = params.get('picking_id')
+            picking = self._get_picking(picking_id)
+            if not picking or not picking.exists():
+                return {'status': 'error', 'message': 'Phiếu không tồn tại'}
+
+            sale = picking.sale_id
+            if not sale:
+                return {'status': 'error', 'message': 'Phiếu này không liên kết với đơn hàng nào!'}
+
+            product_id = params.get('product_id')
+            total_amount = params.get('total_amount_currency', 0)
+            description = params.get('description', '')
+
+            # Tự động gán danh mục "Chi phí vận chuyển đơn hàng" nếu rỗng
+            if not product_id:
+                default_prod = request.env['product.product'].sudo().search([
+                    ('name', '=', 'Chi phí vận chuyển đơn hàng'), 
+                    ('can_be_expensed', '=', True)
+                ], limit=1)
+                if default_prod:
+                    product_id = default_prod.id
+
+            if not product_id:
+                return {'status': 'error', 'message': 'Vui lòng chọn danh mục chi phí!'}
+            if not total_amount or float(total_amount) <= 0:
+                return {'status': 'error', 'message': 'Vui lòng nhập số tiền chi phí!'}
+
+            product = request.env['product.product'].sudo().browse(int(product_id))
+
+            # Lấy employee của NVKD
+            salesperson = sale.user_id
+            employee = None
+            if salesperson:
+                employee = request.env['hr.employee'].with_user(SUPERUSER_ID).search([
+                    ('user_id', '=', salesperson.id)
+                ], limit=1)
+
+            expense_env = request.env['hr.expense'].with_user(user_id).sudo()
+            expense_id = params.get('expense_id')
+
+            if expense_id:
+                # Cập nhật expense đã có
+                expense = expense_env.browse(int(expense_id))
+                if not expense.exists():
+                    return {'status': 'error', 'message': 'Chi phí không tồn tại'}
+                expense.write({
+                    'total_amount_currency': float(total_amount),
+                    'description': description,
+                    'product_id': int(product_id),
+                })
+                msg = 'Cập nhật chi phí thành công!'
+            else:
+                # Tạo mới expense
+                from odoo import fields as odoo_fields
+                expense_name = f"Chi phí Vận chuyển - Gửi xe - {sale.name}"
+                account = product.property_account_expense_id
+                
+                vals = {
+                    'name': expense_name,
+                    'product_id': int(product_id),
+                    'total_amount_currency': float(total_amount),
+                    'description': description,
+                    'date': odoo_fields.Date.today(),
+                    'payment_mode': 'company_account',
+                    'sale_id': sale.id,
+                }
+                if employee:
+                    vals['employee_id'] = employee.id
+                if account:
+                    vals['account_id'] = account.id
+
+                expense = expense_env.create(vals)
+                msg = 'Thêm chi phí vận chuyển thành công!'
+
+            return {
+                'status': 'success',
+                'message': msg,
+                'expense_id': expense.id,
+            }
+
+        except Exception as e:
+            _logger.error("Save Expense Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+

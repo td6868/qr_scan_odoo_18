@@ -21,3 +21,9 @@ access_stock_location_scan_history_manager,stock.location.scan.history.manager,m
 access_dashboard_item_user,access.dashboard.item.user,model_dashboard_item,base.group_user,1,0,0,0
 access_dashboard_item_manager,access.dashboard.item.manager,model_dashboard_item,base.group_system,1,1,1,1
 access_stock_picking_print_wizard_user,stock.picking.print.wizard.user,model_stock_picking_print_wizard,stock.group_stock_user,1,1,1,1
+access_shipping_carrier_company_user,shipping.carrier.company.user,model_shipping_carrier_company,stock.group_stock_user,1,1,1,0
+access_shipping_carrier_company_manager,shipping.carrier.company.manager,model_shipping_carrier_company,stock.group_stock_manager,1,1,1,1
+access_shipping_route_user,shipping.route.user,model_shipping_route,stock.group_stock_user,1,1,1,0
+access_shipping_route_manager,shipping.route.manager,model_shipping_route,stock.group_stock_manager,1,1,1,1
+access_shipping_schedule_user,shipping.schedule.user,model_shipping_schedule,stock.group_stock_user,1,1,1,0
+access_shipping_schedule_manager,shipping.schedule.manager,model_shipping_schedule,stock.group_stock_manager,1,1,1,1

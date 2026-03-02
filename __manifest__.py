@@ -44,14 +44,24 @@ Long description of module's purpose
         'report/stock_picking_rp_2.xml',
         'report/packing_ticket_report.xml',
         
+        # Shipping Carrier Management
+        'data/shipping_carrier_sequence.xml',
+        
         'views/stock_picking_qr_views.xml',
         'views/stock_location_views.xml',
         'views/scan_history_stock_location_views.xml',
         'views/scan_history_views.xml',
         'views/sale.xml',
+        'views/sale_order_confirm_inherit_views.xml',
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
         'wizard/stock_picking_print_wizard_views.xml',
+        
+        # Shipping Carrier Views
+        'views/shipping_carrier_views.xml',
+        'views/shipping_route_views.xml',
+        'views/stock_picking_shipping_views.xml',
+        'views/shipping_carrier_menu.xml',
         
         'data/default_dashboards.xml',
         'views/dashboard_hub_views.xml',

@@ -6,8 +6,15 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_view_invoice']" position="before">
-                <button name="action_view_image_proof" type="object" class="oe_stat_button"
-                        icon="fa-image" string="Ảnh minh chứng" widget="statinfo" invisible="'state' == 'draft' "/>
+                <button name="action_view_image_proof" type="object" class="btn oe_stat_button"
+                        icon="fa-image" invisible="state == 'draft'">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Ảnh minh chứng</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='shipping_method']" position="after">
+                <field name="demo_bus_company" invisible="demo_bus_company == False"/>
             </xpath>
         </field>
     </record>

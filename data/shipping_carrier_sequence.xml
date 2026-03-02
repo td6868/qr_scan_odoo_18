@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for Shipping Carrier Company Code -->
+        <record id="seq_shipping_carrier_company" model="ir.sequence">
+            <field name="name">Shipping Carrier Company Sequence</field>
+            <field name="code">shipping.carrier.company</field>
+            <field name="prefix">NX</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+    </data>
+</odoo>

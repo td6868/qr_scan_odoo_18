@@ -4,125 +4,106 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-call="web.basic_layout">
-                    <div class="page" style="font-family: 'Roboto', sans-serif; color: #000;">
-                        <style>
-                            .ticket {
-                                width: 100%;
-                                padding: 5px;
-                                page-break-inside: avoid;
-                            }
-                            
-                            table {
-                                width: 100%;
-                                border-collapse: collapse;
-                            }
-                            td {
-                                padding: 3px;
-                                vertical-align: top;
-                            }
-                            
-                            .qr-cell {
-                                width: 180px;
-                            }
-                            .qr-img {
-                                width: 250px;
-                                height: 250px;
-                            }
-                            .picking-name {
-                                font-size: 15px;
-                                font-weight: bold;
-                                margin-top: 2px;
-                                text-align: center;
-                            }
-                            
-                            .header-cell {
-                                text-align: center;
-                                vertical-align: middle;
-                            }
-                            .fragile {
-                                font-size: 36px;
-                                font-weight: 900;
-                                color: #ff0000;
-                            }
-                            .order-label {
-                                font-size: 16px;
-                                font-weight: bold;
-                                margin-top: 3px;
-                            }
-                            .order-name {
-                                font-size: 32px;
-                                font-weight: 900;
-                            }
-                            
-                            .transport-row {
-                                font-size: 22px;
-                                font-weight: bold;
-                                margin-top: 8px;
-                            }
-                            .blue-underline {
-                                display: inline-block;
-                                width: 65%;
-                                border-bottom: 3px solid #0000FF;
-                                margin-left: 8px;
-                                min-height: 3px;
-                            }
-                            
-                            .info-section {
-                                margin-top: 10px;
-                            }
-                            .info-title {
-                                font-weight: bold;
-                                font-size: 20px;
-                                text-decoration: underline;
-                                margin-bottom: 5px;
-                            }
-                            .info-content {
-                                font-size: 18px;
-                                line-height: 1.25;
-                            }
-                            .info-label {
-                                font-weight: bold;
-                            }
-                        </style>
-                        
-                        <div class="ticket">
-                            <!-- Header: QR + Info -->
-                            <table>
-                                <tr>
-                                    <td class="qr-cell">
-                                        <t t-if="doc.qr_code_image">
-                                            <img t-att-src="image_data_uri(doc.qr_code_image)" class="qr-img" alt="QR"/>
-                                        </t>
-                                        <div class="picking-name"><span t-field="doc.name"/></div>
-                                    </td>
-                                    <td class="header-cell">
-                                        <div class="fragile">HÀNG DỄ VỠ</div>
-                                        <!-- <div class="transport-row">
-                                            <t t-if="doc.transport_id">
-                                                Nhà xe: <span t-field="doc.transport_id.name"/>
-                                            </t>
-                                        </div> -->
-                                    </td>
-                                </tr>
-                            </table>
+                    <div class="qr_report_page">
+                        <div class="qr_a5_sheet qr_master_container">
+                            <style>
+                                /* AESTHETICS FONTS */
+                                @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&amp;display=swap');
+                                
+                                .qr_master_container {
+                                    font-family: 'Roboto', Arial, sans-serif;
+                                    color: #000000;
+                                }
 
-                            <!-- Info: Sender + Recipient -->
-                            <table class="info-section">
+                                /* TABLE STYLING */
+                                .qr_table {
+                                    width: 100%;
+                                    border-collapse: collapse;
+                                    margin-top: 5px;
+                                }
+                                .qr_table th {
+                                    background-color: #f8f9fa !important;
+                                    border: 1px solid #000 !important;
+                                    text-align: center;
+                                    vertical-align: middle;
+                                    padding: 6px;
+                                    font-weight: bold;
+                                    text-transform: uppercase;
+                                    font-size: 14px;
+                                }
+                                .qr_table td {
+                                    border: 1px solid #000 !important;
+                                    padding: 6px;
+                                    vertical-align: middle;
+                                    font-size: 16px;
+                                }
+                                
+                                .label_cell {
+                                    width: 100px;
+                                    font-weight: bold;
+                                    background-color: #f8f9fa !important;
+                                }
+
+                                /* SPECIAL LABELS */
+                                .info_label {
+                                    font-weight: 700;
+                                    color: #000;
+                                    display: inline-block;
+                                    margin-bottom: 5px;
+                                    font-size: 16px;
+                                    text-transform: uppercase;
+                                }
+                                .qr_container {
+                                    text-align: center;
+                                    margin-bottom: 15px;
+                                }
+                                .qr_img {
+                                    width: 250px;
+                                    height: 250px;
+                                }
+                                .doc_name {
+                                    font-size: 22px;
+                                    font-weight: bold;
+                                    margin-top: 5px;
+                                }
+
+                                /* 1. HIỂN THỊ TRÊN MÀN HÌNH (ĐẸP SANG TRỌNG) */
+                                @media screen {
+                                    .qr_report_page {
+                                        display: flex;
+                                        justify-content: center;
+                                    }
+                                    .qr_a5_sheet {
+                                        width: 260mm;
+                                        min-height: 150mm;
+                                        background: white;
+                                        margin: 0 auto;
+                                        padding: 10mm !important;
+                                        box-sizing: border-box;
+                                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                                    }
+                                }
+                                
+                                .value_highlight {
+                                    font-weight: bold;
+                                    font-size: 18px;
+                                }
+                            </style>
+                                                        
+                            <table style="width: 100%; border: none; margin: 0; padding: 0; border-collapse: separate;">
                                 <tr>
-                                    <td style="width: 50%; padding-right: 15px;">
-                                        <div class="info-title">THÔNG TIN NGƯỜI GỬI:</div>
-                                        <div class="info-content">
-                                            <div><span class="info-label">Họ tên:</span> <span t-esc="doc.sender_info"/></div>
-                                            <div style="margin-top: 8px;"><span class="info-label">Ghi chú:</span> <span t-esc="doc.delivery_note or ''"/></div>
-                                        </div>
+                                    <td style="width: 80%; vertical-align: top; font-size: 32px; line-height: 1.9; text-align: left; padding: 0; border: none;">
+                                        <div>Người gửi: <span t-esc="doc.sender_info"/></div>
+                                        <div>Địa chỉ: Hoàng Mai – Hà Nội</div>
+                                        <div style="font-size: 34px; margin-top: 20px;">Người nhận: <strong><span style="text-transform: uppercase;" t-esc="doc.recipient_info"/></strong></div>
+                                        <div style="font-size: 40px; font-weight: bold; margin-top: 20px;">Số điện thoại nhận: <span t-esc="doc.partner_id.phone or doc.partner_id.mobile or ''"/></div>
+                                        <div style="font-size: 30px; font-style: italic; margin-top: 20px; line-height: 1.5;">Địa chỉ nhận hàng: <span t-esc="doc.partner_id.contact_address"/></div>
+                                        <div style="font-weight: bold; font-size: 40px; margin-top: 30px;">Gửi xe <span t-esc="doc.demo_bus_company or ''"/></div>
                                     </td>
-                                    <td style="width: 50%; padding-left: 15px;">
-                                        <div class="info-title">THÔNG TIN NGƯỜI NHẬN:</div>
-                                        <div class="info-content">
-                                            <div><span class="info-label">Họ tên:</span> <span t-esc="doc.recipient_info"/></div>
-                                            <div style="margin-top: 4px;"><span class="info-label">Địa chỉ:</span> <span t-esc="doc.partner_id.contact_address"/></div>
-                                            <div style="margin-top: 4px;"><span class="info-label">Số ĐT:</span> <span t-esc="doc.partner_id.phone or doc.partner_id.mobile or ''"/></div>
-                                        </div>
+                                    <td style="width: 20%; vertical-align: top; text-align: right; padding: 0; padding-left: 20px; border: none;">
+                                        <t t-if="doc.qr_code_image">
+                                            <img t-att-src="image_data_uri(doc.qr_code_image)" style="width: 200px; height: 200px;" alt="QR Code"/>
+                                        </t>
                                     </td>
                                 </tr>
                             </table>

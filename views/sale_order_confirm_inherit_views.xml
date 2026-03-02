@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Kế thừa view wizard xác nhận đơn hàng -->
+    <record id="view_sale_order_confirm_inherit_qr" model="ir.ui.view">
+        <field name="name">Xác nhận đơn hàng - Thêm nhà xe</field>
+        <field name="model">sale.order.confirm.kk</field>
+        <field name="inherit_id" ref="khoakim_18.view_sale_order_confirm"/>
+        <field name="arch" type="xml">
+            <!-- Thêm field nhà xe sau shipping_method -->
+            <!-- <field name="shipping_method" position="after">
+                <field name="shipping_method_name" invisible="1"/>
+                <field name="shipping_carrier_company_id" 
+                       invisible="shipping_method_name != 'Xe tải/ Xe bus'"
+                       required="shipping_method_name == 'Xe tải/ Xe bus'"/>
+            </field>
+            <field name="shipping_carrier_company_id" position="after">
+                <field name="shipping_route_id" 
+                       invisible="shipping_method_name != 'Xe tải/ Xe bus'"
+                       domain="[('company_ids', '=', shipping_carrier_company_id)]"
+                       options="{'no_create': True, 'no_create_edit': True}"/>
+            </field> -->
+            <field name="shipping_method" position="after">
+                <field name="demo_bus_company"
+                       invisible="shipping_method_name != 'Xe tải/ Xe bus'"
+                       required="shipping_method_name == 'Xe tải/ Xe bus'"/>
+            </field>
+        </field>
+    </record>
+</odoo>

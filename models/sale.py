@@ -21,3 +21,37 @@ class SaleOrder(models.Model):
             "domain": domain,
         })  
         return result
+
+    shipping_carrier_company_id = fields.Many2one(
+        'shipping.carrier.company',
+        string='Nhà xe',
+        tracking=True,
+        help='Nhà xe vận chuyển hàng hóa'
+    )
+
+    demo_bus_company = fields.Text(string="Thông tin gửi xe")
+
+    shipping_route_id = fields.Many2one(
+        'shipping.route',
+        string='Tuyến đường',
+        domain="[('company_ids', '=', shipping_carrier_company_id)]",
+        tracking=True,
+        help='Tuyến đường vận chuyển hàng hóa'
+    )
+    
+    # def _prepare_picking_values(self):
+    #     """Kế thừa thông tin nhà xe xuống phiếu xuất kho"""
+    #     res = super(SaleOrder, self)._prepare_picking_values()
+    #     if self.shipping_carrier_company_id:
+    #         res['shipping_carrier_company_id'] = self.shipping_carrier_company_id.id
+    #     if self.shipping_route_id:
+    #         res['shipping_route_id'] = self.shipping_route_id.id
+    #     return res
+
+    def _demo_bus_info_inherit(self):
+        """Kế thừa thông tin nhà xe xuống phiếu xuất kho"""
+        res = super(SaleOrder, self)._demo_bus_info_inherit()
+        if self.demo_bus_company:
+            res['demo_bus_company'] = self.demo_bus_company
+        return res
+    
