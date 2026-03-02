@@ -26,6 +26,13 @@
                         class="btn btn-primary"
                         groups="stock.group_stock_user"
                         invisible="state != 'assigned' or is_assigned == True"/>
+                
+                <button name="action_print_packing_ticket"
+                        string="Phiếu gửi xe"
+                        type="object"
+                        class="btn btn-primary"
+                        groups="stock.group_stock_user"                        
+                        data-hotkey="o"/>
             </xpath>
             
             <!-- Phân bổ các trường sang bên trái (sau Địa điểm nguồn) -->
