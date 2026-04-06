@@ -16,7 +16,7 @@
             <xpath expr="//field[@name='shipping_method']" position="after">
                 <field name="demo_bus_company" invisible="demo_bus_company == False"/>
             </xpath>
-            <xpath expr="//field[@name='order_line']/list//field[@name='product_uom_qty']" position="after">
+            <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="replace">
                 <field name="available_to_use" string="TK khả dụng" readonly="1" optional="show"/>
             </xpath>
         </field>
