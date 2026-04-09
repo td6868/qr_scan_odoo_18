@@ -7,9 +7,9 @@
         <field name="inherit_id" ref="stock.product_template_kanban_stock_view"/>
         <field name="arch" type="xml">
             <!-- Replace dòng "On hand: qty_available" bằng "Hiện có: available_to_use_tmpl" -->
-            <xpath expr="//div[field[@name='qty_available']]" position="replace">
+            <xpath expr="//div[field[@name='qty_available']]" position="after">
                 <div groups="stock.group_stock_user" t-if="record.show_on_hand_qty_status_button.raw_value">
-                    Hiện có: <field name="available_to_use_tmpl"/> <field name="uom_id" groups="uom.group_uom"/>
+                    Khả Dụng: <field name="available_to_use_tmpl"/> <field name="uom_id" groups="uom.group_uom"/>
                 </div>
             </xpath>
         </field>
