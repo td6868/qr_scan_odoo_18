@@ -16,8 +16,22 @@
             <xpath expr="//field[@name='shipping_method']" position="after">
                 <field name="demo_bus_company" invisible="demo_bus_company == False"/>
             </xpath>
-            <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="replace">
-                <field name="available_to_use" string="TK khả dụng" readonly="1" optional="show"/>
+            <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="after">
+                <field name="is_description_mismatch" column_invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='name']" position="attributes">
+                <attribute name="decoration-danger">is_description_mismatch</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="after">
+                <field name="available_to_use" string="TK khả dụng" readonly="1" optional="show"
+                       column_invisible="parent.state != 'draft'"/>
+                <field name="incoming_qty" string="SL sắp về" readonly="1" optional="show"
+                       column_invisible="parent.state != 'draft'"/>
+                <field name="order_stock_move_qty" string="Tồn đơn hàng" readonly="1" optional="show"
+                       column_invisible="parent.state not in ('sale', 'done')"/>
             </xpath>
         </field>
     </record>

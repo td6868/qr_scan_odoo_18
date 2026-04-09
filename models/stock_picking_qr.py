@@ -240,6 +240,36 @@ class StockPicking(models.Model):
         })  
         return result
     
+    def _prepare_picking_report_rows(self):
+        """Chuẩn bị dữ liệu dòng in phiếu theo sản phẩm (O(n)).
+
+        Tối ưu hơn so với cách group trực tiếp trong QWeb (filtered/mapped lồng nhau).
+        Trả về list dict: product, first_move, total_qty.
+        """
+        self.ensure_one()
+        rows_by_product = {}
+
+        for move in self.move_ids_without_package:
+            if move.quantity <= 0:
+                continue
+
+            product = move.product_id
+            if not product:
+                continue
+
+            key = product.id
+            row = rows_by_product.get(key)
+            if row is None:
+                rows_by_product[key] = {
+                    'product': product,
+                    'first_move': move,
+                    'total_qty': move.quantity,
+                }
+            else:
+                row['total_qty'] += move.quantity
+
+        return list(rows_by_product.values())
+
     def action_print_picking(self):
         self.ensure_one()
         picking_code = self.picking_type_id.code
@@ -253,6 +283,12 @@ class StockPicking(models.Model):
         picking_code = self.picking_type_id.code
         if picking_code == 'outgoing':
             return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_2').report_action(self)    
+
+    def action_print_picking_origin_name(self):
+        self.ensure_one()
+        picking_code = self.picking_type_id.code
+        if picking_code in ['outgoing', 'delivery']:
+            return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_origin_name').report_action(self)
 
     def action_print_packing_ticket(self):
         self.ensure_one()
@@ -283,6 +319,7 @@ class StockPicking(models.Model):
         if self.picking_type_id.code in ['outgoing', 'delivery']:
             options.append(('type_2', 'In phiếu (Điền)'))
             options.append(('type_3', 'In phiếu (Gửi xe)'))
+            options.append(('type_4', 'In phiếu (Tên gốc)'))
         return options
 
     def _get_report_method_mapping(self):
@@ -291,6 +328,7 @@ class StockPicking(models.Model):
             'type_1': 'action_print_picking',
             'type_2': 'action_print_picking_2',
             'type_3': 'action_print_packing_ticket',
+            'type_4': 'action_print_picking_origin_name',
             # Dễ dàng thêm các loại mới tại đây
         }
 

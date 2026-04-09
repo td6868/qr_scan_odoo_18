@@ -52,6 +52,7 @@ Long description of module's purpose
         'views/scan_history_stock_location_views.xml',
         'views/scan_history_views.xml',
         'views/sale.xml',
+        'views/product_views.xml',
         'views/sale_order_confirm_inherit_views.xml',
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',

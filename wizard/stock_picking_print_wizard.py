@@ -30,7 +30,8 @@ class StockPickingPrintWizard(models.TransientModel):
         return [
             ('type_1', 'In phiếu'),
             ('type_2', 'In phiếu (Điền)'),
-            ('type_3', 'In phiếu (Gửi xe)')
+            ('type_3', 'In phiếu (Gửi xe)'),
+            ('type_4', 'In phiếu (Tên gốc)')
         ]
 
     @api.onchange('report_type', 'picking_id')

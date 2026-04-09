@@ -214,8 +214,11 @@ class QRScanAPI(http.Controller):
             if move.state == 'cancel': continue
             key = (move.product_id.id, move.product_uom.id, move.location_id.id)
             if key not in grouped_data:
-                # Lấy số lượng tồn kho tại vị trí nguồn
-                qty_available = move.product_id.with_context(location=move.location_id.id).qty_available
+                # Lấy số lượng tồn kho theo vị trí nguồn (product.product with context location)
+                product_loc = move.product_id.with_context(location=move.location_id.id)
+                qty_available = product_loc.qty_available
+                free_qty = product_loc.free_qty
+
                 grouped_data[key] = {
                     'move_ids': [move.id],
                     'product_id': move.product_id.id,
@@ -225,6 +228,7 @@ class QRScanAPI(http.Controller):
                     'quantity': move.product_uom_qty,
                     'quantity_confirmed': move.quantity,
                     'quantity_available': qty_available,  # Số lượng tồn kho
+                    'free_qty': free_qty,  # Số lượng khả dụng (product.product.free_qty)
                 }
             else:
                 grouped_data[key]['move_ids'].append(move.id)

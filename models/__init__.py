@@ -7,6 +7,7 @@ from . import stock_quant
 from . import dashboard_item
 from . import sale
 from . import sale_order_confirm_inherit
+from . import product_template
 
 # Shipping Carrier Management
 from . import shipping_carrier_company

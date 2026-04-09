@@ -166,38 +166,41 @@
                         </thead>
                         <tbody class="wh_tbody">
                             <t t-set="seq" t-value="0"/>
-                            <t t-set="unique_products" t-value="doc.move_ids_without_package.mapped('product_id')"/>
-                            <t t-foreach="unique_products" t-as="product">
-                                <t t-set="product_moves" t-value="doc.move_ids_without_package.filtered(lambda m: m.product_id == product and m.quantity > 0)"/>
-                                <t t-if="product_moves">
-                                    <t t-set="seq" t-value="seq + 1"/>
-                                    <t t-set="total_qty" t-value="sum(product_moves.mapped('quantity'))"/>
-                                    <t t-set="first_move" t-value="product_moves[0]"/>
-                                    <tr>
-                                        <td style="width: 5%" name="td_seq" class="text-center">
-                                            <span t-esc="seq"/>
-                                        </td>
-                                        <td style="width: 15%" name="td_prod_image" class="text-center">
-                                            <t t-if="first_move.sale_line_id.prod_image">
-                                                <img t-att-src="image_data_uri(first_move.sale_line_id.prod_image)" style="max-height: 20mm;"/>
-                                            </t>
-                                        </td>
-                                        <td style="width: 35%" class="text-left">
+                            <t t-set="report_rows" t-value="doc._prepare_picking_report_rows()"/>
+                            <t t-foreach="report_rows" t-as="row">
+                                <t t-set="seq" t-value="seq + 1"/>
+                                <t t-set="product" t-value="row['product']"/>
+                                <t t-set="first_move" t-value="row['first_move']"/>
+                                <t t-set="total_qty" t-value="row['total_qty']"/>
+                                <tr>
+                                    <td style="width: 5%" name="td_seq" class="text-center">
+                                        <span t-esc="seq"/>
+                                    </td>
+                                    <td style="width: 15%" name="td_prod_image" class="text-center">
+                                        <t t-if="first_move.sale_line_id.prod_image">
+                                            <img t-att-src="image_data_uri(first_move.sale_line_id.prod_image)" style="max-height: 20mm;"/>
+                                        </t>
+                                    </td>
+                                    <td style="width: 35%" class="text-left">
+                                        <t t-if="show_origin_name">
+                                            <span t-field="first_move.product_id.product_tmpl_id.name"/>
+                                        </t>
+                                        <t t-else="">
                                             <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.name"/>
                                             <span t-else="" t-field="product.display_name"/>
-                                        </td>
+                                        </t>
+                                    </td>
 
-                                        <td style="width: 10%; text-align: center;">
-                                            <span t-field="first_move.product_uom"/>
-                                        </td>
-                                        <td style="width: 10%; text-align: center;">
-                                            <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
-                                        </td>
-                                        <td style="width: 15%" class="text-left">
-                                            <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/>
-                                        </td>
-                                    </tr>
-                                </t>
+                                    <td style="width: 10%; text-align: center;">
+                                        <span t-field="first_move.product_uom"/>
+                                    </td>
+                                    <td style="width: 10%; text-align: center;">
+                                        <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
+                                    </td>
+                                    <td style="width: 15%" class="text-left">
+                                        <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/>
+                                    </td>
+                                </tr>
                             </t>
                         </tbody>
                     </table>
@@ -239,6 +242,17 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
+                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_stock_picking_khoakim_origin_name">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
+                    <t t-set="show_origin_name" t-value="True"/>
                     <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
                 </t>
             </t>
