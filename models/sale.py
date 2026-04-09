@@ -208,7 +208,7 @@ class SaleOrderLine(models.Model):
             tmpl_id = line.product_template_id.id
             template_name_norm = normalized_template_name_cache.get(tmpl_id)
             if template_name_norm is None:
-                template_name_norm = _normalize(line.product_template_id.name)
+                template_name_norm = _normalize(line.product_template_id.display_name)
                 normalized_template_name_cache[tmpl_id] = template_name_norm
 
             line_first_norm = _clean_first_line(line.name)
