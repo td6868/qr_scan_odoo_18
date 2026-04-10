@@ -1,0 +1,42 @@
+/* Trigger giống style Odoo */
+.incoming-qty-container {
+    cursor: pointer;
+    gap: 4px;
+}
+
+.incoming-qty-value {
+    color: var(--o-main-text-color, #212529);
+    font-size: 0.875rem;
+}
+
+.incoming-popover-trigger {
+    color: var(--o-success, #28a745);
+    font-size: 0.9em;
+    transition: color 0.15s ease;
+}
+
+.incoming-qty-container:hover .incoming-popover-trigger,
+.incoming-popover-trigger.text-primary {
+    color: var(--o-brand-primary, #0d6efd) !important;
+}
+
+/* style áp cho popover overlay chuẩn Odoo */
+.incoming_odo_popover {
+    min-width: 300px;
+    max-width: 380px;
+}
+
+.incoming_odo_popover .incoming-popover-content {
+    font-size: 0.875rem;
+}
+
+.incoming_odo_popover .incoming-popover-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    background: var(--o-gray-100, #f8f9fa);
+}
+
+.incoming_odo_popover .incoming-popover-row td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}

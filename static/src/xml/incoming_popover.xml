@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="qr_scan_odoo_18.IncomingPopoverField">
+        <div class="d-inline-flex align-items-center incoming-qty-container" t-on-click.stop="onClick">
+            <span class="incoming-qty-value fw-semibold">
+                <t t-esc="displayValue"/>
+            </span>
+            <i class="fa fa-truck ms-1 incoming-popover-trigger"
+               t-att-class="{ 'text-primary': popover.isOpen, 'fa-spinner fa-spin': state.loading }"
+               title="Xem chi tiết hàng sắp về"/>
+        </div>
+    </t>
+
+    <t t-name="qr_scan_odoo_18.IncomingPopoverContent">
+        <div class="incoming-popover-content">
+            <t t-if="!props.items.length">
+                <div class="text-muted text-center py-2">
+                    <i class="fa fa-info-circle me-1"/>
+                    Không có lô hàng nào sắp về
+                </div>
+            </t>
+            <t t-else="">
+                <div class="incoming-popover-header">
+                    <span class="fw-bold">Chi tiết hàng sắp về</span>
+                </div>
+                <table class="table table-sm table-borderless mb-0">
+                    <thead>
+                        <tr>
+                            <th class="small text-muted">Ngày</th>
+                            <th class="small text-muted text-end">SL</th>
+                            <th class="small text-muted">Nguồn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="props.items" t-as="item" t-foreach-index="idx" t-key="idx">
+                            <tr class="incoming-popover-row">
+                                <td class="text-nowrap">
+                                    <i class="fa fa-calendar text-primary me-1 small"/>
+                                    <t t-esc="item.date"/>
+                                </td>
+                                <td class="text-end fw-semibold">
+                                    <t t-esc="item.qty"/>
+                                </td>
+                                <td class="small text-muted" t-esc="item.origin || '—'"/>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+        </div>
+    </t>
+
+</templates>

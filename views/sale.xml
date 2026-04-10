@@ -29,7 +29,7 @@
                 <field name="available_to_use" string="TK khả dụng" readonly="1" optional="show"
                        column_invisible="parent.state != 'draft'"/>
                 <field name="incoming_qty" string="SL sắp về" readonly="1" optional="show"
-                       column_invisible="parent.state != 'draft'"/>
+                       column_invisible="parent.state != 'draft'" widget="incoming_popover"/>
                 <field name="order_stock_move_qty" string="Tồn đơn hàng" readonly="1" optional="show"
                        column_invisible="parent.state not in ('sale', 'done')"/>
             </xpath>

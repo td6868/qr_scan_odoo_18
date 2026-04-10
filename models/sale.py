@@ -113,15 +113,15 @@ class SaleOrderLine(models.Model):
                 ctx['warehouse_id'] = warehouse_id
 
             products = lines.mapped('product_id')
-            product_qties = products.with_context(**ctx).read(['free_qty', 'virtual_available'])
-            qties_map = {p['id']: (p['free_qty'], p['virtual_available']) for p in product_qties}
+            product_qties = products.with_context(**ctx).read(['free_qty', 'virtual_available', 'incoming_qty'])
+            qties_map = {p['id']: (p['free_qty'], p['virtual_available'], p['incoming_qty']) for p in product_qties}
 
             for line in lines:
-                free_qty, virtual_available = qties_map.get(line.product_id.id, (0.0, 0.0))
+                free_qty, virtual_available, incoming = qties_map.get(line.product_id.id, (0.0, 0.0, 0.0))
 
-                # Số lượng sắp về = virtual_available - free_qty
-                # (incoming PO - outgoing SO chưa giao)
-                incoming = virtual_available
+                # Use the incoming_qty directly from product rather than calculating it
+                # This addresses the issue of incorrect calculations when free_qty might be negative
+                # or when the relationship between virtual_available and free_qty doesn't represent incoming stock
 
                 # Quy đổi đơn vị sang UoM trên dòng để hiển thị đúng
                 if line.product_uom and line.product_id.uom_id and line.product_uom != line.product_id.uom_id:
@@ -130,6 +130,25 @@ class SaleOrderLine(models.Model):
 
                 line.available_to_use = free_qty
                 line.incoming_qty = incoming
+
+    def get_incoming_details(self):
+        self.ensure_one()
+
+        moves = self.env['stock.move'].search([
+            ('product_id', '=', self.product_id.id),
+            ('state', 'in', ['confirmed', 'waiting', 'assigned']),
+            ('location_dest_id.usage', '=', 'internal'),
+        ], order='date asc')
+
+        result = []
+        for m in moves:
+            result.append({
+                'date': m.date.strftime('%d/%m/%Y') if m.date else '',
+                'qty': m.product_uom_qty,
+                'origin': m.origin or '',
+            })
+
+        return result
 
     @api.depends('state', 'product_id')
     def _compute_order_stock_move_qty(self):

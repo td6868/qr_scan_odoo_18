@@ -83,12 +83,15 @@ Long description of module's purpose
             'qr_scan_odoo_18/static/src/css/stock_picking_qr_scanner.css',
             'qr_scan_odoo_18/static/src/css/location_inventory.css',
             'qr_scan_odoo_18/static/src/css/dashboard_hub.css',
+            'qr_scan_odoo_18/static/src/css/incoming_popover.css',
             'qr_scan_odoo_18/static/lib/html5-qrcode/html5-qrcode.min.js',
             'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
+            'qr_scan_odoo_18/static/src/xml/incoming_popover.xml',
 
             
             # Components
             'qr_scan_odoo_18/static/src/js/components/confirmation_dialog.js',
+            'qr_scan_odoo_18/static/src/js/components/incoming_popover.js',
             
             # Core QR functionality
             'qr_scan_odoo_18/static/src/js/core/qr_scanner.js',
