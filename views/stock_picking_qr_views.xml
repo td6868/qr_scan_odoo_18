@@ -20,6 +20,20 @@
             <xpath expr="//header" position="inside">
                 <field name="picking_type_code" invisible="1"/>
 
+                <button name="action_fill_all_quantities"
+                        string="Fill all"
+                        type="object"
+                        class="btn btn-secondary"
+                        groups="stock.group_stock_user"
+                        invisible="picking_type_code != 'outgoing' or state in ('done', 'cancel')"/>
+
+                <button name="action_clear_reserved_quantities"
+                        string="Xóa dự trữ"
+                        type="object"
+                        class="btn btn-secondary"
+                        groups="stock.group_stock_user"
+                        invisible="picking_type_code != 'outgoing' or state in ('done', 'cancel')"/>
+
                 <button name="assign_task"
                         string="Giao việc"
                         type="object"
@@ -64,9 +78,17 @@
             <!-- Hiển thị cảnh báo sai khác tên SP ở danh sách sản phẩm phiếu kho -->
             <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_id']" position="after">
                 <field name="is_description_mismatch" column_invisible="True"/>
+                <field name="latest_stock_increase_date" string="Ngày tăng TK" optional="show"/>
             </xpath>
             <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='description_picking']" position="attributes">
                 <attribute name="decoration-danger">is_description_mismatch</attribute>
+            </xpath>
+
+            <!--Đổi màu -->
+            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='quantity']" position="attributes">
+                <attribute name="decoration-success">product_uom_qty == quantity</attribute>
+                <attribute name="decoration-danger">product_uom_qty &lt; quantity</attribute>
+                <attribute name="decoration-warning">product_uom_qty &gt; quantity</attribute>
             </xpath>
 
             <xpath expr="//div[@name='button_box']" position="inside">

@@ -138,10 +138,60 @@ class StockPicking(models.Model):
             'scan_note': 'Đã giao việc'
         })
         return self.action_open_print_wizard()
+
+    def _get_stock_increase_moves(self):
+        """Các move làm tăng tồn do nhập kho hoặc khách trả hàng."""
+        self.ensure_one()
+        return self.move_ids_without_package.filtered(
+            lambda m: m.state == 'done'
+            and m.product_id
+            and m.quantity > 0
+            and m.location_dest_id.usage == 'internal'
+            and m.location_id.usage in ('supplier', 'customer')
+        )
+
+    def _update_products_latest_stock_increase_date(self):
+        """Cập nhật ngày tăng tồn gần nhất lên product.product."""
+        for picking in self:
+            effective_dt = picking.date_done or fields.Datetime.now()
+            effective_date = fields.Datetime.context_timestamp(picking, effective_dt).date()
+
+            latest_by_product = {}
+            for move in picking._get_stock_increase_moves():
+                product = move.product_id
+                current_date = latest_by_product.get(product.id)
+                if not current_date or effective_date > current_date:
+                    latest_by_product[product.id] = effective_date
+
+            for product_id, increase_date in latest_by_product.items():
+                product = self.env['product.product'].browse(product_id)
+                if not product.latest_stock_increase_date or increase_date >= product.latest_stock_increase_date:
+                    product.latest_stock_increase_date = increase_date
+
+    def button_validate(self):
+        result = super().button_validate()
+        self._update_products_latest_stock_increase_date()
+        return result
+
+    def action_fill_all_quantities(self):
+        """Điền toàn bộ số lượng thực hiện bằng đúng nhu cầu trên các stock move."""
+        for picking in self:
+            moves = picking.move_ids_without_package.filtered(lambda m: m.state not in ('done', 'cancel'))
+            for move in moves:
+                move.quantity = move.product_uom_qty
+        return True
+
+    def action_clear_reserved_quantities(self):
+        """Xóa toàn bộ số lượng đang điền/dự trữ trên các stock move."""
+        for picking in self:
+            moves = picking.move_ids_without_package.filtered(lambda m: m.state not in ('done', 'cancel'))
+            for move in moves:
+                move.quantity = 0.0
+        return True
     
     # Thêm trường move_line_confirmed_ids
     move_line_confirmed_ids = fields.One2many('stock.move.line.confirm',compute='_compute_move_line_confirmed_ids', string="Xác nhận sản phẩm")
-    
+
     def create(self, vals):
         picking = super().create(vals)
         return picking

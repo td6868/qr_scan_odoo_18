@@ -33,7 +33,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="props.items" t-as="item" t-foreach-index="idx" t-key="idx">
+                        <t t-foreach="props.items" t-as="item" t-key="item._key">
                             <tr class="incoming-popover-row">
                                 <td class="text-nowrap">
                                     <i class="fa fa-calendar text-primary me-1 small"/>

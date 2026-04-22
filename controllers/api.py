@@ -5,9 +5,6 @@ import json
 import logging
 
 _logger = logging.getLogger(__name__)
-_logger.info("=" * 80)
-_logger.info("QR SCAN API CONTROLLER MODULE LOADED")
-_logger.info("=" * 80)
 
 class QRScanAPI(http.Controller):
 
@@ -225,6 +222,7 @@ class QRScanAPI(http.Controller):
                     'product_name': move.product_id.display_name,
                     'uom': move.product_uom.name,
                     'location_name': move.location_id.display_name,
+                    'latest_stock_increase_date': move.product_id.latest_stock_increase_date,
                     'quantity': move.product_uom_qty,
                     'quantity_confirmed': move.quantity,
                     'quantity_available': qty_available,  # Số lượng tồn kho
@@ -234,6 +232,11 @@ class QRScanAPI(http.Controller):
                 grouped_data[key]['move_ids'].append(move.id)
                 grouped_data[key]['quantity'] += move.product_uom_qty
                 grouped_data[key]['quantity_confirmed'] += move.quantity
+
+        visible_move_lines = [
+            line for line in grouped_data.values()
+            if line.get('quantity_confirmed', 0) > 0
+        ]
 
         return {
             'status': 'success',
@@ -254,7 +257,7 @@ class QRScanAPI(http.Controller):
                 'shipping_carrier_name': picking.demo_bus_company or '',
                 'shipping_carrier_phone': '',
             },
-            'move_lines': list(grouped_data.values())
+            'move_lines': visible_move_lines
         }
 
     @http.route('/api/picking/prepare', type='json', auth='none', methods=['POST'], csrf=False)

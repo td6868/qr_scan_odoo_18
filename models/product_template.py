@@ -18,3 +18,14 @@ class ProductTemplate(models.Model):
             tmpl.available_to_use_tmpl = sum(
                 tmpl.product_variant_ids.mapped('free_qty')
             )
+
+
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
+
+    latest_stock_increase_date = fields.Date(
+        string="Ngày tăng tồn gần nhất",
+        copy=False,
+        tracking=True,
+        help="Ngày gần nhất sản phẩm được tăng tồn do nhập kho hoặc khách trả hàng."
+    )

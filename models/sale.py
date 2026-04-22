@@ -75,6 +75,12 @@ class SaleOrderLine(models.Model):
         digits='Product Unit of Measure',
     )
 
+    latest_stock_increase_date = fields.Date(
+        string="Ngày tăng tồn gần nhất",
+        related='product_id.latest_stock_increase_date',
+        readonly=True,
+    )
+
     order_stock_move_qty = fields.Float(
         string="Tồn đơn hàng",
         compute="_compute_order_stock_move_qty",
@@ -257,5 +263,11 @@ class StockMove(models.Model):
         related='sale_line_id.is_description_mismatch',
         store=True,
         copy=False,
+        readonly=True,
+    )
+
+    latest_stock_increase_date = fields.Date(
+        string="Ngày tăng tồn gần nhất",
+        related='product_id.latest_stock_increase_date',
         readonly=True,
     )

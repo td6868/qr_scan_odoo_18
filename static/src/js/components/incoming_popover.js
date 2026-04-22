@@ -59,8 +59,12 @@ export class IncomingPopoverField extends Component {
             if (!anchorEl.isConnected) {
                 return;
             }
+            const items = (Array.isArray(data) ? data : []).map((item, index) => ({
+                ...item,
+                _key: `${item?.date || "no-date"}-${item?.origin || "no-origin"}-${index}`,
+            }));
             this.popover.open(anchorEl, {
-                items: Array.isArray(data) ? data : [],
+                items,
             });
         } finally {
             this.state.loading = false;

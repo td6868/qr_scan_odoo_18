@@ -33,6 +33,9 @@
                 <field name="order_stock_move_qty" string="Tồn đơn hàng" readonly="1" optional="show"
                        column_invisible="parent.state not in ('sale', 'done')"/>
             </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='price_unit']" position="after">
+                <field name="latest_stock_increase_date" string="Ngày tăng TK" readonly="1" optional="hide"/>
+            </xpath>
         </field>
     </record>
 </odoo>

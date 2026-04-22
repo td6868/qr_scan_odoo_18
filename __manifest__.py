@@ -96,6 +96,7 @@ Long description of module's purpose
             # Core QR functionality
             'qr_scan_odoo_18/static/src/js/core/qr_scanner.js',
             'qr_scan_odoo_18/static/src/js/core/qr_processor.js',
+            'qr_scan_odoo_18/static/src/js/stock_picking_form_patch.js',
             
             # Utilities
             'qr_scan_odoo_18/static/src/js/utils/camera_manager.js',
