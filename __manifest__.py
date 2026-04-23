@@ -46,6 +46,8 @@ Long description of module's purpose
         
         # Shipping Carrier Management
         'data/shipping_carrier_sequence.xml',
+
+        'data/data.xml',
         
         'views/stock_picking_qr_views.xml',
         'views/stock_location_views.xml',

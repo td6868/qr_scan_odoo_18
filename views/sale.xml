@@ -26,7 +26,7 @@
                 <attribute name="decoration-danger">is_description_mismatch</attribute>
             </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="after">
-                <field name="available_to_use" string="TK khả dụng" readonly="1" optional="show"
+                <field name="available_to_use" string="TKKD" readonly="1" optional="show"
                        column_invisible="parent.state != 'draft'"/>
                 <field name="incoming_qty" string="SL sắp về" readonly="1" optional="show"
                        column_invisible="parent.state != 'draft'" widget="incoming_popover"/>

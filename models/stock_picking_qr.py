@@ -3,6 +3,9 @@ import qrcode
 import base64
 from io import BytesIO
 from odoo.exceptions import ValidationError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -396,6 +399,36 @@ class StockPicking(models.Model):
     @api.onchange('shipping_carrier_company_id')
     def _onchange_shipping_carrier_company_id(self):
         self.shipping_route_id = False    
+
+    # Lịch cron các phiếu xuất kho backorders
+    def cron_assign_backorders(self):
+        pickings = self.search([
+            ('state', 'in', ['waiting', 'confirmed']),
+            ('backorder_id', '!=', False),
+            ('picking_type_code', '=', 'outgoing'),
+            ('sale_id', '!=', False),
+        ], order='id')
+
+        total = len(pickings)
+        batch_size = 100
+
+        _logger.info("Cron assign backorders: found %s pickings", total)
+
+        for start in range(0, total, batch_size):
+            batch = pickings[start:start + batch_size]
+            try:
+                _logger.info(
+                    "Cron assign backorders: processing batch %s-%s",
+                    start + 1,
+                    min(start + batch_size, total),
+                )
+                batch.action_assign()
+            except Exception:
+                _logger.exception(
+                    "Cron assign backorders: failed batch %s-%s",
+                    start + 1,
+                    min(start + batch_size, total),
+                )
 
 class StockMoveLineConfirm(models.Model):
     _name = 'stock.move.line.confirm'
