@@ -158,10 +158,6 @@
                                     <div>SLg xác nhận</div>
                                     <div style="font-size: 13px;">(Qty)</div>
                                 </th>
-                                <th name="th_note" class="text-center">
-                                    <div>Ghi chú</div>
-                                    <div style="font-size: 13px;">(Note)</div>
-                                </th>
                             </tr>
                         </thead>
                         <tbody class="wh_tbody">
@@ -196,9 +192,6 @@
                                     </td>
                                     <td style="width: 10%; text-align: center;">
                                         <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
-                                    </td>
-                                    <td style="width: 15%" class="text-left">
-                                        <!-- <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/> -->
                                     </td>
                                 </tr>
                             </t>
