@@ -87,6 +87,9 @@
                     <div>
                         <strong>Số điện thoại: </strong><span t-if="doc.sale_id.company_int.phone" t-field="doc.sale_id.company_int.phone"/>
                     </div>
+                    <div t-if="doc.sale_id.client_order_ref">
+                        <strong>Mã tham chiếu: </strong><span t-field="doc.sale_id.client_order_ref"/>
+                    </div>
                 </div>
 
                 <div class="col-7" id="custinfo">
