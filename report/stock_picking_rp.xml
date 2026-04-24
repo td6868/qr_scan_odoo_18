@@ -198,7 +198,7 @@
                                         <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
                                     </td>
                                     <td style="width: 15%" class="text-left">
-                                        <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/>
+                                        <!-- <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/> -->
                                     </td>
                                 </tr>
                             </t>

@@ -201,7 +201,7 @@
                                         <td style="width: 10%; text-align: center;">
                                         </td>
                                         <td style="width: 15%" class="text-left">
-                                            <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/>
+                                            <!-- <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.note"/> -->
                                         </td>
                                     </tr>
                                 </t>
