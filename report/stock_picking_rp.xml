@@ -165,38 +165,71 @@
                         </thead>
                         <tbody class="wh_tbody">
                             <t t-set="seq" t-value="0"/>
-                            <t t-set="report_rows" t-value="doc._prepare_picking_report_rows()"/>
-                            <t t-foreach="report_rows" t-as="row">
-                                <t t-set="seq" t-value="seq + 1"/>
-                                <t t-set="product" t-value="row['product']"/>
-                                <t t-set="first_move" t-value="row['first_move']"/>
-                                <t t-set="total_qty" t-value="row['total_qty']"/>
-                                <tr>
-                                    <td style="width: 5%" name="td_seq" class="text-center">
-                                        <span t-esc="seq"/>
-                                    </td>
-                                    <td style="width: 15%" name="td_prod_image" class="text-center">
-                                        <t t-if="first_move.sale_line_id.prod_image">
-                                            <img t-att-src="image_data_uri(first_move.sale_line_id.prod_image)" style="max-height: 20mm;"/>
-                                        </t>
-                                    </td>
-                                    <td style="width: 35%" class="text-left">
-                                        <t t-if="show_origin_name">
-                                            <span t-field="first_move.product_id.product_tmpl_id.name"/>
-                                        </t>
-                                        <t t-else="">
-                                            <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.name"/>
-                                            <span t-else="" t-field="product.display_name"/>
-                                        </t>
-                                    </td>
+                            <t t-if="no_group_lines">
+                                <t t-foreach="doc.move_ids_without_package.filtered(lambda m: m.quantity > 0)" t-as="move">
+                                    <t t-set="seq" t-value="seq + 1"/>
+                                    <tr>
+                                        <td style="width: 5%" name="td_seq" class="text-center">
+                                            <span t-esc="seq"/>
+                                        </td>
+                                        <td style="width: 15%" name="td_prod_image" class="text-center">
+                                            <t t-if="move.sale_line_id.prod_image">
+                                                <img t-att-src="image_data_uri(move.sale_line_id.prod_image)" style="max-height: 20mm;"/>
+                                            </t>
+                                        </td>
+                                        <td style="width: 35%" class="text-left">
+                                            <t t-if="show_origin_name">
+                                                <span t-field="move.product_id.product_tmpl_id.name"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span t-if="move.sale_line_id" t-field="move.sale_line_id.name"/>
+                                                <span t-else="" t-field="move.product_id.display_name"/>
+                                            </t>
+                                        </td>
 
-                                    <td style="width: 10%; text-align: center;">
-                                        <span t-field="first_move.product_uom"/>
-                                    </td>
-                                    <td style="width: 10%; text-align: center;">
-                                        <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
-                                    </td>
-                                </tr>
+                                        <td style="width: 10%; text-align: center;">
+                                            <span t-field="move.product_uom"/>
+                                        </td>
+                                        <td style="width: 10%; text-align: center;">
+                                            <span t-esc="move.quantity" t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <t t-set="report_rows" t-value="doc._prepare_picking_report_rows()"/>
+                                <t t-foreach="report_rows" t-as="row">
+                                    <t t-set="seq" t-value="seq + 1"/>
+                                    <t t-set="product" t-value="row['product']"/>
+                                    <t t-set="first_move" t-value="row['first_move']"/>
+                                    <t t-set="total_qty" t-value="row['total_qty']"/>
+                                    <tr>
+                                        <td style="width: 5%" name="td_seq" class="text-center">
+                                            <span t-esc="seq"/>
+                                        </td>
+                                        <td style="width: 15%" name="td_prod_image" class="text-center">
+                                            <t t-if="first_move.sale_line_id.prod_image">
+                                                <img t-att-src="image_data_uri(first_move.sale_line_id.prod_image)" style="max-height: 20mm;"/>
+                                            </t>
+                                        </td>
+                                        <td style="width: 35%" class="text-left">
+                                            <t t-if="show_origin_name">
+                                                <span t-field="first_move.product_id.product_tmpl_id.name"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span t-if="first_move.sale_line_id" t-field="first_move.sale_line_id.name"/>
+                                                <span t-else="" t-field="product.display_name"/>
+                                            </t>
+                                        </td>
+
+                                        <td style="width: 10%; text-align: center;">
+                                            <span t-field="first_move.product_uom"/>
+                                        </td>
+                                        <td style="width: 10%; text-align: center;">
+                                            <span t-esc="total_qty" t-options='{"widget": "float", "precision": 2}'/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </t>
                         </tbody>
                     </table>
@@ -228,6 +261,9 @@
                         <strong class="mt64 mb64">Thủ kho</strong>
                     </div>
                     <div class="text-center" style="padding-bottom: 4cm;">
+                        <t t-if="show_keeper_signature">
+                            <img src="/qr_scan_odoo_18/static/src/img/kys%20htd.png" alt="Chữ ký thủ kho" style="max-width: 70mm; max-height: 35mm; margin-top: 6mm;"/>
+                        </t>
                     </div>
                 </div>
             </div>
@@ -249,6 +285,18 @@
             <t t-foreach="docs" t-as="doc">
                 <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
                     <t t-set="show_origin_name" t-value="True"/>
+                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_stock_picking_khoakim_signature">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
+                    <t t-set="no_group_lines" t-value="True"/>
+                    <t t-set="show_keeper_signature" t-value="True"/>
                     <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
                 </t>
             </t>

@@ -13,6 +13,36 @@ class StockPickingReportKhoakim(models.AbstractModel):
             'doc_model': 'stock.picking',
             'docs': pickings,
         }
+
+
+class StockPickingReportKhoakimOriginName(models.AbstractModel):
+    _name = 'report.qr_scan_odoo_18.report_stock_picking_khoakim_origin_name'
+    _description = 'Mẫu in phiếu xuất kho Khoa Kim (Tên gốc)'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        pickings = self.env['stock.picking'].browse(docids)
+        pickings._generate_qr_code()
+        return {
+            'doc_ids': pickings.ids,
+            'doc_model': 'stock.picking',
+            'docs': pickings,
+        }
+
+
+class StockPickingReportKhoakimPrimetech(models.AbstractModel):
+    _name = 'report.qr_scan_odoo_18.report_stock_picking_khoakim_signature'
+    _description = 'Mẫu in phiếu xuất kho Primetech'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        pickings = self.env['stock.picking'].browse(docids)
+        pickings._generate_qr_code()
+        return {
+            'doc_ids': pickings.ids,
+            'doc_model': 'stock.picking',
+            'docs': pickings,
+        }
         
 class PurchaseOrderChina(models.AbstractModel):
     _name = 'report.qr_scan_odoo_18.action_report_po_china'
@@ -26,7 +56,8 @@ class PurchaseOrderChina(models.AbstractModel):
             'doc_model': 'purchase.order',
             'docs': docs,
         }
-        
+
+
 class PurchaseOrderKhoakim(models.AbstractModel):
     _name = 'report.qr_scan_odoo_18.report_purchase_order_khoakim'
     _description = 'Mẫu phiếu mua hàng Khoa Kim'
