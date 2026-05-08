@@ -33,17 +33,28 @@ class DashboardItem(models.Model):
     active = fields.Boolean('Hoạt động', default=True)
     open_new_tab = fields.Boolean('Mở tab mới', default=True, 
                                    help='Nếu bật, dashboard sẽ mở trong tab mới')
+    allowed_group_ids = fields.Many2many(
+        'res.groups',
+        'dashboard_item_res_groups_rel',
+        'dashboard_item_id',
+        'group_id',
+        string='Allowed Groups',
+        help='Nếu để trống thì mọi user có quyền vào Dashboard Hub đều thấy item này.',
+    )
 
     @api.model
     def get_dashboard_data(self):
-        """Trả về dữ liệu dashboard cho client"""
         dashboards = self.search([('active', '=', True)])
+        visible_dashboards = dashboards.filtered(
+            lambda dashboard: not dashboard.allowed_group_ids
+            or bool(dashboard.allowed_group_ids & self.env.user.groups_id)
+        )
         return [{
-            'id': d.id,
-            'name': d.name,
-            'description': d.description or '',
-            'url': d.url,
-            'icon': d.icon,
-            'color': d.color,
-            'open_new_tab': d.open_new_tab,
-        } for d in dashboards]
+            'id': dashboard.id,
+            'name': dashboard.name,
+            'description': dashboard.description or '',
+            'url': dashboard.url,
+            'icon': dashboard.icon,
+            'color': dashboard.color,
+            'open_new_tab': dashboard.open_new_tab,
+        } for dashboard in visible_dashboards]

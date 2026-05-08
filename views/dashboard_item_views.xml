@@ -33,6 +33,7 @@
                             <field name="name" placeholder="VD: Dashboard Vận chuyển"/>
                             <field name="sequence"/>
                             <field name="url" placeholder="/dashboard/stock_picking"/>
+                            <field name="allowed_group_ids"/>
                         </group>
                         <group>
                             <field name="icon"/>
