@@ -183,20 +183,8 @@ class QRScanAPI(http.Controller):
                     'recipient_phone': picking.partner_id.phone or '',
                     'recipient_address': picking.partner_id.contact_address if picking.partner_id else '',
                     
-                    # Thông tin nhà xe
-                    # 'shipping_carrier_company_id': picking.shipping_carrier_company_id.id if picking.shipping_carrier_company_id else None,
-                    # 'shipping_carrier_name': picking.shipping_carrier_company_id.name if picking.shipping_carrier_company_id else '',
-                    # 'shipping_carrier_phone': picking.shipping_carrier_company_id.phone if picking.shipping_carrier_company_id else '',
-                    # 'shipping_route_id': picking.shipping_route_id.id if picking.shipping_route_id else None,
-                    # 'shipping_route_name': picking.shipping_route_id.name if picking.shipping_route_id else '',
-                    # 'available_routes': [{'id': r.id, 'name': r.name} for r in picking.shipping_carrier_company_id.route_ids] if getattr(picking.shipping_carrier_company_id, 'route_ids', False) else [],
-
-                    'shipping_carrier_company_id': None,
-                    'shipping_carrier_name': picking.demo_bus_company or '',
-                    'shipping_carrier_phone': '',
-                    'shipping_route_id': None,
-                    'shipping_route_name': '',
-                    'available_routes': [],
+                    # Thông tin gửi xe
+                    'park_info': picking.park_info or '',
                     
                     # Trạng thái
                     'is_prepared': picking.is_prepared,
@@ -250,12 +238,7 @@ class QRScanAPI(http.Controller):
                 'is_prepared': picking.is_prepared,
                 'is_shipped': getattr(picking, 'is_shipped', False),
                 'is_sent_to_carrier': getattr(picking, 'is_sent_to_carrier', False),
-                # 'shipping_carrier_company_id': picking.shipping_carrier_company_id.id if picking.shipping_carrier_company_id else None,
-                # 'shipping_carrier_name': picking.shipping_carrier_company_id.name or '',
-                # 'shipping_carrier_phone': picking.shipping_carrier_company_id.phone or '',
-                'shipping_carrier_company_id': None,
-                'shipping_carrier_name': picking.demo_bus_company or '',
-                'shipping_carrier_phone': '',
+                'park_info': picking.park_info or '',
             },
             'move_lines': visible_move_lines
         }
@@ -334,7 +317,6 @@ class QRScanAPI(http.Controller):
                 shipping_type=params.get('shipping_type'),
                 shipping_phone=params.get('shipping_phone'),
                 shipping_company=params.get('shipping_company'),
-                shipping_route_id=params.get('shipping_route_id'),
                 shipping_driver_phone=params.get('shipping_driver_phone'),
                 shipping_vehicle_number=params.get('shipping_vehicle_number'),
                 shipping_tracking_number=params.get('shipping_tracking_number'),

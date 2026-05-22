@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_assign_task_form" model="ir.ui.view">
+        <field name="name">sale.order.assign.task.form</field>
+        <field name="model">sale.order.assign.task</field>
+        <field name="arch" type="xml">
+            <form string="Giao việc - Thay đổi chính sách giao hàng">
+                <group>
+                    <field name="sale_order_id" invisible="1"/>
+                    <field name="partner_id" readonly="1"/>
+                    <field name="shipping_method_id"/>
+                    <field name="shipping_method_name" invisible="1"/>
+                    <field name="is_bus_shipping" invisible="1"/>
+                    <field name="shipping_history_count" invisible="1"/>
+                    <field name="picking_policy" required="1"/>
+                </group>
+                
+                <group string="Thông tin gửi xe" invisible="not is_bus_shipping">
+                    <group string="Thông tin gửi xe">
+                        <field name="park_info" placeholder="Nhập Thông tin gửi xe, tuyến xe, số điện thoại, điểm gửi..."/>
+                        <label for="shipping_history_count" string="Lịch sử gửi xe"/>
+                        <div>
+                            <field name="shipping_history_count" 
+                                   widget="shipping_history_popover"
+                                   nolabel="1"/>
+                        </div>
+                    </group>
+                    
+                    <group string="Thông tin người nhận">
+                        <field name="recipient_name" placeholder="Tên người nhận"/>
+                        <field name="recipient_phone" placeholder="SĐT người nhận"/>
+                        <field name="recipient_address" placeholder="Địa chỉ giao hàng"/>
+                    </group>
+                </group>
+                
+                <footer>
+                    <button string="Xác nhận giao việc" name="action_confirm" type="object" class="btn-primary"/>
+                    <button string="Hủy" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

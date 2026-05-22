@@ -27,11 +27,11 @@ Long description of module's purpose
                     "report_xlsx",                    
                     "purchase",
                     "delivery",
+                    "stock_delivery",
                     "crm",
                     "hr",
                     "hr_expense",
                     "web",
-                    # "widget_info_popover",
                 ],
 
     # always loaded
@@ -44,9 +44,6 @@ Long description of module's purpose
         'report/stock_picking_rp_2.xml',
         'report/packing_ticket_report.xml',
         
-        # Shipping Carrier Management
-        'data/shipping_carrier_sequence.xml',
-
         'data/data.xml',
         
         'views/stock_picking_qr_views.xml',
@@ -59,12 +56,11 @@ Long description of module's purpose
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
         'wizard/stock_picking_print_wizard_views.xml',
+        'wizard/sale_order_assign_task_views.xml',
         
-        # Shipping Carrier Views
-        'views/shipping_carrier_views.xml',
-        'views/shipping_route_views.xml',
         'views/stock_picking_shipping_views.xml',
-        'views/shipping_carrier_menu.xml',
+        'views/customer_shipping_history_views.xml',
+        'views/stock_picking_asap_views.xml',
         
         'data/default_dashboards.xml',
         'views/dashboard_hub_views.xml',
@@ -89,11 +85,13 @@ Long description of module's purpose
             'qr_scan_odoo_18/static/lib/html5-qrcode/html5-qrcode.min.js',
             'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
             'qr_scan_odoo_18/static/src/xml/incoming_popover.xml',
+            'qr_scan_odoo_18/static/src/xml/shipping_history_popover.xml',
 
             
             # Components
             'qr_scan_odoo_18/static/src/js/components/confirmation_dialog.js',
             'qr_scan_odoo_18/static/src/js/components/incoming_popover.js',
+            'qr_scan_odoo_18/static/src/js/shipping_history_popover.js',
             
             # Core QR functionality
             'qr_scan_odoo_18/static/src/js/core/qr_scanner.js',

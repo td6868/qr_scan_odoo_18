@@ -30,17 +30,9 @@ class StockPickingPrintWizard(models.TransientModel):
         return [
             ('type_1', 'In phiếu'),
             ('type_2', 'In phiếu (Điền)'),
-            ('type_3', 'In phiếu (Gửi xe)'),
-            ('type_4', 'In phiếu (Tên gốc)'),
-            ('type_5', 'PRIMETECH')
+            ('type_3', 'In phiếu (Tên gốc)'),
+            ('type_4', 'PRIMETECH')
         ]
-
-    @api.onchange('report_type', 'picking_id')
-    def _onchange_report_type(self):
-        if self.report_type == 'type_3' and self.picking_id:
-            # Lấy dữ liệu đã được tính toán từ bản ghi
-            self.sender_info = self.picking_id.sender_info
-            self.recipient_info = self.picking_id.recipient_info
 
     def action_print(self):
         self.ensure_one()
@@ -49,14 +41,6 @@ class StockPickingPrintWizard(models.TransientModel):
         if not picking:
             return {'type': 'ir.actions.act_window_close'}
             
-        if self.report_type == 'type_3':
-            # Lưu lại thông tin vào phiếu xuất kho để đồng bộ và lưu trữ
-            picking.write({
-                'sender_info': self.sender_info,
-                'recipient_info': self.recipient_info,
-            })
-            return self.env.ref('qr_scan_odoo_18.action_report_packing_ticket').report_action(picking)
-
         # Gọi hàm xử lý in các loại khác từ model stock.picking
         if hasattr(picking, 'action_perform_print'):
             return picking.action_perform_print(self.report_type)

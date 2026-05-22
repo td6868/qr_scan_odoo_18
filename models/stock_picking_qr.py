@@ -53,24 +53,13 @@ class StockPicking(models.Model):
         copy=False
     )
     
-    # ========== SHIPPING CARRIER COMPANY FIELDS ==========
-    shipping_carrier_company_id = fields.Many2one(
-        'shipping.carrier.company',
-        string='Nhà xe',
+    # ========== Thông tin gửi xe ==========
+    park_info = fields.Text(
+        string='Thông tin gửi xe',
         tracking=True,
-        help='Nhà xe vận chuyển hàng hóa'
-    )
-    
-    shipping_route_id = fields.Many2one(
-        'shipping.route',
-        string='Tuyến đường',
-        domain="[('company_ids', '=', shipping_carrier_company_id)]",
-        tracking=True,
-        help='Tuyến đường sẽ gửi xe'
+        help='Thông tin gửi xe vận chuyển hàng hóa'
     )
 
-    demo_bus_company = fields.Text(string="Thông tin gửi xe")
-    
     # Thông tin gửi xe
     actual_shipping_date = fields.Datetime('Thời gian gửi xe thực tế', tracking=True)
     shipping_confirmed_by = fields.Many2one('res.users', 'Người xác nhận gửi xe', readonly=True)
@@ -377,9 +366,8 @@ class StockPicking(models.Model):
         # Kiểm tra code linh hoạt hơn (hỗ trợ cả outgoing và delivery)
         if self.picking_type_id.code in ['outgoing', 'delivery']:
             options.append(('type_2', 'In phiếu (Điền)'))
-            options.append(('type_3', 'In phiếu (Gửi xe)'))
-            options.append(('type_4', 'In phiếu (Tên gốc)'))
-            options.append(('type_5', 'PRIMETECH'))
+            options.append(('type_3', 'In phiếu (Tên gốc)'))
+            options.append(('type_4', 'PRIMETECH'))
         return options
 
     def _get_report_method_mapping(self):
@@ -387,9 +375,8 @@ class StockPicking(models.Model):
         return {
             'type_1': 'action_print_picking',
             'type_2': 'action_print_picking_2',
-            'type_3': 'action_print_packing_ticket',
-            'type_4': 'action_print_picking_origin_name',
-            'type_5': 'action_print_primetech'
+            'type_3': 'action_print_picking_origin_name',
+            'type_4': 'action_print_primetech'
             # Dễ dàng thêm các loại mới tại đây
         }
 
@@ -404,10 +391,6 @@ class StockPicking(models.Model):
             
         return False
     
-    @api.onchange('shipping_carrier_company_id')
-    def _onchange_shipping_carrier_company_id(self):
-        self.shipping_route_id = False    
-
     # Lịch cron các phiếu xuất kho backorders
     def cron_assign_backorders(self):
         pickings = self.search([

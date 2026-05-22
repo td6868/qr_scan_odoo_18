@@ -5,6 +5,9 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_task" string="Giao việc" type="object" invisible="state != 'sale'"/>
+            </xpath>
             <xpath expr="//button[@name='action_view_invoice']" position="before">
                 <button name="action_view_image_proof" type="object" class="btn oe_stat_button"
                         icon="fa-image" invisible="state == 'draft'">
@@ -14,7 +17,7 @@
                 </button>
             </xpath>
             <xpath expr="//field[@name='shipping_method']" position="after">
-                <field name="demo_bus_company" invisible="demo_bus_company == False"/>
+                <field name="park_info" invisible="not park_info"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='qty_available']" position="attributes">
                 <attribute name="optional">hide</attribute>

@@ -56,7 +56,5 @@ class ShippingScanProcessor(models.TransientModel):
                 'shipping_vehicle_number': kwargs.get('shipping_vehicle_number'),
                 'shipping_tracking_number': kwargs.get('shipping_tracking_number'),
             }
-            if kwargs.get('shipping_route_id'):
-                update_vals['shipping_route_id'] = kwargs.get('shipping_route_id')
-                
+            
             picking.write(update_vals)

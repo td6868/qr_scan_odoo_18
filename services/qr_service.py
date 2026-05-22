@@ -29,7 +29,6 @@ class MultiModelQRService(models.TransientModel):
         Model codes:
           stock.picking -> 1
           stock.location -> 2
-          stock.picking (with shipping_carrier_company_id) -> 3
         Unknown models -> code 0
         """
         model_code_map = {
@@ -81,7 +80,6 @@ class MultiModelQRService(models.TransientModel):
                 code_model_map = {
                     1: 'stock.picking',
                     2: 'stock.location',
-                    # 3: 'stock.picking.shipping'
                 }
                 model = code_model_map.get(code)
                 return {

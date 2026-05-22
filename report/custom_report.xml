@@ -23,6 +23,21 @@
             <field name="binding_type">report</field>
         </record>
         
+        <!-- Paper Format A5 ngang cho phiếu gửi xe -->
+        <record id="paperformat_a5_packing_ticket" model="report.paperformat">
+            <field name="name">A5 ngang - Phiếu gửi xe</field>
+            <field name="default" eval="False"/>
+            <field name="format">A5</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">15</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
         <record id="action_report_packing_ticket" model="ir.actions.report">
             <field name="name">Phiếu Gửi Xe</field>
             <field name="model">stock.picking</field>
@@ -32,6 +47,7 @@
             <field name="report_file">qr_scan_odoo_18.report_packing_ticket</field>
             <field name="print_report_name">'Phiếu gửi xe - %s - %s' % (object.partner_id.name or '', object.name)</field>
             <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="paperformat_a5_packing_ticket"/>
         </record>
 
         <record id="action_report_stock_pick_customize_origin_name" model="ir.actions.report">

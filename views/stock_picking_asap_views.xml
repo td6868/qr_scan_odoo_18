@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ========== LIST VIEW: Phiếu xuất kho - Càng sớm càng tốt (chưa hoàn thành) ========== -->
+    <record id="view_stock_picking_asap_list" model="ir.ui.view">
+        <field name="name">stock.picking.asap.list</field>
+        <field name="model">stock.picking</field>
+        <field name="priority" eval="999"/>
+        <field name="arch" type="xml">
+            <list string="Phiếu xuất kho - Càng sớm càng tốt" decoration-warning="state == 'confirmed'" decoration-info="state == 'assigned'">
+                <field name="sale_id" string="Đơn hàng"/>
+                <field name="state" string="Trạng thái đơn hàng" widget="badge"
+                       decoration-info="state == 'assigned'"
+                       decoration-warning="state in ('confirmed', 'waiting')"
+                       decoration-danger="state == 'draft'"/>
+                <field name="name" string="Mã phiếu"/>
+                <field name="carrier_tracking_ref" string="Mã số theo dõi (VTP)"/>
+                <field name="recipient_info" string="Người nhận"/>
+                <field name="park_info" string="Thông tin gửi xe" optional="show"/>
+                <field name="shipping_method" string="Loại vận chuyển"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========== SEARCH VIEW ========== -->
+    <record id="view_stock_picking_asap_search" model="ir.ui.view">
+        <field name="name">stock.picking.asap.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm phiếu xuất kho">
+                <field name="name" string="Mã phiếu"/>
+                <field name="sale_id" string="Đơn hàng"/>
+                <field name="partner_id" string="Khách hàng"/>
+                <field name="shipping_tracking_number" string="Mã vận đơn"/>
+                <field name="carrier_tracking_ref" string="Mã theo dõi VTP"/>
+                <field name="user_id" string="Nhân viên KD"/>
+                <filter string="Đang chờ" name="filter_waiting" domain="[('state', '=', 'waiting')]"/>
+                <filter string="Sẵn sàng" name="filter_assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="Đã xác nhận" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <separator/>
+                <filter string="Đã giao việc" name="filter_is_assigned" domain="[('is_assigned', '=', True)]"/>
+                <filter string="Chưa giao việc" name="filter_not_assigned" domain="[('is_assigned', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Đơn hàng" name="group_sale" context="{'group_by': 'sale_id'}"/>
+                    <filter string="Loại vận chuyển" name="group_shipping" context="{'group_by': 'shipping_method'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========== ACTION WINDOW ========== -->
+    <record id="action_stock_picking_asap" model="ir.actions.act_window">
+        <field name="name">Phiếu XK - Càng sớm càng tốt (Xe tải/ Xe bus)</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_stock_picking_asap_list"/>
+        <field name="search_view_id" ref="view_stock_picking_asap_search"/>
+        <field name="domain">[
+            ('picking_type_code', '=', 'outgoing'),
+            ('move_type', '=', 'direct'),
+            ('state', 'not in', ['done', 'cancel'])
+        ]</field>
+        <field name="context">{
+            'search_default_filter_assigned': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Không có phiếu xuất kho nào có chính sách "Càng sớm càng tốt" đang chờ xử lý!
+            </p>
+        </field>
+    </record>
+
+    <!-- ========== MENU ========== -->
+    <menuitem id="menu_stock_picking_asap"
+              name="Phiếu XK - CSCTQT"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_picking_asap"
+              sequence="999"/>
+</odoo>

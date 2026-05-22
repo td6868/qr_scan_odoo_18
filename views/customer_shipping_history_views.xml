@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_customer_shipping_history_tree" model="ir.ui.view">
+        <field name="name">customer.shipping.history.tree</field>
+        <field name="model">customer.shipping.history</field>
+        <field name="arch" type="xml">
+            <list string="Lịch sử gửi xe" default_order="shipping_date desc">
+                <!-- <field name="shipping_date" string="Ngày gửi"/> -->
+                <field name="partner_id" string="Khách hàng"/>
+                <field name="park_info" string="Thông tin gửi xe"/>
+                <field name="sale_order_id" string="Đơn hàng" optional="show"/>
+                <field name="picking_id" string="Phiếu xuất" optional="show"/>
+                <field name="shipping_method_id" string="Phương thức VC" optional="hide"/>
+                <field name="recipient_name" string="Người nhận" optional="hide"/>
+                <field name="recipient_phone" string="SĐT người nhận" optional="hide"/>
+                <field name="created_by" string="Người tạo" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_customer_shipping_history_form" model="ir.ui.view">
+        <field name="name">customer.shipping.history.form</field>
+        <field name="model">customer.shipping.history</field>
+        <field name="arch" type="xml">
+            <form string="Chi tiết lịch sử gửi xe">
+                <sheet>
+                    <group>
+                        <group string="Thông tin chính">
+                            <field name="partner_id"/>
+                            <field name="park_info"/>
+                            <field name="shipping_date"/>
+                            <field name="shipping_method_id"/>
+                        </group>
+                        <group string="Liên kết">
+                            <field name="sale_order_id"/>
+                            <field name="picking_id"/>
+                            <field name="created_by" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Thông tin người nhận">
+                        <field name="recipient_name"/>
+                        <field name="recipient_phone"/>
+                        <field name="recipient_address"/>
+                    </group>
+                    <group string="Ghi chú">
+                        <field name="note" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_customer_shipping_history_search" model="ir.ui.view">
+        <field name="name">customer.shipping.history.search</field>
+        <field name="model">customer.shipping.history</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm lịch sử gửi xe">
+                <field name="partner_id" string="Khách hàng"/>
+                <field name="park_info" string="Thông tin gửi xe"/>
+                <field name="sale_order_id" string="Đơn hàng"/>
+                <field name="picking_id" string="Phiếu xuất"/>
+                <field name="recipient_phone" string="SĐT người nhận"/>
+                
+                <filter string="Hôm nay" name="today" 
+                        domain="[('shipping_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('shipping_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="Tuần này" name="this_week" 
+                        domain="[('shipping_date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Tháng này" name="this_month" 
+                        domain="[('shipping_date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Khách hàng" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Thông tin gửi xe" name="group_park_info" context="{'group_by': 'park_info'}"/>
+                    <filter string="Ngày gửi" name="group_date" context="{'group_by': 'shipping_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_customer_shipping_history" model="ir.actions.act_window">
+        <field name="name">Lịch sử gửi xe</field>
+        <field name="res_model">customer.shipping.history</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có lịch sử gửi xe nào
+            </p>
+            <p>
+                Lịch sử gửi xe sẽ được tự động tạo khi bạn giao việc từ đơn hàng.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item (under Stock > Configuration) -->
+    <menuitem id="menu_customer_shipping_history"
+              name="Lịch sử gửi xe"
+              parent="stock.menu_stock_config_settings"
+              action="action_customer_shipping_history"
+              sequence="50"/>
+</odoo>
