@@ -8,9 +8,7 @@
 Long description of module's purpose
     """,
 
-    'author': "My Company",
-    'website': "https://www.yourcompany.com",
-
+    'author': "NTAN",
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
@@ -32,6 +30,7 @@ Long description of module's purpose
                     "hr",
                     "hr_expense",
                     "web",
+                    "shipping_carrier",
                 ],
 
     # always loaded
@@ -120,7 +119,6 @@ Long description of module's purpose
     #     'demo/demo.xml',
     # ],
     
-    'icon': 'qr_scan_odoo_18/static/description/icon.png',
     'installable': True,
     'application': True,
 }

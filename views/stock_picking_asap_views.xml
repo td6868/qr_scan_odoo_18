@@ -14,6 +14,7 @@
                        decoration-danger="state == 'draft'"/>
                 <field name="name" string="Mã phiếu"/>
                 <field name="carrier_tracking_ref" string="Mã số theo dõi (VTP)"/>
+                <field name="wh_user_id" string="NV kho" optional="show"/>
                 <field name="recipient_info" string="Người nhận"/>
                 <field name="park_info" string="Thông tin gửi xe" optional="show"/>
                 <field name="shipping_method" string="Loại vận chuyển"/>
@@ -33,6 +34,7 @@
                 <field name="shipping_tracking_number" string="Mã vận đơn"/>
                 <field name="carrier_tracking_ref" string="Mã theo dõi VTP"/>
                 <field name="user_id" string="Nhân viên KD"/>
+                <field name="wh_user_id" string="NV kho"/>
                 <filter string="Đang chờ" name="filter_waiting" domain="[('state', '=', 'waiting')]"/>
                 <filter string="Sẵn sàng" name="filter_assigned" domain="[('state', '=', 'assigned')]"/>
                 <filter string="Đã xác nhận" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
@@ -43,6 +45,7 @@
                     <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Đơn hàng" name="group_sale" context="{'group_by': 'sale_id'}"/>
                     <filter string="Loại vận chuyển" name="group_shipping" context="{'group_by': 'shipping_method'}"/>
+                    <filter string="NV kho" name="group_wh_user" context="{'group_by': 'wh_user_id'}"/>
                 </group>
             </search>
         </field>

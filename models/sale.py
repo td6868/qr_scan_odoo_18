@@ -44,6 +44,24 @@ class SaleOrder(models.Model):
         help='Thông tin gửi xe do sale tự nhập',
         copy= False
     )
+    
+    # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
+    # Uncomment các dòng sau khi cài đặt module 'shipping_carrier'
+    # và thêm 'shipping_carrier' vào depends trong __manifest__.py
+    # 
+    shipping_carrier_company_id = fields.Many2one(
+        'shipping.carrier.company',
+        string='Nhà xe',
+        tracking=True,
+        help='Nhà xe vận chuyển được chọn bởi sale'
+    )
+    # 
+    # shipping_route_id = fields.Many2one(
+    #     'shipping.route',
+    #     string='Tuyến đường',
+    #     tracking=True,
+    #     help='Tuyến đường vận chuyển'
+    # )
 
 
     def _prepare_picking_values(self):
@@ -53,6 +71,14 @@ class SaleOrder(models.Model):
             res['park_info'] = self.park_info
         if self.user_id:
             res['user_id'] = self.user_id.id
+        
+        # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
+        # Uncomment để kế thừa thông tin nhà xe xuống picking
+        # if self.shipping_carrier_company_id:
+        #     res['shipping_carrier_company_id'] = self.shipping_carrier_company_id.id
+        # if self.shipping_route_id:
+        #     res['shipping_route_id'] = self.shipping_route_id.id
+        
         return res
     
 

@@ -70,3 +70,18 @@ class PurchaseOrderKhoakim(models.AbstractModel):
             'doc_model': 'stock.picking',
             'docs': docs,
         }
+
+
+class PackingTicketReport(models.AbstractModel):
+    _name = 'report.qr_scan_odoo_18.report_packing_ticket'
+    _description = 'Mẫu in phiếu gửi xe'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        pickings = self.env['stock.picking'].browse(docids)
+        pickings._generate_qr_code()
+        return {
+            'doc_ids': pickings.ids,
+            'doc_model': 'stock.picking',
+            'docs': pickings,
+        }

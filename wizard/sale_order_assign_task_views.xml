@@ -13,10 +13,11 @@
                     <field name="is_bus_shipping" invisible="1"/>
                     <field name="shipping_history_count" invisible="1"/>
                     <field name="picking_policy" required="1"/>
+                    <field name="wh_user_id" options="{'no_create': True, 'no_create_edit': True}"/>
                 </group>
                 
                 <group string="Thông tin gửi xe" invisible="not is_bus_shipping">
-                    <group string="Thông tin gửi xe">
+                    <group string="Thông tin xe">
                         <field name="park_info" placeholder="Nhập Thông tin gửi xe, tuyến xe, số điện thoại, điểm gửi..."/>
                         <label for="shipping_history_count" string="Lịch sử gửi xe"/>
                         <div>

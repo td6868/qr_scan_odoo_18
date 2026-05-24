@@ -66,6 +66,7 @@
             <!-- Phân bổ các trường sang bên phải (sau Chứng từ gốc) -->
             <xpath expr="//field[@name='origin']" position="after">
                 <field name="delivery_note" placeholder="Nhập ghi chú giao hàng..."/>
+                <field name="wh_user_id" options="{'no_create': True, 'no_create_edit': True}"/>
                 <field name="sender_info" placeholder="Người gửi phiếu gửi xe..."/>
                 <field name="recipient_info" placeholder="Người nhận phiếu gửi xe..."/>
             </xpath>

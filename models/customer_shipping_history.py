@@ -41,6 +41,24 @@ class CustomerShippingHistory(models.Model):
         'delivery.carrier',
         string='Phương thức vận chuyển'
     )
+    
+    # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
+    # Uncomment các dòng sau khi cài đặt module 'shipping_carrier'
+    # và thêm 'shipping_carrier' vào depends trong __manifest__.py
+    # 
+    # shipping_carrier_company_id = fields.Many2one(
+    #     'shipping.carrier.company',
+    #     string='Nhà xe',
+    #     tracking=True,
+    #     help='Nhà xe vận chuyển được chọn'
+    # )
+    # 
+    # shipping_route_id = fields.Many2one(
+    #     'shipping.route',
+    #     string='Tuyến đường',
+    #     tracking=True,
+    #     help='Tuyến đường vận chuyển'
+    # )
 
     # Recipient info (if different from partner)
     recipient_name = fields.Char(string='Người nhận')

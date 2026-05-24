@@ -52,6 +52,14 @@ class StockPicking(models.Model):
         help="Ghi chú dành cho nhân viên giao hàng và kho",
         copy=False
     )
+
+    wh_user_id = fields.Many2one(
+        'res.users',
+        string='NV kho',
+        tracking=True,
+        copy=False,
+        help='Nhân viên kho được giao xử lý phiếu'
+    )
     
     # ========== Thông tin gửi xe ==========
     park_info = fields.Text(
@@ -59,6 +67,37 @@ class StockPicking(models.Model):
         tracking=True,
         help='Thông tin gửi xe vận chuyển hàng hóa'
     )
+    
+    # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
+    # Uncomment các dòng sau khi cài đặt module 'shipping_carrier'
+    # và thêm 'shipping_carrier' vào depends trong __manifest__.py
+    # 
+    shipping_carrier_company_id = fields.Many2one(
+        'shipping.carrier.company',
+        string='Nhà xe',
+        tracking=True,
+        help='Nhà xe vận chuyển hàng hóa'
+    )
+    # 
+    shipping_route_id = fields.Many2one(
+        'shipping.route',
+        string='Tuyến đường',
+        tracking=True,
+        help='Tuyến đường vận chuyển'
+    )
+    # 
+    # # Computed fields để hiển thị thông tin nhà xe
+    # carrier_phone = fields.Char(
+    #     related='shipping_carrier_company_id.phone',
+    #     string='SĐT Nhà xe',
+    #     readonly=True
+    # )
+    # 
+    # carrier_address = fields.Text(
+    #     related='shipping_carrier_company_id.address',
+    #     string='Địa chỉ gửi hàng',
+    #     readonly=True
+    # )
 
     # Thông tin gửi xe
     actual_shipping_date = fields.Datetime('Thời gian gửi xe thực tế', tracking=True)
@@ -82,15 +121,36 @@ class StockPicking(models.Model):
         compute='_compute_print_info',
         store=True, readonly=False, copy=False
     )
+
+    # ========== Thông tin người nhận chi tiết ==========
+    recipient_name = fields.Char(
+        string='Tên người nhận',
+        tracking=True,
+        copy=False,
+        help='Tên người nhận hàng thực tế (từ wizard giao việc)'
+    )
+    recipient_phone = fields.Char(
+        string='SĐT người nhận',
+        tracking=True,
+        copy=False,
+        help='Số điện thoại người nhận hàng thực tế'
+    )
+    recipient_address = fields.Text(
+        string='Địa chỉ người nhận',
+        tracking=True,
+        copy=False,
+        help='Địa chỉ giao hàng thực tế (từ wizard giao việc)'
+    )
     
-    @api.depends('user_id', 'partner_id', 'sale_id.user_id')
+    @api.depends('user_id', 'wh_user_id', 'partner_id', 'sale_id.user_id')
     def _compute_print_info(self):
         for record in self:
             if not record.sender_info or record.sender_info == 'OdooBot':
                 # Ưu tiên lấy nhân viên kinh doanh từ đơn hàng (sale_id.user_id)
-                # Nếu không có, lấy người chịu trách nhiệm phiếu (user_id)
+                # Nếu không có, lấy nhân viên kho được giao (wh_user_id)
+                # Nếu vẫn không có, lấy người chịu trách nhiệm phiếu (user_id)
                 # Cuối cùng lấy user hiện tại
-                sender_name = record.sale_id.user_id.name or record.user_id.name or self.env.user.name
+                sender_name = record.sale_id.user_id.name or record.wh_user_id.name or record.user_id.name or self.env.user.name
                 record.sender_info = sender_name
             if not record.recipient_info:
                 record.recipient_info = record.partner_id.name or ''
