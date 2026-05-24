@@ -61,7 +61,8 @@
         <field name="domain">[
             ('picking_type_code', '=', 'outgoing'),
             ('move_type', '=', 'direct'),
-            ('state', 'not in', ['done', 'cancel'])
+            ('state', 'not in', ['done', 'cancel']),
+            ('shipping_method', '=', 'Xe tải/ Xe bus')
         ]</field>
         <field name="context">{
             'search_default_filter_assigned': 1,
