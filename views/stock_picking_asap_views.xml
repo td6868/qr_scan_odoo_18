@@ -53,7 +53,7 @@
 
     <!-- ========== ACTION WINDOW ========== -->
     <record id="action_stock_picking_asap" model="ir.actions.act_window">
-        <field name="name">Phiếu XK - Càng sớm càng tốt (Xe tải/ Xe bus)</field>
+        <field name="name">Phiếu XK - Càng sớm càng tốt</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_stock_picking_asap_list"/>
