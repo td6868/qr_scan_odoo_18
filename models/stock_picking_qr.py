@@ -3,6 +3,7 @@ import qrcode
 import base64
 from io import BytesIO
 from odoo.exceptions import ValidationError
+from markupsafe import Markup
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -46,6 +47,19 @@ class StockPicking(models.Model):
         help="Phương thức vận chuyển. Mặc định lấy từ đơn hàng nhưng có thể thay đổi."
     )
     
+    # Trường loại vận chuyển (bao cước)
+    type_shipping_cost = fields.Selection(
+        selection=[
+            ('1', 'Khách hàng trả phí'),
+            ('2', 'Bao cước toàn bộ'),
+            ('3', 'Bao cước một phần'),
+        ],
+        string='Loại vận chuyển',
+        help='Thông tin bao cước để giao vận biết ai trả phí vận chuyển',
+        copy=False,
+        tracking=True,
+    )
+    
     # Trường ghi chú giao hàng
     delivery_note = fields.Text(
         string="Ghi chú giao hàng",
@@ -59,6 +73,51 @@ class StockPicking(models.Model):
         tracking=True,
         copy=False,
         help='Nhân viên kho được giao xử lý phiếu'
+    )
+    
+    # ========== Tracking việc Sale giao việc cho Thủ kho ==========
+    sale_assigned_date = fields.Datetime(
+        string='Thời gian sale giao việc',
+        tracking=True,
+        copy=False,
+        help='Thời gian sale giao việc cho thủ kho'
+    )
+    sale_assigned_user_id = fields.Many2one(
+        'res.users',
+        string='Sale giao việc',
+        tracking=True,
+        copy=False,
+        help='Nhân viên sale đã giao việc cho thủ kho'
+    )
+    
+    # ========== Tracking việc Thủ kho xác nhận nhận việc ==========
+    warehouse_acknowledged = fields.Boolean(
+        string='Thủ kho đã nhận việc',
+        default=False,
+        tracking=True,
+        copy=False,
+        help='Thủ kho đã xác nhận nhận việc từ sale'
+    )
+    warehouse_acknowledged_date = fields.Datetime(
+        string='Thời gian thủ kho nhận việc',
+        tracking=True,
+        copy=False,
+        help='Thời gian thủ kho xác nhận nhận việc'
+    )
+    wh_ack_user_id = fields.Many2one(
+        'res.users',
+        string='Thủ kho nhận việc',
+        tracking=True,
+        copy=False,
+        help='Nhân viên thủ kho đã xác nhận nhận việc'
+    )
+    
+    # Cảnh báo khi sale giao việc lại sau khi thủ kho đã nhận
+    needs_recheck = fields.Boolean(
+        string='⚠️ Cần xem lại',
+        compute='_compute_needs_recheck',
+        store=True,
+        help='Sale đã giao việc lại sau khi thủ kho nhận việc. Cần kiểm tra thông tin cập nhật.'
     )
     
     # ========== Thông tin gửi xe ==========
@@ -178,6 +237,20 @@ class StockPicking(models.Model):
                 lambda h: h.scan_type == 'assigned_task'
             ).sorted('scan_date')[:1]  # Lấy assigned_task đầu tiên (cũ nhất)
             record.assigned_task_date = assigned_task_history.scan_date if assigned_task_history else False
+    
+    @api.depends('warehouse_acknowledged', 'sale_assigned_date', 'warehouse_acknowledged_date')
+    def _compute_needs_recheck(self):
+        """
+        Cảnh báo khi sale giao việc lại sau khi thủ kho đã nhận việc
+        Điều này có nghĩa là có thông tin mới cần thủ kho kiểm tra lại
+        """
+        for rec in self:
+            rec.needs_recheck = (
+                rec.warehouse_acknowledged and 
+                rec.sale_assigned_date and 
+                rec.warehouse_acknowledged_date and
+                rec.sale_assigned_date > rec.warehouse_acknowledged_date
+            )
 
     def assign_task(self):
         """Giao việc cho user - tạo bản ghi lịch sử quét"""
@@ -190,6 +263,45 @@ class StockPicking(models.Model):
             'scan_note': 'Đã giao việc'
         })
         return self.action_open_print_wizard()
+    
+    def action_acknowledge_task(self):
+        """Thủ kho xác nhận đã nhận việc từ sale"""
+        self.ensure_one()
+        
+        if not self.sale_assigned_date:
+            raise ValidationError("Phiếu này chưa được sale giao việc!")
+        
+        if self.warehouse_acknowledged:
+            raise ValidationError("Phiếu này đã được xác nhận nhận việc rồi!")
+        
+        # Update các field xác nhận nhận việc
+        self.write({
+            'warehouse_acknowledged': True,
+            'warehouse_acknowledged_date': fields.Datetime.now(),
+            'wh_ack_user_id': self.env.uid,
+        })
+        
+        # Post message to sale order chatter
+        if self.sale_id:
+            message = f"""<p><strong>✅ Thủ kho đã nhận việc</strong></p>
+            <ul>
+                <li><strong>Phiếu xuất kho:</strong> {self.name}</li>
+                <li><strong>Thủ kho:</strong> {self.env.user.name}</li>
+                <li><strong>Thời gian:</strong> {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</li>
+            </ul>
+            <p><em>Đơn hàng sẽ sớm được giao!</em></p>"""
+            
+            self.sale_id.message_post(
+                body=Markup(message),
+                subject='Thủ kho đã nhận việc',
+                message_type='notification',
+                subtype_xmlid='mail.mt_note',
+            )
+        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     def _get_stock_increase_moves(self):
         """Các move làm tăng tồn do nhập kho hoặc khách trả hàng."""

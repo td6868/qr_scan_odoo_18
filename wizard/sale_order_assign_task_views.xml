@@ -9,6 +9,7 @@
                     <field name="sale_order_id" invisible="1"/>
                     <field name="partner_id" readonly="1"/>
                     <field name="shipping_method_id"/>
+                    <field name="type_shipping_cost"/>
                     <field name="shipping_method_name" invisible="1"/>
                     <field name="is_bus_shipping" invisible="1"/>
                     <field name="shipping_history_count" invisible="1"/>
@@ -35,7 +36,17 @@
                 </group>
                 
                 <footer>
-                    <button string="Xác nhận giao việc" name="action_confirm" type="object" class="btn-primary"/>
+                    <field name="is_reassignment" invisible="1"/>
+                    <button string="Xác nhận giao việc" 
+                            name="action_confirm" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="is_reassignment"/>
+                    <button string="⚠️ Thay đổi thông tin" 
+                            name="action_confirm" 
+                            type="object" 
+                            class="btn-warning"
+                            invisible="not is_reassignment"/>
                     <button string="Hủy" special="cancel"/>
                 </footer>
             </form>

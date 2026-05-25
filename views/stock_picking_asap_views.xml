@@ -6,7 +6,9 @@
         <field name="model">stock.picking</field>
         <field name="priority" eval="999"/>
         <field name="arch" type="xml">
-            <list string="Phiếu xuất kho - Càng sớm càng tốt" decoration-warning="state == 'confirmed'" decoration-info="state == 'assigned'">
+            <list string="Phiếu xuất kho - Càng sớm càng tốt" 
+                  decoration-danger="state == 'confirmed' or needs_recheck" 
+                  decoration-info="state == 'assigned'">
                 <field name="sale_id" string="Đơn hàng"/>
                 <field name="state" string="Trạng thái đơn hàng" widget="badge"
                        decoration-info="state == 'assigned'"
@@ -18,6 +20,16 @@
                 <field name="recipient_info" string="Người nhận"/>
                 <field name="park_info" string="Thông tin gửi xe" optional="show"/>
                 <field name="shipping_method" string="Loại vận chuyển"/>
+                <field name="sale_assigned_date" string="Sale giao việc" optional="show"/>
+                <field name="warehouse_acknowledged" string="Thủ kho đã nhận" widget="boolean" optional="show"/>
+                <field name="needs_recheck" string="⚠️ Đã thay đổi" optional="show" 
+                       invisible="not needs_recheck"/>
+                <button name="action_acknowledge_task" 
+                        type="object" 
+                        string="Nhận việc" 
+                        class="btn-success"
+                        icon="fa-check"
+                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
             </list>
         </field>
     </record>
@@ -39,8 +51,12 @@
                 <filter string="Sẵn sàng" name="filter_assigned" domain="[('state', '=', 'assigned')]"/>
                 <filter string="Đã xác nhận" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
                 <separator/>
-                <filter string="Đã giao việc" name="filter_is_assigned" domain="[('is_assigned', '=', True)]"/>
-                <filter string="Chưa giao việc" name="filter_not_assigned" domain="[('is_assigned', '=', False)]"/>
+                <filter string="Sale đã giao việc" name="filter_sale_assigned" domain="[('sale_assigned_date', '!=', False)]"/>
+                <filter string="Sale chưa giao việc" name="filter_sale_not_assigned" domain="[('sale_assigned_date', '=', False)]"/>
+                <separator/>
+                <filter string="⚠️ Cần xem lại" name="filter_needs_recheck" domain="[('needs_recheck', '=', True)]"/>
+                <filter string="Thủ kho đã nhận việc" name="filter_warehouse_acknowledged" domain="[('warehouse_acknowledged', '=', True)]"/>
+                <filter string="Chờ thủ kho nhận việc" name="filter_waiting_warehouse_acknowledgment" domain="[('sale_assigned_date', '!=', False), ('warehouse_acknowledged', '=', False)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Đơn hàng" name="group_sale" context="{'group_by': 'sale_id'}"/>
@@ -61,8 +77,7 @@
         <field name="domain">[
             ('picking_type_code', '=', 'outgoing'),
             ('move_type', '=', 'direct'),
-            ('state', 'not in', ['done', 'cancel']),
-            ('shipping_method', '=', 'Xe tải/ Xe bus')
+            ('state', 'not in', ['done', 'cancel'])
         ]</field>
         <field name="context">{
             'search_default_filter_assigned': 1,

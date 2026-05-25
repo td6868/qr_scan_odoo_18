@@ -140,12 +140,30 @@
                                         <strong><span t-esc="recv_name"/></strong>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td class="lbl-col">Số đt nhận</td>
+                                    <td class="val-col">
+                                        <strong><span t-esc="recv_phone"/></strong>
+                                    </td>
+                                </tr>
 
                                 <t t-if="park_info">
                                     <tr>
                                         <td class="lbl-col">Thông tin gửi xe</td>
                                         <td class="val-col" style="white-space: pre-line; font-weight: 700;">
                                             <t t-esc="park_info"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                
+                                <!-- Thông tin bao cước -->
+                                <t t-if="doc.type_shipping_cost">
+                                    <tr>
+                                        <td class="lbl-col">Cước vận chuyển</td>
+                                        <td class="val-col" style="font-weight: 700;">
+                                            <t t-if="doc.type_shipping_cost == '1'">Khách hàng trả phí</t>
+                                            <t t-elif="doc.type_shipping_cost == '2'">Bao cước toàn bộ</t>
+                                            <t t-elif="doc.type_shipping_cost == '3'">Bao cước một phần</t>
                                         </td>
                                     </tr>
                                 </t>

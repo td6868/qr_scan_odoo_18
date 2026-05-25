@@ -27,37 +27,37 @@ class ShippingHistoryPopoverContent extends Component {
 
         this.state.applyingId = item.id;
         try {
-            // Get full history data from server
-            const historyData = await this.orm.call(
+            // Get contact data from server (item.id is now contact_id, not history_id)
+            const contactData = await this.orm.call(
                 "customer.shipping.history",
                 "get_history_for_apply",
-                [[item.id]]
+                [item.id]  // Pass contact_id
             );
 
-            if (historyData) {
+            if (contactData) {
                 // Update wizard fields directly on client-side (no server write needed)
                 const updates = {};
-                if (historyData.park_info) {
-                    updates.park_info = historyData.park_info;
+                if (contactData.park_info) {
+                    updates.park_info = contactData.park_info;
                 }
-                if (historyData.recipient_name) {
-                    updates.recipient_name = historyData.recipient_name;
+                if (contactData.recipient_name) {
+                    updates.recipient_name = contactData.recipient_name;
                 }
-                if (historyData.recipient_phone) {
-                    updates.recipient_phone = historyData.recipient_phone;
+                if (contactData.recipient_phone) {
+                    updates.recipient_phone = contactData.recipient_phone;
                 }
-                if (historyData.recipient_address) {
-                    updates.recipient_address = historyData.recipient_address;
+                if (contactData.recipient_address) {
+                    updates.recipient_address = contactData.recipient_address;
                 }
 
                 await this.props.record.update(updates);
             }
 
             this.props.close?.();
-            this.notification.add("Đã áp dụng thông tin từ lịch sử", { type: "success" });
+            this.notification.add("Đã áp dụng thông tin từ địa chỉ", { type: "success" });
         } catch (error) {
-            console.error("Error applying history:", error);
-            this.notification.add("Lỗi khi áp dụng lịch sử: " + error.message, { type: "danger" });
+            console.error("Error applying contact:", error);
+            this.notification.add("Lỗi khi áp dụng địa chỉ: " + error.message, { type: "danger" });
         } finally {
             this.state.applyingId = null;
         }

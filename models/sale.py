@@ -42,7 +42,8 @@ class SaleOrder(models.Model):
         string='Thông tin gửi xe',
         tracking=True,
         help='Thông tin gửi xe do sale tự nhập',
-        copy= False
+        copy= False,
+        readonly= True
     )
     
     # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========

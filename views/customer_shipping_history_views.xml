@@ -12,6 +12,7 @@
                 <field name="sale_order_id" string="Đơn hàng" optional="show"/>
                 <field name="picking_id" string="Phiếu xuất" optional="show"/>
                 <field name="shipping_method_id" string="Phương thức VC" optional="hide"/>
+                <field name="recipient_partner_id" string="Địa chỉ người nhận" optional="show"/>
                 <field name="recipient_name" string="Người nhận" optional="hide"/>
                 <field name="recipient_phone" string="SĐT người nhận" optional="hide"/>
                 <field name="created_by" string="Người tạo" optional="hide"/>
@@ -40,6 +41,9 @@
                         </group>
                     </group>
                     <group string="Thông tin người nhận">
+                        <field name="recipient_partner_id" 
+                               options="{'no_create': True, 'no_create_edit': True}"
+                               placeholder="Chọn địa chỉ có sẵn hoặc nhập thủ công bên dưới"/>
                         <field name="recipient_name"/>
                         <field name="recipient_phone"/>
                         <field name="recipient_address"/>

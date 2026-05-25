@@ -34,6 +34,17 @@ class SaleOrderAssignTask(models.TransientModel):
         related='shipping_method_id.name',
         readonly=True,
     )
+    
+    # Loại vận chuyển (bao cước)
+    type_shipping_cost = fields.Selection(
+        selection=[
+            ('1', 'Khách hàng trả phí'),
+            ('2', 'Bao cước toàn bộ'),
+            ('3', 'Bao cước một phần'),
+        ],
+        string='Loại vận chuyển',
+        help='Thông tin bao cước để giao vận biết ai trả phí vận chuyển'
+    )
 
     # Boolean để hiển thị section gửi xe
     is_bus_shipping = fields.Boolean(
@@ -70,6 +81,13 @@ class SaleOrderAssignTask(models.TransientModel):
         compute='_compute_shipping_history'
     )
     
+    # Check xem đã giao việc trước đó chưa
+    is_reassignment = fields.Boolean(
+        string='Đã giao việc trước đó',
+        compute='_compute_is_reassignment',
+        help='True nếu đã giao việc cho picking này rồi'
+    )
+    
     # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
     # Uncomment các dòng sau khi cài đặt module 'shipping_carrier'
     # và thêm 'shipping_carrier' vào depends trong __manifest__.py
@@ -104,6 +122,8 @@ class SaleOrderAssignTask(models.TransientModel):
             self.shipping_method_id = self.sale_order_id.shipping_method
         if self.sale_order_id and self.sale_order_id.park_info:
             self.park_info = self.sale_order_id.park_info
+        if self.sale_order_id and self.sale_order_id.type_shipping_cost:
+            self.type_shipping_cost = self.sale_order_id.type_shipping_cost
 
     @api.depends('shipping_method_name')
     def _compute_is_bus_shipping(self):
@@ -124,6 +144,19 @@ class SaleOrderAssignTask(models.TransientModel):
             else:
                 rec.shipping_history_ids = False
                 rec.shipping_history_count = 0
+    
+    @api.depends('sale_order_id')
+    def _compute_is_reassignment(self):
+        """Check xem đã giao việc cho picking này trước đó chưa"""
+        for rec in self:
+            if rec.sale_order_id:
+                # Kiểm tra xem có picking nào đã được giao việc chưa
+                pickings = rec.sale_order_id.picking_ids.filtered(
+                    lambda p: p.state not in ('done', 'cancel') and p.sale_assigned_date
+                )
+                rec.is_reassignment = bool(pickings)
+            else:
+                rec.is_reassignment = False
 
     def action_view_shipping_history(self):
         """Open shipping history for this customer"""
@@ -168,6 +201,8 @@ class SaleOrderAssignTask(models.TransientModel):
                 'move_type': self.picking_policy,
                 'shipping_method': self.shipping_method_id,
             }
+            if self.type_shipping_cost:
+                picking_vals['type_shipping_cost'] = self.type_shipping_cost
             if self.wh_user_id:
                 picking_vals['wh_user_id'] = self.wh_user_id.id
             if self.is_bus_shipping:
@@ -198,14 +233,13 @@ class SaleOrderAssignTask(models.TransientModel):
         if self.is_bus_shipping and (self.park_info or self.recipient_name or self.recipient_phone or self.recipient_address):
             self._save_shipping_history(pickings)
 
-        # 4. Tạo bản ghi giao việc (assigned_task) trên từng picking
-        for picking in pickings:
-            self.env['stock.picking.scan.history'].create({
-                'picking_id': picking.id,
-                'scan_type': 'assigned_task',
-                'scan_user_id': self.env.uid,
-                'scan_date': fields.Datetime.now(),
-                'scan_note': f'Giao việc từ SO - Chính sách: {dict(self._fields["picking_policy"].selection).get(self.picking_policy, "")}'
+        # 4. Cập nhật thông tin giao việc từ sale cho thủ kho
+        if pickings:
+            pickings.write({
+                'sale_assigned_date': fields.Datetime.now(),
+                'sale_assigned_user_id': self.env.uid,
+                # KHÔNG reset warehouse_acknowledged để thủ kho không phải nhận việc lại
+                # Chỉ update sale_assigned_date để trigger needs_recheck = True
             })
 
         # 5. Post message to chatter
