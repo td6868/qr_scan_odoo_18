@@ -298,10 +298,7 @@ class StockPicking(models.Model):
                 subtype_xmlid='mail.mt_note',
             )
         
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
+        return True
 
     def _get_stock_increase_moves(self):
         """Các move làm tăng tồn do nhập kho hoặc khách trả hàng."""

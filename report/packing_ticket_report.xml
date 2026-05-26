@@ -150,7 +150,7 @@
                                 <t t-if="park_info">
                                     <tr>
                                         <td class="lbl-col">Thông tin gửi xe</td>
-                                        <td class="val-col" style="white-space: pre-line; font-weight: 700;">
+                                        <td class="val-col">
                                             <t t-esc="park_info"/>
                                         </td>
                                     </tr>

@@ -115,6 +115,12 @@ class SaleOrderAssignTask(models.TransientModel):
     #     else:
     #         self.shipping_route_id = False
 
+    @api.constrains("park_info")
+    def _check_note_length(self):
+        for rec in self:
+            if rec.park_info and len(rec.park_info) > 200:
+                raise ValidationError("Tối đa 200 ký tự.")
+
     @api.onchange('sale_order_id')
     def _onchange_sale_order_id(self):
         """Auto-fill shipping method from sale order"""

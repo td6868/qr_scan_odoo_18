@@ -91,6 +91,7 @@ Long description of module's purpose
             'qr_scan_odoo_18/static/src/js/components/confirmation_dialog.js',
             'qr_scan_odoo_18/static/src/js/components/incoming_popover.js',
             'qr_scan_odoo_18/static/src/js/shipping_history_popover.js',
+            'qr_scan_odoo_18/static/src/js/text_limit.js',
             
             # Core QR functionality
             'qr_scan_odoo_18/static/src/js/core/qr_scanner.js',
