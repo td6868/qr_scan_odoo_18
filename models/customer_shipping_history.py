@@ -299,6 +299,47 @@ class CustomerShippingHistory(models.Model):
         return result
 
     @api.model
+    def get_available_delivery_addresses(self, partner_id):
+        """Get available child contacts/delivery addresses of the commercial customer."""
+        if not partner_id:
+            return []
+
+        partner = self.env['res.partner'].browse(partner_id)
+        if not partner.exists():
+            return []
+
+        root_partner = partner.commercial_partner_id or partner
+        contacts = self.env['res.partner'].search([
+            ('parent_id', '=', root_partner.id),
+            ('type', 'in', ['delivery', 'contact', 'other']),
+        ], order='type desc, name asc')
+
+        result = []
+        for contact in contacts:
+            address_parts = []
+            if contact.street:
+                address_parts.append(contact.street)
+            if contact.street2:
+                address_parts.append(contact.street2)
+            if contact.city:
+                address_parts.append(contact.city)
+            if contact.state_id:
+                address_parts.append(contact.state_id.name)
+            if contact.country_id:
+                address_parts.append(contact.country_id.name)
+
+            result.append({
+                'id': contact.id,
+                'name': contact.name or '',
+                'phone': contact.mobile or contact.phone or '',
+                'address': ', '.join(address_parts) if address_parts else '',
+                'type': contact.type or '',
+                'last_used': '',
+            })
+
+        return result
+
+    @api.model
     def get_history_for_apply(self, contact_id):
         """
         Get contact data for applying to wizard - called from JS popover

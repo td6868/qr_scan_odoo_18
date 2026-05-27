@@ -67,6 +67,7 @@
                 <field name="park_info" placeholder="Thông tin gửi xe..."/>
                 <field name="carrier_tracking_ref"/>
                 <field name="shipping_method" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="move_type" options="{'no_create': True, 'no_create_edit': True}" readonly="1"/>
                 <field name="is_assigned" invisible="1"/>
                 <field name="sale_assigned_date" invisible="1"/>
                 <field name="warehouse_acknowledged" invisible="1"/>

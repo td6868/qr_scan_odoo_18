@@ -3,31 +3,38 @@
 
     <t t-name="qr_scan_odoo_18.ShippingHistoryPopoverField">
         <div class="d-inline-flex align-items-center shipping-history-container" 
-             t-on-click.stop="onClick"
-             t-att-class="{ 'opacity-50': historyCount === 0 }">
+             t-on-click.stop="onClick">
             <button class="btn btn-link p-0 text-decoration-none"
-                    t-att-disabled="historyCount === 0"
                     type="button">
                 <i class="fa fa-history me-1"
                    t-att-class="{ 'text-primary': popover.isOpen, 'fa-spinner fa-spin': state.loading }"
-                   title="Lịch sử gửi xe"/>
+                   title="Lịch sử / địa chỉ giao hàng"/>
             </button>
         </div>
     </t>
 
     <t t-name="qr_scan_odoo_18.ShippingHistoryPopoverContent">
-        <div class="shipping-history-popover-content" style="min-width: 600px; max-width: 800px;">
+        <div class="shipping-history-popover-content" style="min-width: 680px; max-width: 900px;">
             <div class="p-2 border-bottom bg-light">
-                <h6 class="mb-0">
+                <h6 class="mb-2">
                     <i class="fa fa-map-marker me-2"/>
-                    Địa chỉ giao hàng đã dùng
+                    Địa chỉ giao hàng
                 </h6>
+                <div class="btn-group btn-group-sm" role="group">
+                    <t t-foreach="tabs" t-as="tab" t-key="tab.key">
+                        <button type="button"
+                                t-att-class="'btn ' + (state.activeTab === tab.key ? 'btn-primary' : 'btn-outline-primary')"
+                                t-on-click="() => this.setTab(tab.key)">
+                            <t t-esc="tab.label"/>
+                        </button>
+                    </t>
+                </div>
             </div>
 
-            <t t-if="!props.data.length">
+            <t t-if="!currentItems.length">
                 <div class="text-muted text-center py-4">
                     <i class="fa fa-info-circle me-1"/>
-                    Chưa có địa chỉ giao hàng
+                    <t t-esc="emptyMessage"/>
                 </div>
             </t>
             <t t-else="">
@@ -38,12 +45,15 @@
                                 <th class="small">Người nhận</th>
                                 <th class="small">Số điện thoại</th>
                                 <th class="small">Địa chỉ</th>
-                                <th class="small text-center">Lần cuối</th>
+                                <th class="small text-center">
+                                    <t t-if="state.activeTab === 'history'">Lần cuối</t>
+                                    <t t-else="">Loại</t>
+                                </th>
                                 <th class="small text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="props.data" t-as="item" t-key="item.id">
+                            <t t-foreach="currentItems" t-as="item" t-key="item.id">
                                 <tr>
                                     <td class="small">
                                         <i class="fa fa-user me-1 text-muted"/>
@@ -56,7 +66,7 @@
                                         </t>
                                         <t t-else="">—</t>
                                     </td>
-                                    <td class="small" style="max-width: 250px;">
+                                    <td class="small" style="max-width: 320px;">
                                         <t t-if="item.address">
                                             <i class="fa fa-map-marker me-1 text-muted"/>
                                             <t t-esc="item.address"/>
@@ -64,7 +74,14 @@
                                         <t t-else="">—</t>
                                     </td>
                                     <td class="small text-nowrap text-center">
-                                        <t t-esc="item.last_used || '—'"/>
+                                        <t t-if="state.activeTab === 'history'">
+                                            <t t-esc="item.last_used || '—'"/>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="badge text-bg-light">
+                                                <t t-esc="item.type || 'contact'"/>
+                                            </span>
+                                        </t>
                                     </td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-primary"

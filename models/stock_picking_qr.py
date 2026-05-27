@@ -255,6 +255,8 @@ class StockPicking(models.Model):
     def assign_task(self):
         """Giao việc cho user - tạo bản ghi lịch sử quét"""
         self.ensure_one()
+        if self.state in ('done', 'cancel'):
+            raise ValidationError("Không thể giao việc/giao việc lại cho phiếu xuất kho đã hoàn tất hoặc đã hủy.")
         self.env['stock.picking.scan.history'].create({
             'picking_id': self.id,
             'scan_type': 'assigned_task',

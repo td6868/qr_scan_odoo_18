@@ -1,5 +1,6 @@
 from collections import defaultdict
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from odoo.fields import Datetime
 
 class SaleOrder(models.Model):
@@ -27,6 +28,11 @@ class SaleOrder(models.Model):
     def action_task(self):
         """Mở wizard giao việc - thay đổi chính sách giao hàng"""
         self.ensure_one()
+        pickings = self.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
+        if not pickings:
+            raise ValidationError(
+                "Không thể giao việc/giao việc lại vì đơn hàng không còn phiếu xuất kho ở trạng thái có thể xử lý."
+            )
         return {
             'name': 'Giao việc',
             'type': 'ir.actions.act_window',

@@ -63,6 +63,36 @@ class SaleOrderAssignTask(models.TransientModel):
     recipient_name = fields.Char('Tên người nhận')
     recipient_address = fields.Text('Địa chỉ người nhận')
 
+    def _prepare_recipient_values_from_sale(self, sale_order):
+        """Lấy sẵn thông tin người nhận từ địa chỉ giao hàng của Sale Order."""
+        partner = sale_order.partner_shipping_id if sale_order else False
+        if not partner:
+            return {}
+
+        address_parts = [
+            partner.street or '',
+            partner.street2 or '',
+            partner.city or '',
+            partner.state_id.name if partner.state_id else '',
+            partner.country_id.name if partner.country_id else '',
+        ]
+
+        return {
+            'recipient_name': partner.name or '',
+            'recipient_phone': partner.mobile or partner.phone or '',
+            'recipient_address': ', '.join([part for part in address_parts if part]),
+        }
+
+    @api.model
+    def default_get(self, fields_list):
+        """Prefill người nhận khi wizard được mở từ sale.order."""
+        res = super().default_get(fields_list)
+        sale_order_id = res.get('sale_order_id') or self.env.context.get('default_sale_order_id')
+        if sale_order_id:
+            sale_order = self.env['sale.order'].browse(sale_order_id)
+            res.update(self._prepare_recipient_values_from_sale(sale_order))
+        return res
+
     # ========== Nhân viên kho phụ trách ==========
     wh_user_id = fields.Many2one(
         'res.users',
@@ -123,13 +153,18 @@ class SaleOrderAssignTask(models.TransientModel):
 
     @api.onchange('sale_order_id')
     def _onchange_sale_order_id(self):
-        """Auto-fill shipping method from sale order"""
+        """Auto-fill shipping method and recipient info from sale order"""
         if self.sale_order_id and self.sale_order_id.shipping_method:
             self.shipping_method_id = self.sale_order_id.shipping_method
         if self.sale_order_id and self.sale_order_id.park_info:
             self.park_info = self.sale_order_id.park_info
         if self.sale_order_id and self.sale_order_id.type_shipping_cost:
             self.type_shipping_cost = self.sale_order_id.type_shipping_cost
+        if self.sale_order_id:
+            recipient_vals = self._prepare_recipient_values_from_sale(self.sale_order_id)
+            self.recipient_name = recipient_vals.get('recipient_name')
+            self.recipient_phone = recipient_vals.get('recipient_phone')
+            self.recipient_address = recipient_vals.get('recipient_address')
 
     @api.depends('shipping_method_name')
     def _compute_is_bus_shipping(self):
@@ -181,9 +216,30 @@ class SaleOrderAssignTask(models.TransientModel):
         """Xác nhận giao việc - cập nhật picking_policy và thông tin gửi xe"""
         self.ensure_one()
         so = self.sale_order_id
+        pickings = so.picking_ids.filtered(
+            lambda p: p.state not in ('done', 'cancel')
+        )
+        if not pickings:
+            raise ValidationError(
+                "Không thể giao việc/giao việc lại vì đơn hàng không còn phiếu xuất kho ở trạng thái có thể xử lý."
+            )
 
         if not self.picking_policy:
             raise ValidationError("Vui lòng chọn chính sách giao hàng!")
+
+        shipping_partner = False
+        if self.recipient_name or self.recipient_phone or self.recipient_address:
+            shipping_partner = self.env['customer.shipping.history']._find_or_create_recipient_contact(
+                so.partner_id.id,
+                self.recipient_name,
+                self.recipient_phone,
+                self.recipient_address,
+            )
+        if not shipping_partner:
+            shipping_partner = so.partner_shipping_id
+
+        if shipping_partner and so.partner_shipping_id != shipping_partner:
+            so.partner_shipping_id = shipping_partner.id
 
         # 1. Cập nhật picking_policy trên sale order
         so.picking_policy = self.picking_policy
@@ -199,14 +255,13 @@ class SaleOrderAssignTask(models.TransientModel):
             #     so.shipping_route_id = self.shipping_route_id
 
         # 2. Cập nhật move_type trên các picking chưa hoàn thành
-        pickings = so.picking_ids.filtered(
-            lambda p: p.state not in ('done', 'cancel')
-        )
         if pickings:
             picking_vals = {
                 'move_type': self.picking_policy,
                 'shipping_method': self.shipping_method_id,
             }
+            if shipping_partner:
+                picking_vals['partner_id'] = shipping_partner.id
             if self.type_shipping_cost:
                 picking_vals['type_shipping_cost'] = self.type_shipping_cost
             if self.wh_user_id:

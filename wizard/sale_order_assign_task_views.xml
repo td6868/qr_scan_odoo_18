@@ -6,32 +6,37 @@
         <field name="arch" type="xml">
             <form string="Giao việc - Thay đổi chính sách giao hàng">
                 <group>
-                    <field name="sale_order_id" invisible="1"/>
-                    <field name="partner_id" readonly="1"/>
-                    <field name="shipping_method_id"/>
-                    <field name="type_shipping_cost"/>
-                    <field name="shipping_method_name" invisible="1"/>
-                    <field name="is_bus_shipping" invisible="1"/>
-                    <field name="shipping_history_count" invisible="1"/>
-                    <field name="picking_policy" required="1"/>
-                    <field name="wh_user_id" options="{'no_create': True, 'no_create_edit': True}"/>
-                </group>
-                
-                <group string="Thông tin gửi xe" invisible="not is_bus_shipping">
-                    <group string="Thông tin xe">
-                        <field name="park_info" placeholder="Nhập Thông tin gửi xe, tuyến xe, số điện thoại, điểm gửi..."/>
-                        <label for="shipping_history_count" string="Lịch sử gửi xe"/>
+                    <group>
+                        <field name="sale_order_id" invisible="1"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="shipping_method_id"/>
+                        <field name="type_shipping_cost"/>
+                        <field name="shipping_method_name" invisible="1"/>
+                        <field name="is_bus_shipping" invisible="1"/>
+                        <field name="shipping_history_count" invisible="1"/>
+                        <field name="picking_policy" required="1"/>
+                        <label for="shipping_history_count" string="Lịch sử"/>
                         <div>
                             <field name="shipping_history_count" 
                                    widget="shipping_history_popover"
                                    nolabel="1"/>
                         </div>
                     </group>
-                    
+
                     <group string="Thông tin người nhận">
                         <field name="recipient_name" placeholder="Tên người nhận"/>
                         <field name="recipient_phone" placeholder="SĐT người nhận"/>
                         <field name="recipient_address" placeholder="Địa chỉ giao hàng"/>
+                    </group>
+                </group>
+                
+                <group string="Thông tin gửi xe" invisible="not is_bus_shipping">
+                    <group>
+                        <field name="park_info" placeholder="Nhập Thông tin gửi xe, tuyến xe, số điện thoại, điểm gửi..."/>
+                    </group>
+                    
+                    <group>
+                        
                     </group>
                 </group>
                 

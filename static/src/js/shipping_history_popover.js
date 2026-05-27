@@ -9,7 +9,8 @@ import { standardFieldProps } from "@web/views/fields/standard_field_props";
 class ShippingHistoryPopoverContent extends Component {
     static template = "qr_scan_odoo_18.ShippingHistoryPopoverContent";
     static props = {
-        data: { type: Array },
+        historyData: { type: Array, optional: true },
+        addressData: { type: Array, optional: true },
         record: { type: Object, optional: true },
         close: { type: Function, optional: true },
     };
@@ -17,7 +18,27 @@ class ShippingHistoryPopoverContent extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
-        this.state = useState({ applyingId: null });
+        this.state = useState({ applyingId: null, activeTab: "history" });
+        this.tabs = [
+            { key: "history", label: "Lịch sử đã dùng" },
+            { key: "addresses", label: "Địa chỉ khả dụng" },
+        ];
+    }
+
+    setTab(tabKey) {
+        this.state.activeTab = tabKey;
+    }
+
+    get currentItems() {
+        return this.state.activeTab === "addresses"
+            ? (this.props.addressData || [])
+            : (this.props.historyData || []);
+    }
+
+    get emptyMessage() {
+        return this.state.activeTab === "addresses"
+            ? "Chưa có địa chỉ giao khả dụng"
+            : "Chưa có địa chỉ giao hàng đã dùng";
     }
 
     async applyHistory(item) {
@@ -27,15 +48,14 @@ class ShippingHistoryPopoverContent extends Component {
 
         this.state.applyingId = item.id;
         try {
-            // Get contact data from server (item.id is now contact_id, not history_id)
+            // Get contact data from server (item.id is contact_id)
             const contactData = await this.orm.call(
                 "customer.shipping.history",
                 "get_history_for_apply",
-                [item.id]  // Pass contact_id
+                [item.id]
             );
 
             if (contactData) {
-                // Update wizard fields directly on client-side (no server write needed)
                 const updates = {};
                 if (contactData.park_info) {
                     updates.park_info = contactData.park_info;
@@ -54,7 +74,7 @@ class ShippingHistoryPopoverContent extends Component {
             }
 
             this.props.close?.();
-            this.notification.add("Đã áp dụng thông tin từ địa chỉ", { type: "success" });
+            this.notification.add("Đã áp dụng địa chỉ giao hàng", { type: "success" });
         } catch (error) {
             console.error("Error applying contact:", error);
             this.notification.add("Lỗi khi áp dụng địa chỉ: " + error.message, { type: "danger" });
@@ -91,20 +111,12 @@ export class ShippingHistoryPopoverField extends Component {
             return;
         }
 
-        if (this.historyCount === 0) {
-            return;
-        }
-
-        // Get partner_id from wizard record data (no need for saved record ID)
         const partnerField = this.props.record?.data?.partner_id;
         const partnerId = Array.isArray(partnerField)
             ? partnerField[0]
             : (partnerField?.id || partnerField);
 
-        console.log("Partner ID:", partnerId);
-
         if (!partnerId || typeof partnerId !== "number") {
-            console.error("Invalid partner ID:", partnerId);
             this.notification.add("Không tìm thấy khách hàng.", { type: "warning" });
             return;
         }
@@ -114,23 +126,21 @@ export class ShippingHistoryPopoverField extends Component {
 
         this.state.loading = true;
         try {
-            // Call method on customer.shipping.history directly with partner_id
-            const data = await this.orm.call(
-                "customer.shipping.history",
-                "get_history_by_partner",
-                [partnerId]
-            );
-            console.log("Received data:", data);
+            const [historyData, addressData] = await Promise.all([
+                this.orm.call("customer.shipping.history", "get_history_by_partner", [partnerId]),
+                this.orm.call("customer.shipping.history", "get_available_delivery_addresses", [partnerId]),
+            ]);
 
             if (!anchorEl.isConnected) return;
 
             this.popover.open(anchorEl, {
-                data: Array.isArray(data) ? data : [],
+                historyData: Array.isArray(historyData) ? historyData : [],
+                addressData: Array.isArray(addressData) ? addressData : [],
                 record: this.props.record,
             });
         } catch (error) {
-            console.error("Error loading shipping history:", error);
-            this.notification.add("Lỗi khi tải lịch sử: " + error.message, { type: "danger" });
+            console.error("Error loading shipping data:", error);
+            this.notification.add("Lỗi khi tải địa chỉ giao hàng: " + error.message, { type: "danger" });
         } finally {
             this.state.loading = false;
         }

@@ -38,6 +38,7 @@
     <record id="view_stock_picking_asap_search" model="ir.ui.view">
         <field name="name">stock.picking.asap.search</field>
         <field name="model">stock.picking</field>
+        <field name="priority" eval="999"/>
         <field name="arch" type="xml">
             <search string="Tìm kiếm phiếu xuất kho">
                 <field name="name" string="Mã phiếu"/>
