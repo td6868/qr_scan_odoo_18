@@ -57,6 +57,10 @@ class SaleOrderAssignTask(models.TransientModel):
         string='Thông tin gửi xe',
         help='Nhập Thông tin gửi xe: tên, SĐT, địa chỉ...'
     )
+    delivery_note = fields.Text(
+        string='Ghi chú nội bộ',
+        help='Ghi chú nội bộ cho phiếu xuất kho, không hiển thị trên bản in'
+    )
 
     # ========== Thông tin người nhận ==========
     recipient_phone = fields.Char('SĐT người nhận')
@@ -165,6 +169,10 @@ class SaleOrderAssignTask(models.TransientModel):
         if self.sale_order_id and self.sale_order_id.type_shipping_cost:
             self.type_shipping_cost = self.sale_order_id.type_shipping_cost
         if self.sale_order_id:
+            picking = self.sale_order_id.picking_ids.filtered(
+                lambda p: p.state not in ('done', 'cancel')
+            )[:1]
+            self.delivery_note = picking.delivery_note or False
             recipient_vals = self._prepare_recipient_values_from_sale(self.sale_order_id)
             self.recipient_name = recipient_vals.get('recipient_name')
             self.recipient_phone = recipient_vals.get('recipient_phone')
@@ -288,6 +296,8 @@ class SaleOrderAssignTask(models.TransientModel):
                 picking_vals['type_shipping_cost'] = self.type_shipping_cost
             if self.wh_user_id:
                 picking_vals['wh_user_id'] = self.wh_user_id.id
+            if self.delivery_note:
+                picking_vals['delivery_note'] = self.delivery_note
             if self.is_bus_shipping:
                 picking_vals['park_info'] = self.park_info or False
                 

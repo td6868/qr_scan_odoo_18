@@ -174,6 +174,7 @@ class CustomerShippingHistory(models.Model):
         ])
         
         # Tìm contact khớp với thông tin
+        same_name_contact = False
         for contact in existing_contacts:
             contact_name = self._normalize_text(contact.name)
             contact_phone = self._normalize_text(contact.phone or contact.mobile)
@@ -192,7 +193,29 @@ class CustomerShippingHistory(models.Model):
             )
             
             if name_match and (phone_match or address_match):
+                vals_to_update = {}
+                if recipient_phone and contact.mobile != recipient_phone:
+                    vals_to_update['mobile'] = recipient_phone
+                if recipient_address and contact.street != recipient_address:
+                    vals_to_update['street'] = recipient_address
+                if vals_to_update:
+                    contact.write(vals_to_update)
                 return contact
+
+            # Nếu cùng tên nhưng SĐT/địa chỉ đã đổi, ưu tiên cập nhật contact cũ
+            # để sale.order.partner_shipping_id và stock.picking.partner_id không giữ thông tin cũ.
+            if name_match and not same_name_contact:
+                same_name_contact = contact
+
+        if same_name_contact:
+            vals_to_update = {}
+            if recipient_phone and same_name_contact.mobile != recipient_phone:
+                vals_to_update['mobile'] = recipient_phone
+            if recipient_address and same_name_contact.street != recipient_address:
+                vals_to_update['street'] = recipient_address
+            if vals_to_update:
+                same_name_contact.write(vals_to_update)
+            return same_name_contact
         
         # Không tìm thấy -> tạo mới child contact
         contact_vals = {

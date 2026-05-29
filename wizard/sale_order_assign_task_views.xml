@@ -28,6 +28,7 @@
                         <field name="recipient_name" placeholder="Tên người nhận"/>
                         <field name="recipient_phone" placeholder="SĐT người nhận"/>
                         <field name="recipient_address" placeholder="Địa chỉ giao hàng"/>
+                        <field name="delivery_note" placeholder="Ghi chú nội bộ cho kho/giao hàng, không hiển thị trên bản in"/>
                     </group>
                 </group>
                 
