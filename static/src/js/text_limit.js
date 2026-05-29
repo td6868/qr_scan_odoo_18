@@ -4,7 +4,7 @@ import { patch } from "@web/core/utils/patch";
 import { TextField } from "@web/views/fields/text/text_field";
 import { onMounted, onPatched } from "@odoo/owl";
 
-const PARK_INFO_MAX_LENGTH = 200; // Bạn đổi lại 200 khi test xong
+const PARK_INFO_MAX_LENGTH = 120; // Bạn đổi lại 200 khi test xong
 
 patch(TextField.prototype, {
     setup() {

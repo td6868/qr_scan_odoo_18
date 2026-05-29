@@ -97,6 +97,10 @@ class SaleOrderAssignTask(models.TransientModel):
     wh_user_id = fields.Many2one(
         'res.users',
         string='NV kho',
+        default=lambda self: self.env['res.users'].search(
+            [('login', 'ilike', 'ducht')],
+            limit=1
+        ).id,
         help='Nhân viên kho được sale chỉ định giao việc'
     )
 
@@ -148,8 +152,8 @@ class SaleOrderAssignTask(models.TransientModel):
     @api.constrains("park_info")
     def _check_note_length(self):
         for rec in self:
-            if rec.park_info and len(rec.park_info) > 200:
-                raise ValidationError("Tối đa 200 ký tự.")
+            if rec.park_info and len(rec.park_info) > 120:
+                raise ValidationError("Tối đa 120 ký tự.")
 
     @api.onchange('sale_order_id')
     def _onchange_sale_order_id(self):
@@ -219,6 +223,7 @@ class SaleOrderAssignTask(models.TransientModel):
         pickings = so.picking_ids.filtered(
             lambda p: p.state not in ('done', 'cancel')
         )
+        acknowledged_pickings = pickings.filtered('warehouse_acknowledged')
         if not pickings:
             raise ValidationError(
                 "Không thể giao việc/giao việc lại vì đơn hàng không còn phiếu xuất kho ở trạng thái có thể xử lý."
@@ -239,20 +244,37 @@ class SaleOrderAssignTask(models.TransientModel):
             shipping_partner = so.partner_shipping_id
 
         if shipping_partner and so.partner_shipping_id != shipping_partner:
-            so.partner_shipping_id = shipping_partner.id
+            # Tắt activity warning tự động của sale_stock để tránh gán sai cho người thao tác.
+            # Activity ngoại lệ đúng NV kho sẽ được tạo có điều kiện bên dưới,
+            # chỉ khi giao việc lại sau khi thủ kho đã nhận việc.
+            so.with_context(
+                update_delivery_shipping_partner=True,
+                tracking_disable=True,
+                mail_create_nosubscribe=True,
+                mail_notrack=True,
+            ).write({'partner_shipping_id': shipping_partner.id})
 
-        # 1. Cập nhật picking_policy trên sale order
-        so.picking_policy = self.picking_policy
-        so.shipping_method = self.shipping_method_id
+        sale_write_vals = {
+            'picking_policy': self.picking_policy,
+            'shipping_method': self.shipping_method_id.id if self.shipping_method_id else False,
+        }
         if self.is_bus_shipping:
-            so.park_info = self.park_info or False
+            sale_write_vals['park_info'] = self.park_info or False
             
             # ========== TÍCH HỢP MODULE NHÀ XE (PHASE 2) ==========
             # Uncomment để lưu thông tin nhà xe vào sale order
             # if self.shipping_carrier_company_id:
-            #     so.shipping_carrier_company_id = self.shipping_carrier_company_id
+            #     sale_write_vals['shipping_carrier_company_id'] = self.shipping_carrier_company_id.id
             # if self.shipping_route_id:
-            #     so.shipping_route_id = self.shipping_route_id
+            #     sale_write_vals['shipping_route_id'] = self.shipping_route_id.id
+
+        so.with_context(
+            tracking_disable=True,
+            mail_create_nosubscribe=True,
+            mail_notrack=True,
+        ).write(sale_write_vals)
+            
+
 
         # 2. Cập nhật move_type trên các picking chưa hoàn thành
         if pickings:
@@ -288,7 +310,11 @@ class SaleOrderAssignTask(models.TransientModel):
             if self.recipient_address:
                 picking_vals['recipient_address'] = self.recipient_address
 
-            pickings.write(picking_vals)
+            pickings.with_context(
+                tracking_disable=True,
+                mail_create_nosubscribe=True,
+                mail_notrack=True,
+            ).write(picking_vals)
 
         # 3. Nếu là xe tải/xe bus → lưu lịch sử gửi xe
         if self.is_bus_shipping and (self.park_info or self.recipient_name or self.recipient_phone or self.recipient_address):
@@ -296,12 +322,62 @@ class SaleOrderAssignTask(models.TransientModel):
 
         # 4. Cập nhật thông tin giao việc từ sale cho thủ kho
         if pickings:
-            pickings.write({
-                'sale_assigned_date': fields.Datetime.now(),
+            assign_time = fields.Datetime.now()
+            pickings.with_context(
+                tracking_disable=True,
+                mail_create_nosubscribe=True,
+                mail_notrack=True,
+            ).write({
+                'sale_assigned_date': assign_time,
                 'sale_assigned_user_id': self.env.uid,
                 # KHÔNG reset warehouse_acknowledged để thủ kho không phải nhận việc lại
                 # Chỉ update sale_assigned_date để trigger needs_recheck = True
             })
+
+            # Chỉ báo Ngoại lệ khi giao việc lại sau khi thủ kho đã nhận việc.
+            # Giao việc lần đầu thì không tạo warning để tránh chậm và spam activity.
+            warning_type = self.env.ref('mail.mail_activity_data_warning', raise_if_not_found=False)
+            if warning_type and acknowledged_pickings:
+                for picking in acknowledged_pickings:
+                    warehouse_user = self.wh_user_id or picking.wh_user_id
+                    if not warehouse_user:
+                        continue
+                    note = Markup(f"""
+                        <p><strong>⚠️ Đơn giao việc đã thay đổi sau khi thủ kho nhận việc</strong></p>
+                        <ul>
+                            <li><strong>Phiếu xuất kho:</strong> {picking.name}</li>
+                            <li><strong>Đơn bán:</strong> {so.name}</li>
+                            <li><strong>Người giao việc lại:</strong> {self.env.user.name}</li>
+                            <li><strong>Thời gian:</strong> {assign_time}</li>
+                        </ul>
+                        <p>Vui lòng kiểm tra lại thông tin giao hàng/người nhận/chính sách giao hàng trên phiếu.</p>
+                    """)
+                    existing_warning = self.env['mail.activity'].search([
+                        ('res_model', '=', 'stock.picking'),
+                        ('res_id', '=', picking.id),
+                        ('activity_type_id', '=', warning_type.id),
+                        ('summary', '=', 'Ngoại lệ giao việc lại'),
+                    ], limit=1)
+                    activity_vals = {
+                        'user_id': warehouse_user.id,
+                        'summary': 'Ngoại lệ giao việc lại',
+                        'note': note,
+                    }
+                    if existing_warning:
+                        existing_warning.with_context(
+                            mail_create_nosubscribe=True,
+                            mail_notify_force_send=False,
+                        ).write(activity_vals)
+                    else:
+                        picking.with_context(
+                            mail_create_nosubscribe=True,
+                            mail_notify_force_send=False,
+                        ).activity_schedule(
+                            'mail.mail_activity_data_warning',
+                            user_id=warehouse_user.id,
+                            summary='Ngoại lệ giao việc lại',
+                            note=note,
+                        )
 
         # 5. Post message to chatter
         policy_label = dict(self._fields['picking_policy'].selection).get(self.picking_policy, '')
@@ -326,10 +402,12 @@ class SaleOrderAssignTask(models.TransientModel):
         </ul>
         <p><em>Người giao việc: {self.env.user.name}</em></p>"""
 
-        so.message_post(
+        so.with_context(
+            mail_notify_force_send=False,
+            mail_create_nosubscribe=True,
+        ).message_post(
             body=Markup(message),
-            subject='Giao việc',
-            message_type='notification',
+            message_type='comment',
             subtype_xmlid='mail.mt_note',
         )
 

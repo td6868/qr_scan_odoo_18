@@ -15,6 +15,7 @@
                         <field name="is_bus_shipping" invisible="1"/>
                         <field name="shipping_history_count" invisible="1"/>
                         <field name="picking_policy" required="1"/>
+                        <field name="wh_user_id" invisible="1"/>
                         <label for="shipping_history_count" string="Lịch sử"/>
                         <div>
                             <field name="shipping_history_count" 
@@ -30,13 +31,9 @@
                     </group>
                 </group>
                 
-                <group string="Thông tin gửi xe" invisible="not is_bus_shipping">
+                <group string="Thông tin gửi xe (Tối đa 120 kí tự)" invisible="not is_bus_shipping">
                     <group>
                         <field name="park_info" placeholder="Nhập Thông tin gửi xe, tuyến xe, số điện thoại, điểm gửi..."/>
-                    </group>
-                    
-                    <group>
-                        
                     </group>
                 </group>
                 

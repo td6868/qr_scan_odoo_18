@@ -49,7 +49,7 @@
                                 text-transform: uppercase;
                                 letter-spacing: 0.2px;
                                 line-height: 1.15;
-                                height: 56px;
+                                height: 40px;
                                 padding: 4px 6px !important;
                                 background-color: #fff;
                             }
@@ -63,9 +63,9 @@
 
                             .sender-cell {
                                 text-align: center;
-                                font-size: 18px !important;
+                                font-size: 25px !important;
                                 font-weight: 700;
-                                height: 54px;
+                                height: 40px;
                                 padding: 4px 7px !important;
                             }
 
@@ -154,7 +154,6 @@
                                         </t>
                                     </td>
                                     <td class="ticket-title">
-                                        PHIẾU GỬI HÀNG
                                         <div class="ticket-subtitle" t-if="doc.sale_id or doc.origin">
                                             ĐƠN HÀNG: <t t-esc="doc.sale_id.name or doc.origin"/>
                                         </div>
@@ -168,9 +167,6 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2" class="receiver-head">THÔNG TIN NGƯỜI NHẬN</td>
-                                </tr>
-                                <tr>
                                     <td class="info-label-cell">ĐỊA CHỈ</td>
                                     <td class="info-value-cell">
                                         <span t-esc="recv_address"/>
@@ -181,7 +177,7 @@
                                     <td class="info-value-cell">
                                         <strong t-if="recv_name" t-esc="recv_name"/>
                                         <t t-if="recv_name and recv_phone"> - </t>
-                                        <strong t-if="recv_phone" t-esc="recv_phone"/>
+                                        <strong style="font-size : 25px" t-if="recv_phone" t-esc="recv_phone"/>
                                     </td>
                                 </tr>
                                 <tr>
