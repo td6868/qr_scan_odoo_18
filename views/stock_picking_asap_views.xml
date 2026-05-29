@@ -15,8 +15,8 @@
                        decoration-warning="state in ('confirmed', 'waiting')"
                        decoration-danger="state == 'draft'"/>
                 <field name="name" string="Mã phiếu"/>
-                <field name="carrier_tracking_ref" string="Mã số theo dõi (VTP)"/>
-                <field name="wh_user_id" string="NV kho" optional="show"/>
+                <field name="carrier_tracking_ref" string="Mã số theo dõi (VTP)" optional="hide"/>
+                <field name="wh_user_id" string="NV kho" optional="hide"/>
                 <field name="recipient_info" string="Người nhận"/>
                 <field name="park_info" string="Thông tin gửi xe" optional="show"/>
                 <field name="shipping_method" string="Loại vận chuyển"/>
@@ -58,6 +58,8 @@
                 <filter string="⚠️ Cần xem lại" name="filter_needs_recheck" domain="[('needs_recheck', '=', True)]"/>
                 <filter string="Thủ kho đã nhận việc" name="filter_warehouse_acknowledged" domain="[('warehouse_acknowledged', '=', True)]"/>
                 <filter string="Chờ thủ kho nhận việc" name="filter_waiting_warehouse_acknowledgment" domain="[('sale_assigned_date', '!=', False), ('warehouse_acknowledged', '=', False)]"/>
+                <separator/>
+                <filter string="Đơn mới" name="filter_backorder_false" domain="[('backorder_id', '=', False)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Đơn hàng" name="group_sale" context="{'group_by': 'sale_id'}"/>
