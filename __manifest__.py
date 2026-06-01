@@ -85,12 +85,14 @@ Long description of module's purpose
             'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
             'qr_scan_odoo_18/static/src/xml/incoming_popover.xml',
             'qr_scan_odoo_18/static/src/xml/shipping_history_popover.xml',
+            'qr_scan_odoo_18/static/src/xml/delivery_note_popover.xml',
 
             
             # Components
             'qr_scan_odoo_18/static/src/js/components/confirmation_dialog.js',
             'qr_scan_odoo_18/static/src/js/components/incoming_popover.js',
             'qr_scan_odoo_18/static/src/js/shipping_history_popover.js',
+            'qr_scan_odoo_18/static/src/js/delivery_note_popover.js',
             'qr_scan_odoo_18/static/src/js/text_limit.js',
             
             # Core QR functionality

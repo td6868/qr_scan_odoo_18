@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="qr_scan_odoo_18.DeliveryNotePopoverField">
+        <div class="d-inline-flex align-items-center delivery-note-popover-trigger"
+             t-on-click.stop="onClick">
+            <button class="btn btn-link p-0 text-decoration-none"
+                    type="button"
+                    t-att-title="hasNote ? 'Xem ghi chú giao hàng' : 'Không có ghi chú giao hàng'">
+                <i t-att-class="'fa fa-sticky-note-o ' + (popover.isOpen ? 'text-primary' : (hasNote ? 'text-warning' : 'text-muted'))"/>
+            </button>
+        </div>
+    </t>
+
+    <t t-name="qr_scan_odoo_18.DeliveryNotePopoverContent">
+        <div class="delivery-note-popover-content p-3" style="min-width: 320px; max-width: 520px;">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+                <h6 class="mb-0">
+                    <i class="fa fa-sticky-note-o me-2 text-warning"/>
+                    Ghi chú giao hàng
+                </h6>
+                <span t-if="props.pickingName" class="badge text-bg-light">
+                    <t t-esc="props.pickingName"/>
+                </span>
+            </div>
+
+            <t t-if="noteLines.length">
+                <div class="small text-break" style="white-space: normal; line-height: 1.45;">
+                    <t t-foreach="noteLines" t-as="line" t-key="line_index">
+                        <p class="mb-1">
+                            <t t-esc="line"/>
+                        </p>
+                    </t>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="text-muted text-center py-3">
+                    <i class="fa fa-info-circle me-1"/>
+                    Chưa có ghi chú giao hàng
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

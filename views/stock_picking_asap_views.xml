@@ -18,6 +18,7 @@
                 <field name="carrier_tracking_ref" string="Mã số theo dõi (VTP)" optional="hide"/>
                 <field name="wh_user_id" string="NV kho" optional="hide"/>
                 <field name="recipient_info" string="Người nhận"/>
+                <field name="delivery_note" string="Ghi chú nội bộ" widget="delivery_note_popover" optional="show"/>
                 <field name="park_info" string="Thông tin gửi xe" optional="show"/>
                 <field name="shipping_method" string="Loại vận chuyển"/>
                 <field name="sale_assigned_date" string="Sale giao việc" optional="show"/>
