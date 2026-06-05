@@ -55,7 +55,7 @@
                             }
 
                             .ticket-subtitle {
-                                font-size: 17px;
+                                font-size: 20px;
                                 font-weight: 400;
                                 margin-top: 2px;
                                 text-transform: uppercase;
@@ -88,7 +88,7 @@
 
                             .info-value-cell {
                                 width: 75%;
-                                font-size: 18px !important;
+                                font-size: 25px !important;
                                 font-weight: 400;
                                 vertical-align: top !important;
                                 padding: 6px 7px !important;
@@ -155,7 +155,9 @@
                                     </td>
                                     <td class="ticket-title">
                                         <div class="ticket-subtitle" t-if="doc.sale_id or doc.origin">
-                                            ĐƠN HÀNG: <t t-esc="doc.sale_id.name or doc.origin"/>
+                                            <span t-esc="doc.sale_id.name or doc.origin"/>
+                                            <span> - </span>
+                                            <span t-esc="shipping_cost_label"/>
                                         </div>
                                     </td>
                                 </tr>
@@ -177,19 +179,13 @@
                                     <td class="info-value-cell">
                                         <strong t-if="recv_name" t-esc="recv_name"/>
                                         <t t-if="recv_name and recv_phone"> - </t>
-                                        <strong style="font-size : 25px" t-if="recv_phone" t-esc="recv_phone"/>
+                                        <strong t-if="recv_phone" t-esc="recv_phone"/>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="info-label-cell">THÔNG TIN GỬI XE</td>
                                     <td class="info-value-cell">
-                                        <span t-esc="park_info"/>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="info-label-cell">CƯỚC VẬN CHUYỂN</td>
-                                    <td class="info-value-cell">
-                                        <strong t-esc="shipping_cost_label"/>
+                                        <span style="font-size: 19px" t-esc="park_info"/>
                                     </td>
                                 </tr>
                             </table>
