@@ -303,5 +303,16 @@
         </t>
     </template>
 
+    <template id="report_stock_picking_khoakim_covatech">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="qr_scan_odoo_18.report_picking_customize_layout">
+                    <t t-set="no_group_lines" t-value="True"/>
+                    <t t-call="qr_scan_odoo_18.report_picking_customize_doc" t-lang="doc.partner_id.lang"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
 </odoo>
 

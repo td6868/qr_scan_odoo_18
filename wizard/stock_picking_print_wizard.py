@@ -31,7 +31,8 @@ class StockPickingPrintWizard(models.TransientModel):
             ('type_1', 'In phiếu'),
             ('type_2', 'In phiếu (Điền)'),
             ('type_3', 'In phiếu (Tên gốc)'),
-            ('type_4', 'PRIMETECH')
+            ('type_4', 'PRIMETECH'),
+            ('type_5', 'COVATECH')
         ]
 
     def action_print(self):

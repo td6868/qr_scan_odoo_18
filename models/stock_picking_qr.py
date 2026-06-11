@@ -514,6 +514,12 @@ class StockPicking(models.Model):
         picking_code = self.picking_type_id.code
         if picking_code == 'outgoing':
             return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_signature').report_action(self)
+
+    def action_print_covatech(self):
+        self.ensure_one()
+        picking_code = self.picking_type_id.code
+        if picking_code == 'outgoing':
+            return self.env.ref('qr_scan_odoo_18.action_report_stock_pick_customize_covatech').report_action(self)
     
     def action_open_print_wizard(self):
         self.ensure_one()
@@ -539,6 +545,7 @@ class StockPicking(models.Model):
             options.append(('type_2', 'In phiếu (Điền)'))
             options.append(('type_3', 'In phiếu (Tên gốc)'))
             options.append(('type_4', 'PRIMETECH'))
+            options.append(('type_5', 'COVATECH'))
         return options
 
     def _get_report_method_mapping(self):
@@ -547,7 +554,8 @@ class StockPicking(models.Model):
             'type_1': 'action_print_picking',
             'type_2': 'action_print_picking_2',
             'type_3': 'action_print_picking_origin_name',
-            'type_4': 'action_print_primetech'
+            'type_4': 'action_print_primetech',
+            'type_5': 'action_print_covatech'
             # Dễ dàng thêm các loại mới tại đây
         }
 
