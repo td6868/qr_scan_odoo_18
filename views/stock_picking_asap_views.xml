@@ -9,6 +9,18 @@
             <list string="Phiếu xuất kho - Càng sớm càng tốt" 
                   decoration-danger="state == 'confirmed' or needs_recheck" 
                   decoration-info="state == 'assigned'">
+                <button name="action_acknowledge_task" 
+                        type="object" 
+                        string="Nhận việc" 
+                        class="btn-success"
+                        icon="fa-check"
+                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
+                <button name="action_cancel_task"
+                        type="object"
+                        string="Hủy việc"
+                        class="btn-danger"
+                        icon="fa-times"
+                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
                 <field name="sale_id" string="Đơn hàng"/>
                 <field name="state" string="Trạng thái đơn hàng" widget="badge"
                        decoration-info="state == 'assigned'"
@@ -25,12 +37,6 @@
                 <field name="warehouse_acknowledged" string="Thủ kho đã nhận" widget="boolean" optional="show"/>
                 <field name="needs_recheck" string="⚠️ Đã thay đổi" optional="show" 
                        invisible="not needs_recheck"/>
-                <button name="action_acknowledge_task" 
-                        type="object" 
-                        string="Nhận việc" 
-                        class="btn-success"
-                        icon="fa-check"
-                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
             </list>
         </field>
     </record>

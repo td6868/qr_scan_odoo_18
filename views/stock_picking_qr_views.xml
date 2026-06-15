@@ -48,6 +48,13 @@
                         groups="stock.group_stock_user"
                         invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
                 
+                <button name="action_cancel_task"
+                        type="object"
+                        string="Hủy việc"
+                        class="btn-danger"
+                        icon="fa-times"
+                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
+                
                 <button name="action_print_packing_ticket"
                         string="Phiếu gửi xe"
                         type="object"
