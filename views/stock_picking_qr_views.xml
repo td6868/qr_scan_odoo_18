@@ -48,19 +48,19 @@
                         groups="stock.group_stock_user"
                         invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
                 
-                <button name="action_cancel_task"
-                        type="object"
-                        string="Hủy việc"
-                        class="btn-danger"
-                        icon="fa-times"
-                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
-                
                 <button name="action_print_packing_ticket"
                         string="Phiếu gửi xe"
                         type="object"
                         class="btn btn-primary"
                         groups="stock.group_stock_user"                        
                         data-hotkey="o"/>
+
+                <button name="action_cancel_task"
+                        type="object"
+                        string="Hủy việc"
+                        class="btn-danger"
+                        icon="fa-times"
+                        invisible="sale_assigned_date == False or warehouse_acknowledged == True"/>
             </xpath>
             
             <!-- Phân bổ các trường sang bên trái (sau Địa điểm nguồn) -->
@@ -84,6 +84,7 @@
             <xpath expr="//field[@name='origin']" position="after">
                 <field name="delivery_note" placeholder="Nhập ghi chú giao hàng..."/>
                 <field name="wh_user_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                <field name="cancel_reason" readonly="1" invisible="not cancel_reason"/>
                 <field name="sender_info" placeholder="Người gửi phiếu gửi xe..."/>
                 <field name="recipient_info" placeholder="Người nhận phiếu gửi xe..."/>
             </xpath>

@@ -75,6 +75,13 @@ class StockPicking(models.Model):
         help='Nhân viên kho được giao xử lý phiếu'
     )
     
+    cancel_reason = fields.Text(
+        string='Lý do từ chối',
+        tracking=True,
+        copy=False,
+        help='Lý do thủ kho từ chối nhận việc'
+    )
+    
     # ========== Tracking việc Sale giao việc cho Thủ kho ==========
     sale_assigned_date = fields.Datetime(
         string='Thời gian sale giao việc',
@@ -281,6 +288,7 @@ class StockPicking(models.Model):
             'warehouse_acknowledged': True,
             'warehouse_acknowledged_date': fields.Datetime.now(),
             'wh_ack_user_id': self.env.uid,
+            'cancel_reason': False,
         })
         
         # Post message to sale order chatter
@@ -303,7 +311,7 @@ class StockPicking(models.Model):
         return True
 
     def action_cancel_task(self):
-        """Thủ kho hủy việc giao việc"""
+        """Thủ kho hủy việc giao việc (mở wizard từ chối)"""
         self.ensure_one()
         
         if not self.sale_assigned_date:
@@ -312,34 +320,17 @@ class StockPicking(models.Model):
         if self.warehouse_acknowledged:
             raise ValidationError("Phiếu này đã được xác nhận nhận việc rồi!")
         
-        # Reset các trường giao việc và nhận việc để sale giao việc lại
-        self.write({
-            'sale_assigned_date': False,
-            'sale_assigned_user_id': False,
-            'wh_user_id': False,
-            'warehouse_acknowledged': False,
-            'warehouse_acknowledged_date': False,
-            'wh_ack_user_id': False,
-        })
-        
-        # Post message to sale order chatter
-        if self.sale_id:
-            message = f"""<p><strong>❌ Thủ kho không chấp nhận công việc</strong></p>
-            <ul>
-                <li><strong>Phiếu xuất kho:</strong> {self.name}</li>
-                <li><strong>Thủ kho:</strong> {self.env.user.name}</li>
-                <li><strong>Thời gian:</strong> {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</li>
-            </ul>
-            <p><em>Vui lòng kiểm tra lại đơn hàng!</em></p>"""   
-            
-            self.sale_id.message_post(
-                body=Markup(message),
-                subject='Thủ kho không chấp nhận công việc',
-                message_type='notification',
-                subtype_xmlid='mail.mt_note',
-            )
-        
-        return True
+        return {
+            'name': _('Lý do từ chối giao việc'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking.cancel.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_id': self.id,
+                'default_picking_id': self.id,
+            }
+        }
 
     def _get_stock_increase_moves(self):
         """Các move làm tăng tồn do nhập kho hoặc khách trả hàng."""

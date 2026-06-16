@@ -21,6 +21,7 @@ access_stock_location_scan_history_manager,stock.location.scan.history.manager,m
 access_dashboard_item_user,access.dashboard.item.user,model_dashboard_item,base.group_user,1,0,0,0
 access_dashboard_item_manager,access.dashboard.item.manager,model_dashboard_item,base.group_system,1,1,1,1
 access_stock_picking_print_wizard_user,stock.picking.print.wizard.user,model_stock_picking_print_wizard,stock.group_stock_user,1,1,1,1
+access_stock_picking_cancel_wizard_user,stock.picking.cancel.wizard.user,model_stock_picking_cancel_wizard,stock.group_stock_user,1,1,1,1
 access_customer_shipping_history_user,customer.shipping.history.user,model_customer_shipping_history,stock.group_stock_user,1,1,1,0
 access_customer_shipping_history_manager,customer.shipping.history.manager,model_customer_shipping_history,stock.group_stock_manager,1,1,1,1
 access_customer_shipping_history_sale_user,customer.shipping.history.sale.user,model_customer_shipping_history,sales_team.group_sale_salesman,1,0,0,0

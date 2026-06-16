@@ -55,6 +55,7 @@ Long description of module's purpose
         # 'views/stock_picking_qr_scanner.xml',
         'wizard/print_poc.xml',
         'wizard/stock_picking_print_wizard_views.xml',
+        'wizard/stock_picking_cancel_wizard_views.xml',
         'wizard/sale_order_assign_task_views.xml',
         
         'views/stock_picking_shipping_views.xml',

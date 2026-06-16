@@ -340,6 +340,7 @@ class SaleOrderAssignTask(models.TransientModel):
             ).write({
                 'sale_assigned_date': assign_time,
                 'sale_assigned_user_id': self.env.uid,
+                'cancel_reason': False,
                 # KHÔNG reset warehouse_acknowledged để thủ kho không phải nhận việc lại
                 # Chỉ update sale_assigned_date để trigger needs_recheck = True
             })
