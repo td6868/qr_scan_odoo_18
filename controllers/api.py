@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import http, SUPERUSER_ID
+from markupsafe import Markup
+from odoo import http, SUPERUSER_ID, fields, api
 from odoo.http import request
 import json
 import logging
@@ -128,22 +129,22 @@ class QRScanAPI(http.Controller):
                 }
             
             # RULE 4.2: Phiếu phải đã qua bước chuẩn bị (latest_scan_type = 'prepare')
-            # if picking.latest_scan_type != 'prepare':
-            #     current_status = dict(picking._fields['latest_scan_type'].selection).get(picking.latest_scan_type) if picking.latest_scan_type else 'Chưa quét'
-            #     return {
-            #         'status': 'error',
-            #         'message': f"❌ Không thể gửi xe phiếu {picking.name}\n\nLý do: Phiếu chưa được chuẩn bị!\nTrạng thái quét hiện tại: {current_status}\n\nVui lòng quét QR và chọn 'Chuẩn bị hàng' trước khi gửi xe.",
-            #         'error_code': 'NOT_PREPARED'
-            #     }
+            if picking.latest_scan_type != 'prepare':
+                current_status = dict(picking._fields['latest_scan_type'].selection).get(picking.latest_scan_type) if picking.latest_scan_type else 'Chưa quét'
+                return {
+                    'status': 'error',
+                    'message': f"❌ Không thể gửi xe phiếu {picking.name}\n\nLý do: Phiếu chưa được chuẩn bị!\nTrạng thái quét hiện tại: {current_status}\n\nVui lòng quét QR và chọn 'Chuẩn bị hàng' trước khi gửi xe.",
+                    'error_code': 'NOT_PREPARED'
+                }
             
             # RULE 4.3: Kiểm tra đã gửi xe chưa (COMMENTED: Cho phép load màn hình gửi xe để nhập chi phí)
-            # has_shipping_history = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
-            # if has_shipping_history:
-            #     return {
-            #         'status': 'error',
-            #         'message': f"⚠️ Phiếu {picking.name} đã được xác nhận gửi xe rồi!\n\nNgười xác nhận: {has_shipping_history[0].scan_user_id.name}\nThời gian: {has_shipping_history[0].scan_date}\n\nKhông thể xác nhận lại phiếu đã hoàn tất!",
-            #         'error_code': 'ALREADY_SHIPPED'
-            #     }
+            has_shipping_history = picking.scan_history_ids.filtered(lambda h: h.scan_type == 'shipping')
+            if has_shipping_history:
+                return {
+                    'status': 'error',
+                    'message': f"⚠️ Phiếu {picking.name} đã được xác nhận gửi xe rồi!\n\nNgười xác nhận: {has_shipping_history[0].scan_user_id.name}\nThời gian: {has_shipping_history[0].scan_date}\n\nKhông thể xác nhận lại phiếu đã hoàn tất!",
+                    'error_code': 'ALREADY_SHIPPED'
+                }
         
         # ========== END EARLY VALIDATION ==========
             
@@ -163,6 +164,14 @@ class QRScanAPI(http.Controller):
             if not recipient_name:
                 recipient_name = picking.partner_id.name or ''
 
+            recipient_address = picking.recipient_address
+            if not recipient_address:
+                recipient_address = picking.partner_id.contact_address or ''
+
+            recipient_phone = picking.recipient_phone
+            if not recipient_phone:
+                recipient_phone = picking.partner_id.phone or picking.partner_id.mobile or ''
+
             return {
                 'status': 'success',
                 'mode': 'shipping',
@@ -180,16 +189,13 @@ class QRScanAPI(http.Controller):
                     
                     # Thông tin người nhận
                     'recipient_info': recipient_name,
-                    'recipient_phone': picking.partner_id.phone or '',
-                    'recipient_address': picking.partner_id.contact_address if picking.partner_id else '',
+                    'recipient_phone': recipient_phone,
+                    'recipient_address': recipient_address,
                     
                     # Thông tin gửi xe
                     'park_info': picking.park_info or '',
                     
-                    # Trạng thái
-                    'is_prepared': picking.is_prepared,
-                    'is_shipped': getattr(picking, 'is_shipped', False),
-                    'is_sent_to_carrier': getattr(picking, 'is_sent_to_carrier', False),
+                    'ship_inf_state': picking.ship_inf_state,
                 }
             }
             
@@ -235,9 +241,7 @@ class QRScanAPI(http.Controller):
                 'state': picking.state,
                 'partner_name': picking.partner_id.name or 'N/A',
                 'partner_phone': picking.partner_id.phone or '',
-                'is_prepared': picking.is_prepared,
-                'is_shipped': getattr(picking, 'is_shipped', False),
-                'is_sent_to_carrier': getattr(picking, 'is_sent_to_carrier', False),
+                'ship_inf_state': picking.ship_inf_state,
                 'park_info': picking.park_info or '',
             },
             'move_lines': visible_move_lines
@@ -536,4 +540,374 @@ class QRScanAPI(http.Controller):
             _logger.error("Save Expense Error: %s", str(e), exc_info=True)
             return {'status': 'error', 'message': str(e)}
 
+    @http.route('/api/picking/my_received', type='json', auth='none', methods=['POST'], csrf=False)
+    def my_received_pickings(self, **params):
+        """Lấy danh sách phiếu trạng thái 'received' (Đã nhận) của user hiện tại"""
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+                
+            domain = [
+                ('picking_type_code', '=', 'outgoing'),
+                ('ship_inf_state', '=', 'received'),
+                ('shipping_confirmed_by', '=', int(user_id)),
+            ]
+            
+            # Sử dụng sudo() để duyệt qua các phiếu kho
+            pickings = request.env['stock.picking'].sudo().search(domain, order='write_date desc')
+            
+            data = []
+            for picking in pickings:
+                data.append({
+                    'id': picking.id,
+                    'name': picking.name,
+                    'origin': picking.origin or '',
+                    'state': picking.state,
+                    'scheduled_date': picking.scheduled_date.isoformat() if picking.scheduled_date else None,
+                    'customer': picking.partner_id.name or '',
+                    'shipping_method': picking.shipping_method.name if picking.shipping_method else '',
+                    'ship_inf_state': picking.ship_inf_state,
+                    'recipient_info': picking.recipient_info or '',
+                    'park_info': picking.park_info or '',
+                })
+                
+            return {
+                'status': 'success',
+                'data': data,
+            }
+        except Exception as e:
+            _logger.error("My Received API Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/picking/complete_delivery', type='json', auth='none', methods=['POST'], csrf=False)
+    def complete_delivery(self, **params):
+        """NV giao hàng upload ảnh minh chứng + xác nhận đã giao xong"""
+        picking_id = params.get('picking_id')
+        _logger.info(">>> API call: complete_delivery for ID: %s", picking_id)
+        
+        picking = self._get_picking(picking_id)
+        if not picking or not picking.exists():
+            return {'status': 'error', 'message': 'Phiếu không tồn tại'}
+            
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+                
+            images = params.get('images', [])
+            images_data = [{'data': img.get('data'), 'name': img.get('name'), 'description': 'Hoàn thành từ App'} for img in images]
+            
+            # Switch env sang user hiện tại để lưu chatter / actor chính xác
+            user = request.env['res.users'].sudo().browse(int(user_id))
+            picking_with_user = picking.with_env(request.env(user=user, su=False))
+            
+            picking_with_user.action_complete_delivery(
+                images_data=images_data,
+                note=params.get('scan_note', '')
+            )
+            
+            return {'status': 'success', 'message': 'Xác nhận hoàn thành giao nhận thành công!'}
+        except Exception as e:
+            _logger.error("Complete Delivery API Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/employees/available', type='json', auth='none', methods=['POST'], csrf=False)
+    def get_available_employees(self, **params):
+        """Lấy danh sách nhân viên có thể được giao công việc gửi xe"""
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+            
+            _logger.info("=== Getting Available Employees ===")
+            _logger.info("Current user_id: %s", user_id)
+            
+            # Tạo environment với SUPERUSER để tránh lỗi singleton
+            env_su = api.Environment(request.cr, SUPERUSER_ID, {})
+            employee_env = env_su['hr.employee']
+            
+            # Kiểm tra tổng số nhân viên active
+            total_employees = employee_env.search_count([('active', '=', True)])
+            _logger.info("Total active employees: %s", total_employees)
+            
+            # Kiểm tra nhân viên có user_id
+            employees_with_user = employee_env.search_count([
+                ('active', '=', True),
+                ('user_id', '!=', False)
+            ])
+            _logger.info("Employees with user_id: %s", employees_with_user)
+            
+            # Lấy danh sách nhân viên active (bỏ điều kiện user_id để dễ debug)
+            # Trong production nên giữ điều kiện user_id != False
+            employees = employee_env.search([
+                ('active', '=', True),
+                # ('user_id', '!=', False),  # Tạm comment để debug
+                # ('user_id', '!=', int(user_id)),  # Tạm comment để debug
+            ], order='name')
+            
+            _logger.info("Found %s employees for selection", len(employees))
+            
+            data = []
+            for emp in employees:
+                # Bỏ qua chính user hiện tại nếu có
+                if emp.user_id and emp.user_id.id == int(user_id):
+                    continue
+                    
+                emp_data = {
+                    'id': emp.id,
+                    'name': emp.name,
+                    'user_id': emp.user_id.id if emp.user_id else None,
+                    'department': emp.department_id.name if emp.department_id else '',
+                }
+                data.append(emp_data)
+                _logger.info("Employee: %s (ID: %s, User: %s)", emp.name, emp.id, emp.user_id.id if emp.user_id else 'No User')
+            
+            _logger.info("Returning %s employees to frontend", len(data))
+            
+            return {
+                'status': 'success',
+                'data': data,
+            }
+        except Exception as e:
+            _logger.error("Get Available Employees Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+
+
+    @http.route('/api/picking/reassign', type='json', auth='none', methods=['POST'], csrf=False)
+    def reassign_picking(self, **params):
+        """Chuyển phiếu giao vận cho người khác và gửi thông báo xác nhận
+        
+        Params:
+            picking_id: ID phiếu cần chuyển
+            new_employee_id: ID nhân viên mới
+        """
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+            
+            picking_id = params.get('picking_id')
+            new_employee_id = params.get('new_employee_id')
+            
+            if not picking_id or not new_employee_id:
+                return {'status': 'error', 'message': 'Thiếu thông tin phiếu hoặc nhân viên mới'}
+            
+            # Lấy picking
+            picking = self._get_picking(picking_id)
+            if not picking or not picking.exists():
+                return {'status': 'error', 'message': 'Phiếu không tồn tại'}
+            
+            # Kiểm tra trạng thái phiếu phải là 'received'
+            if picking.ship_inf_state != 'received':
+                return {
+                    'status': 'error',
+                    'message': f'Chỉ có thể chuyển phiếu đang ở trạng thái "Đã nhận". Trạng thái hiện tại: {picking.ship_inf_state}'
+                }
+            
+            # Tạo environment với SUPERUSER
+            env_su = api.Environment(request.cr, SUPERUSER_ID, {})
+            
+            # Lấy thông tin nhân viên mới
+            new_employee = env_su['hr.employee'].browse(int(new_employee_id))
+            if not new_employee.exists() or not new_employee.user_id:
+                return {'status': 'error', 'message': 'Nhân viên không tồn tại hoặc chưa có tài khoản người dùng'}
+            
+            # Lấy thông tin user hiện tại (người yêu cầu chuyển)
+            current_user = env_su['res.users'].browse(int(user_id))
+            current_employee = env_su['hr.employee'].search([
+                ('user_id', '=', int(user_id))
+            ], limit=1)
+            
+            order_info = f"{picking.origin}" if picking.origin else picking.name
+            
+            # Tạo notification cho nhân viên mới
+            notification_vals = {
+                'notification_type': 'reassign_request',
+                'title': f'Yêu cầu nhận công việc giao hàng',
+                'message': f'{current_employee.name if current_employee else current_user.name} yêu cầu bạn thay thế giao hàng cho đơn {order_info} (Phiếu: {picking.name})',
+                'recipient_user_id': new_employee.user_id.id,
+                'picking_id': picking.id,
+                'from_user_id': int(user_id),
+                'new_employee_id': new_employee.id,
+                'related_model': 'stock.picking',
+                'related_id': picking.id,
+                'is_read': False,
+                'response': 'pending',
+            }
+            
+            env_su['qr_scan.notification'].create(notification_vals)
+            
+            # Ghi log vào chatter của picking
+            picking_su = env_su['stock.picking'].browse(picking.id)
+            picking_su.message_post(
+                body=Markup(f"""
+                    <p><strong>🔄 Yêu cầu chuyển giao công việc</strong></p>
+                    <ul>
+                        <li><strong>Từ:</strong> {current_employee.name if current_employee else current_user.name}</li>
+                        <li><strong>Đến:</strong> {new_employee.name}</li>
+                        <li><strong>Thời gian:</strong> {fields.Datetime.now()}</li>
+                    </ul>
+                    <p><em>Đang chờ {new_employee.name} xác nhận...</em></p>
+                """),
+                subject=f'Yêu cầu chuyển giao: {picking.name}',
+                message_type='notification',
+            )
+            
+            return {
+                'status': 'success',
+                'message': f'Đã gửi yêu cầu chuyển công việc đến {new_employee.name}. Đang chờ xác nhận.',
+            }
+            
+        except Exception as e:
+            _logger.error("Reassign Picking Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+
+    @http.route('/api/notifications/list', type='json', auth='none', methods=['POST'], csrf=False)
+    def get_notifications(self, **params):
+        """Lấy danh sách thông báo của user hiện tại"""
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+            
+            # Lấy danh sách thông báo
+            env_su = api.Environment(request.cr, SUPERUSER_ID, {})
+            notifications = env_su['qr_scan.notification'].search([
+                ('recipient_user_id', '=', int(user_id))
+            ], order='create_date desc', limit=50)
+            
+            data = []
+            for notif in notifications:
+                notif_data = {
+                    'id': notif.id,
+                    'notification_type': notif.notification_type,
+                    'title': notif.title,
+                    'message': notif.message,
+                    'is_read': notif.is_read,
+                    'is_processed': notif.is_processed,
+                    'response': notif.response,
+                    'create_date': notif.create_date.isoformat() if notif.create_date else None,
+                    'response_date': notif.response_date.isoformat() if notif.response_date else None,
+                }
+                
+                # Thêm thông tin picking nếu có
+                if notif.picking_id:
+                    notif_data['picking_id'] = notif.picking_id.id
+                    notif_data['picking_name'] = notif.picking_id.name
+                    notif_data['order_name'] = notif.picking_id.origin or notif.picking_id.name
+                
+                # Thêm thông tin người gửi
+                if notif.from_user_id:
+                    notif_data['from_user_name'] = notif.from_user_id.name
+                
+                data.append(notif_data)
+            
+            return {
+                'status': 'success',
+                'data': data,
+            }
+        except Exception as e:
+            _logger.error("Get Notifications Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/notifications/count', type='json', auth='none', methods=['POST'], csrf=False)
+    def get_notifications_count(self, **params):
+        """Lấy số lượng thông báo chưa đọc"""
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+            
+            # Đếm thông báo chưa đọc
+            env_su = api.Environment(request.cr, SUPERUSER_ID, {})
+            unread_count = env_su['qr_scan.notification'].search_count([
+                ('recipient_user_id', '=', int(user_id)),
+                ('is_read', '=', False)
+            ])
+            
+            return {
+                'status': 'success',
+                'unread_count': unread_count,
+            }
+        except Exception as e:
+            _logger.error("Get Notifications Count Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
+
+    @http.route('/api/notifications/respond', type='json', auth='none', methods=['POST'], csrf=False)
+    def respond_notification(self, **params):
+        """Phản hồi thông báo (Accept/Decline reassignment request)"""
+        try:
+            # Lấy user từ session
+            user_id = request.session.uid if getattr(request.session, 'uid', False) else None
+            if not user_id:
+                return {
+                    'status': 'error',
+                    'message': 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+                    'error_code': 'SESSION_EXPIRED'
+                }
+            
+            notification_id = params.get('notification_id')
+            action = params.get('action')  # 'accept' or 'decline'
+            
+            if not notification_id or not action:
+                return {'status': 'error', 'message': 'Thiếu thông tin notification_id hoặc action'}
+            
+            if action not in ['accept', 'decline']:
+                return {'status': 'error', 'message': 'Action phải là "accept" hoặc "decline"'}
+            
+            # Lấy notification
+            env_su = api.Environment(request.cr, SUPERUSER_ID, {})
+            notification = env_su['qr_scan.notification'].browse(int(notification_id))
+            
+            if not notification.exists():
+                return {'status': 'error', 'message': 'Thông báo không tồn tại'}
+            
+            # Kiểm tra xem notification có thuộc về user hiện tại không
+            if notification.recipient_user_id.id != int(user_id):
+                return {'status': 'error', 'message': 'Bạn không có quyền xử lý thông báo này'}
+            
+            # Xử lý action
+            if action == 'accept':
+                result = notification.accept_reassignment()
+            else:  # decline
+                result = notification.decline_reassignment()
+            
+            return result
+            
+        except Exception as e:
+            _logger.error("Respond Notification Error: %s", str(e), exc_info=True)
+            return {'status': 'error', 'message': str(e)}
 

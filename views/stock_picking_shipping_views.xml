@@ -7,14 +7,17 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Thông tin gửi xe" name="shipping_carrier_info" 
-                      invisible="park_info == False and is_sent_to_carrier == False">
+                      invisible="park_info == False and ship_inf_state == 'none'">
                     <group>
                         <group string="Thông tin gửi xe">
                             <field name="park_info" readonly="1"/>
-                            <field name="is_sent_to_carrier" readonly="1"/>
+                            <field name="ship_inf_state" readonly="1" widget="badge" 
+                                   decoration-muted="ship_inf_state == 'none'" 
+                                   decoration-warning="ship_inf_state == 'not_received'" 
+                                   decoration-info="ship_inf_state == 'received'" 
+                                   decoration-success="ship_inf_state == 'completed'"/>
                         </group>
                         <group string="Thông tin gửi xe">
-                            <field name="actual_shipping_date" readonly="1"/>
                             <field name="shipping_confirmed_by" readonly="1"/>
                         </group>
                     </group>

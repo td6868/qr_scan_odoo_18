@@ -75,46 +75,20 @@ Long description of module's purpose
     
     'assets': {
         'web.assets_backend': [
-            'qr_scan_odoo_18/static/src/xml/stock_picking_qr_scanner.xml',
-            'qr_scan_odoo_18/static/src/xml/location_inventory_template.xml',
-            # 'qr_scan_odoo_18/static/src/js/stock_picking_scaner.js',
-            'qr_scan_odoo_18/static/src/css/stock_picking_qr_scanner.css',
-            'qr_scan_odoo_18/static/src/css/location_inventory.css',
             'qr_scan_odoo_18/static/src/css/dashboard_hub.css',
             'qr_scan_odoo_18/static/src/css/incoming_popover.css',
-            'qr_scan_odoo_18/static/lib/html5-qrcode/html5-qrcode.min.js',
-            'qr_scan_odoo_18/static/src/xml/confirmation_dialog.xml',
             'qr_scan_odoo_18/static/src/xml/incoming_popover.xml',
             'qr_scan_odoo_18/static/src/xml/shipping_history_popover.xml',
             'qr_scan_odoo_18/static/src/xml/delivery_note_popover.xml',
 
             
             # Components
-            'qr_scan_odoo_18/static/src/js/components/confirmation_dialog.js',
-            'qr_scan_odoo_18/static/src/js/components/incoming_popover.js',
             'qr_scan_odoo_18/static/src/js/shipping_history_popover.js',
             'qr_scan_odoo_18/static/src/js/delivery_note_popover.js',
             'qr_scan_odoo_18/static/src/js/text_limit.js',
             
             # Core QR functionality
-            'qr_scan_odoo_18/static/src/js/core/qr_scanner.js',
-            'qr_scan_odoo_18/static/src/js/core/qr_processor.js',
             'qr_scan_odoo_18/static/src/js/stock_picking_form_patch.js',
-            
-            # Utilities
-            'qr_scan_odoo_18/static/src/js/utils/camera_manager.js',
-            'qr_scan_odoo_18/static/src/js/utils/file_manager.js',
-            
-            # Handlers
-            'qr_scan_odoo_18/static/src/js/handlers/base_scan_handler.js',
-            'qr_scan_odoo_18/static/src/js/handlers/prepare_scan_handler.js',
-            'qr_scan_odoo_18/static/src/js/handlers/shipping_scan_handler.js',
-            'qr_scan_odoo_18/static/src/js/handlers/receive_scan_handler.js',
-            'qr_scan_odoo_18/static/src/js/handlers/checking_scan_handler.js',
-            'qr_scan_odoo_18/static/src/js/handlers/location_scan_handler.js',
-            
-            # Main component
-            'qr_scan_odoo_18/static/src/js/stock_picking_qr_scanner.js',
         ],
     },
     

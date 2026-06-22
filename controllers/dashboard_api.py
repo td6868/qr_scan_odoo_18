@@ -36,11 +36,12 @@ class StockPickingDashboardAPI(http.Controller):
     }
     
     SCAN_TYPE_LABELS_VI = {
+        'assigned_task': 'Đã giao việc',
         'prepare': 'Chuẩn bị hàng',
         'shipping': 'Vận chuyển hàng',
         'receive': 'Nhận hàng',
         'checking': 'Nhập kho',
-        'assigned_task': 'Đã giao việc',
+        'delivery_complete': 'Hoàn thành',
     }
     
     @http.route('/api/dashboard/stock_picking/list', type='json', auth='user', methods=['POST'], csrf=False, cors='*')
@@ -188,42 +189,118 @@ class StockPickingDashboardAPI(http.Controller):
     
     @http.route('/api/dashboard/stock_picking/prepared_deliveries', type='json', auth='user', methods=['POST'], csrf=False, cors='*')
     def get_prepared_deliveries(self, **kwargs):
-        """API lấy danh sách phiếu đã chuẩn bị (Xe tải/Xe bus)"""
+        """API lấy danh sách đơn gửi xe (Xe tải, Xe bus, Grab) - Nâng cấp hỗ trợ filter và pagination"""
         try:
-            # Domain: Phương thức vận chuyển chứa "Xe tải" hoặc "Xe bus" + scan_type = prepare
+            # Lấy parameters từ request
+            filters = kwargs.get('filters', {})
+            page = kwargs.get('page', 1)
+            limit = kwargs.get('limit', 50)
+            sort_order = kwargs.get('sort_order', 'desc')
+            
+            # Build domain - chỉ lấy đơn có phương thức vận chuyển là Xe tải, Xe bus hoặc Grab
             domain = [
                 ('picking_type_code', '=', 'outgoing'),
-                ('latest_scan_type', '=', 'prepare'),
-                '|',
+                '|', '|',
                 ('shipping_method.name', 'ilike', 'xe tải'),
                 ('shipping_method.name', 'ilike', 'xe bus'),
+                ('shipping_method.name', 'ilike', 'grab'),
             ]
             
-            Picking = request.env['stock.picking']
-            pickings = Picking.search(domain, order='scheduled_date desc')
+            # Filter by ship_inf_state (received hoặc not_received)
+            if filters.get('ship_inf_state'):
+                domain.append(('ship_inf_state', '=', filters['ship_inf_state']))
             
+            # Get pickings với pagination
+            Picking = request.env['stock.picking']
+            total_count = Picking.search_count(domain)
+            
+            # Sắp xếp
+            order_clause = 'scheduled_date DESC'
+            
+            pickings = Picking.search(
+                domain, 
+                limit=limit, 
+                offset=(page - 1) * limit, 
+                order=order_clause
+            )
+            
+            # Prefetch related fields để tránh N+1 query
+            pickings.mapped('sale_id.name')
+            pickings.mapped('sale_id.user_id.name')
+            pickings.mapped('partner_id.name')
+            pickings.mapped('partner_id.phone')
+            pickings.mapped('partner_id.mobile')
+            pickings.mapped('partner_id.street')
+            pickings.mapped('partner_id.street2')
+            pickings.mapped('partner_id.city')
+            pickings.mapped('shipping_method.name')
+            
+            # Prefetch các trường tùy chọn nếu có
+            if hasattr(Picking, 'recipient_name'):
+                pickings.mapped('recipient_name')
+            if hasattr(Picking, 'recipient_phone'):
+                pickings.mapped('recipient_phone')
+            if hasattr(Picking, 'recipient_address'):
+                pickings.mapped('recipient_address')
+            if hasattr(Picking, 'recipient_info'):
+                pickings.mapped('recipient_info')
+            if hasattr(Picking, 'park_info'):
+                pickings.mapped('park_info')
+            
+            # Prepare data
             data = []
             for picking in pickings:
-                # Get latest scan
-                latest_scan = picking.scan_history_ids.filtered(lambda s: s.scan_type == 'prepare').sorted('scan_date', reverse=True)[:1]
+                
+                # Chuyển đổi múi giờ từ UTC sang múi giờ người dùng
+                scheduled_date_local = fields.Datetime.context_timestamp(request.env.user, picking.scheduled_date) if picking.scheduled_date else None
+                assigned_date_local = fields.Datetime.context_timestamp(request.env.user, picking.assigned_task_date) if picking.assigned_task_date else None
+                
+                # Recipient info với fallback
+                rec_name = getattr(picking, 'recipient_name', '') or getattr(picking, 'recipient_info', '') or (picking.partner_id.name if picking.partner_id else '')
+                rec_phone = getattr(picking, 'recipient_phone', '') or (picking.partner_id.phone or picking.partner_id.mobile if picking.partner_id else '')
+                rec_address = getattr(picking, 'recipient_address', '')
+                if not rec_address and picking.partner_id:
+                    addr_parts = []
+                    if picking.partner_id.street:
+                        addr_parts.append(picking.partner_id.street)
+                    if picking.partner_id.street2:
+                        addr_parts.append(picking.partner_id.street2)
+                    if picking.partner_id.city:
+                        addr_parts.append(picking.partner_id.city)
+                    rec_address = ', '.join(addr_parts)
+                
+                # Vehicle / Shipping info
+                park_info = getattr(picking, 'park_info', '') or ''
+                
+                # Ship info state
+                ship_inf_state = picking.ship_inf_state if hasattr(picking, 'ship_inf_state') else ''
                 
                 data.append({
                     'id': picking.id,
                     'name': picking.name,
-                    'date': picking.scheduled_date.strftime('%Y-%m-%d %H:%M:%S') if picking.scheduled_date else '',
+                    'date': scheduled_date_local.strftime('%Y-%m-%d %H:%M:%S') if scheduled_date_local else '',
                     'sale_order': picking.sale_id.name if picking.sale_id else '',
                     'customer': picking.partner_id.name if picking.partner_id else '',
                     'salesperson': picking.sale_id.user_id.name if picking.sale_id and picking.sale_id.user_id else '',
                     'shipping_method': picking.shipping_method.name if picking.shipping_method else '',
-                    'scan_date': latest_scan.scan_date.strftime('%Y-%m-%d %H:%M:%S') if latest_scan and latest_scan.scan_date else '',
-                    'scan_user': latest_scan.scan_user_id.name if latest_scan and latest_scan.scan_user_id else '',
+                    'state': picking.state,
+                    'state_label': self.STATE_LABELS_VI.get(picking.state, picking.state),
+                    'assigned_task_date': assigned_date_local.strftime('%Y-%m-%d %H:%M:%S') if assigned_date_local else '',
                     'sale_id': picking.sale_id.id if picking.sale_id else False,
+                    'recipient_name': rec_name or '',
+                    'recipient_phone': rec_phone or '',
+                    'recipient_address': rec_address or '',
+                    'park_info': park_info or '',
+                    'ship_inf_state': ship_inf_state,
                 })
             
             return {
                 'status': 'success',
                 'data': data,
-                'total': len(data)
+                'total': total_count,
+                'page': page,
+                'limit': limit,
+                'total_pages': (total_count + limit - 1) // limit
             }
             
         except Exception as e:

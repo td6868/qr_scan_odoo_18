@@ -15,8 +15,13 @@ class StockPicking(models.Model):
     qr_code_data = fields.Char("QR Code Content")
     scan_history_ids = fields.One2many('stock.picking.scan.history', 'picking_id', string="Lịch sử quét QR")
     image_count = fields.Integer("Số lượng ảnh", related='scan_history_ids.image_count', readonly=True)
-    is_prepared = fields.Boolean("Đã chuẩn bị", default=False, copy=False)
-    is_shipped = fields.Boolean("Đã giao hàng", default=False, copy=False)
+    ship_inf_state = fields.Selection([
+        ('none', 'Không áp dụng'),
+        ('not_received', 'Chưa nhận'),
+        ('received', 'Đã nhận'),
+        ('completed', 'Hoàn thành'),
+    ], string='Trạng thái giao vận', default='none', copy=False, tracking=True,
+       help='Trạng thái theo dõi thông tin gửi xe/giao hàng')
     
     # Trường hiển thị trạng thái quét mới nhất
     latest_scan_type = fields.Selection([
@@ -25,6 +30,7 @@ class StockPicking(models.Model):
         ('receive', 'Nhận hàng'),
         ('checking', 'Nhập kho'),
         ('assigned_task', 'Đã giao việc'),
+        ('delivery_complete', 'Hoàn thành giao hàng'),
     ], string="Trạng thái quét mới nhất", compute='_compute_latest_scan_type', store=True)
 
     is_assigned = fields.Boolean("Đã giao việc", compute='_compute_latest_scan_type', store=True)
@@ -173,9 +179,40 @@ class StockPicking(models.Model):
     shipping_tracking_number = fields.Char('Mã vận đơn', tracking=True)
     shipping_qr_code_image = fields.Binary('QR Code phiếu gửi xe', attachment=True)
     shipping_qr_code_data = fields.Char('Nội dung QR phiếu gửi xe')
-    
-    # Trạng thái gửi xe
-    is_sent_to_carrier = fields.Boolean('Đã gửi xe', default=False, copy=False, tracking=True)
+
+    def _is_tracked_shipping_method(self):
+        """Kiểm tra xem phương thức vận chuyển có thuộc loại cần quét gửi xe (Xe tải/Xe bus, Grab) hay không.
+        Chỉ áp dụng cho phiếu xuất hàng (outgoing).
+        """
+        self.ensure_one()
+        if self.picking_type_code != 'outgoing':
+            return False
+        if not self.shipping_method:
+            return False
+        name = (self.shipping_method.name or '').lower()
+        return any(x in name for x in ['xe tải', 'xe bus', 'grab'])
+
+    def action_complete_delivery(self, images_data=None, note=''):
+        """Xác nhận đã giao hàng thành công (chuyển sang Hoàn thành và lưu ảnh)"""
+        self.ensure_one()
+        if self.ship_inf_state != 'received':
+            raise ValidationError("Chỉ có thể hoàn thành phiếu đang ở trạng thái 'Đã nhận'!")
+            
+        # Tạo bản ghi lịch sử quét với kiểu delivery_complete
+        scan_vals = {
+            'picking_id': self.id,
+            'scan_type': 'delivery_complete',
+            'scan_note': note,
+            'scan_user_id': self.env.user.id,
+        }
+        scan_history = self.env['stock.picking.scan.history'].sudo().create(scan_vals)
+        if images_data and hasattr(scan_history, 'save_images'):
+            scan_history.save_images(images_data)
+            
+        self.write({
+            'ship_inf_state': 'completed',
+        })
+        return scan_history
 
     sender_info = fields.Char(
         string='Người gửi (Phiếu gửi xe)',
@@ -437,29 +474,6 @@ class StockPicking(models.Model):
         
         return processor.process_scan(self, **kwargs)
 
-
-    def action_validate_qr_scan(self, scan_mode):
-        """Kiểm tra xem record có được phép quét ở mode này không bằng cách sử dụng backend logic"""
-        self.ensure_one()
-        try:
-            scan_type = self._map_scan_mode_to_type(scan_mode)
-            processor = self.env['universal.scan.processor'].get_processor('stock.picking', scan_type)
-            
-            # Gọi các hàm validate trong backend
-            processor._validate_record_state(self)
-            
-            # Đối với shipping, cần giả lập shipping_type để bypass check required nếu chỉ validate bước đầu
-            kwargs = {}
-            if scan_mode == 'shipping':
-                kwargs['shipping_type'] = 'validate_only'
-                
-            processor._validate_scan_specific(self, **kwargs)
-            return {'status': 'success'}
-        except ValidationError as e:
-            return {'status': 'error', 'message': e.args[0]}
-        except Exception as e:
-            return {'status': 'error', 'message': str(e)}
-
     @api.depends('scan_history_ids.move_line_confirmed_ids')
     def _compute_move_line_confirmed_ids(self):
         for record in self:
@@ -712,6 +726,7 @@ class StockPickingScanHistory(models.Model):
         ('receive', 'Nhận hàng'),
         ('checking', 'Nhập kho'),
         ('assigned_task', 'Đã giao việc'),
+        ('delivery_complete', 'Hoàn thành giao hàng'),
     ], string="Loại quét", required=True,)
     
     picking_id = fields.Many2one('stock.picking', string="Phiếu xuất/nhập kho", required=True, ondelete='cascade')

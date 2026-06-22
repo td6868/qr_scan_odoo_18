@@ -9,4 +9,5 @@ from . import sale
 from . import sale_order_confirm_inherit
 from . import product_template
 from . import customer_shipping_history
+from . import qr_scan_notification
 # from . import stock_location_inventory_processor

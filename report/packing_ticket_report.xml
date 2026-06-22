@@ -133,14 +133,11 @@
                             </t>
 
                             <t t-set="shipping_cost_label" t-value="''"/>
-                            <t t-if="doc.type_shipping_cost == '1'">
-                                <t t-set="shipping_cost_label" t-value="'Khách hàng trả phí'"/>
-                            </t>
-                            <t t-elif="doc.type_shipping_cost == '2'">
-                                <t t-set="shipping_cost_label" t-value="'Bao cước toàn bộ'"/>
+                            <t t-if="doc.type_shipping_cost == '2'">
+                                <t t-set="shipping_cost_label" t-value="'(Bao cước toàn bộ)'"/>
                             </t>
                             <t t-elif="doc.type_shipping_cost == '3'">
-                                <t t-set="shipping_cost_label" t-value="'Bao cước một phần'"/>
+                                <t t-set="shipping_cost_label" t-value="'(Bao cước một phần)'"/>
                             </t>
 
                             <!-- ===== TABLE LAYOUT: COMPACT THEO MẪU PHIẾU GỬI HÀNG ===== -->
@@ -156,8 +153,7 @@
                                     <td class="ticket-title">
                                         <div class="ticket-subtitle" t-if="doc.sale_id or doc.origin">
                                             <span t-esc="doc.sale_id.name or doc.origin"/>
-                                            <span> - </span>
-                                            <span t-esc="shipping_cost_label"/>
+                                            <span style="font-weight: bold; font-size: 25px;" t-esc="shipping_cost_label"/>
                                         </div>
                                     </td>
                                 </tr>

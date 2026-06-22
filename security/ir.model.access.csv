@@ -26,3 +26,5 @@ access_customer_shipping_history_user,customer.shipping.history.user,model_custo
 access_customer_shipping_history_manager,customer.shipping.history.manager,model_customer_shipping_history,stock.group_stock_manager,1,1,1,1
 access_customer_shipping_history_sale_user,customer.shipping.history.sale.user,model_customer_shipping_history,sales_team.group_sale_salesman,1,0,0,0
 sale_order_assign_task_user,sale.order.assign.task.user,model_sale_order_assign_task,base.group_user,1,1,1,1
+access_qr_scan_notification_user,qr.scan.notification.user,model_qr_scan_notification,base.group_user,1,1,1,0
+access_qr_scan_notification_stock_user,qr.scan.notification.stock.user,model_qr_scan_notification,stock.group_stock_user,1,1,1,1

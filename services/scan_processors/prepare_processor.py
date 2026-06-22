@@ -37,11 +37,16 @@ class PrepareScanProcessor(models.TransientModel):
             raise ValidationError(error_msg)
 
     def _process_additional_data(self, scan_history, **kwargs):
-        """After creating prepare scan history, mark picking as prepared.
-        This enables the frontend and shipping processor to validate correctly.
-        """
+        """After creating prepare scan history, update shipping info state"""
         super()._process_additional_data(scan_history, **kwargs)
         picking = scan_history.picking_id
-        # Only set if not already prepared to avoid unnecessary writes
-        if picking and not picking.is_prepared:
-            picking.write({'is_prepared': True})
+        if picking:
+            vals = {}
+            if picking._is_tracked_shipping_method():
+                if picking.ship_inf_state != 'not_received':
+                    vals['ship_inf_state'] = 'not_received'
+            else:
+                if picking.ship_inf_state != 'none':
+                    vals['ship_inf_state'] = 'none'
+            if vals:
+                picking.write(vals)
