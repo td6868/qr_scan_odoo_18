@@ -173,7 +173,7 @@ class StockPicking(models.Model):
 
     # Thông tin gửi xe
     actual_shipping_date = fields.Datetime('Thời gian gửi xe thực tế', tracking=True)
-    shipping_confirmed_by = fields.Many2one('res.users', 'Người xác nhận gửi xe', readonly=True)
+    shipping_confirmed_by = fields.Many2one('res.users', 'Người xác nhận gửi xe', tracking=True)
     shipping_driver_phone = fields.Char('SĐT tài xế', tracking=True)
     shipping_vehicle_number = fields.Char('Biển số xe', tracking=True)
     shipping_tracking_number = fields.Char('Mã vận đơn', tracking=True)

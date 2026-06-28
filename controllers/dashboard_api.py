@@ -206,7 +206,19 @@ class StockPickingDashboardAPI(http.Controller):
                 ('shipping_method.name', 'ilike', 'grab'),
             ]
             
-            # Filter by ship_inf_state (received hoặc not_received)
+            # Filter by stock picking state for shipping tabs:
+            # - Chưa xuất: state != done
+            # - Đã xuất: state = done, optionally combined with ship_inf_state = none
+            if filters.get('state') == 'not_printed':
+                domain.append(('sale_assigned_date', '!=', False))
+                domain.append(('warehouse_acknowledged', '=', False))
+            elif filters.get('state') == 'not_done':
+                domain.append(('warehouse_acknowledged', '=', True))
+                domain.append(('state', '!=', 'done'))
+            elif filters.get('state'):
+                domain.append(('state', '=', filters['state']))
+            
+            # Filter by ship_inf_state (none, received hoặc not_received)
             if filters.get('ship_inf_state'):
                 domain.append(('ship_inf_state', '=', filters['ship_inf_state']))
             
@@ -246,6 +258,8 @@ class StockPickingDashboardAPI(http.Controller):
                 pickings.mapped('recipient_info')
             if hasattr(Picking, 'park_info'):
                 pickings.mapped('park_info')
+            if hasattr(Picking, 'shipping_confirmed_by'):
+                pickings.mapped('shipping_confirmed_by.name')
             
             # Prepare data
             data = []
@@ -292,6 +306,8 @@ class StockPickingDashboardAPI(http.Controller):
                     'recipient_address': rec_address or '',
                     'park_info': park_info or '',
                     'ship_inf_state': ship_inf_state,
+                    'shipping_confirmed_by_id': picking.shipping_confirmed_by.id if getattr(picking, 'shipping_confirmed_by', False) else False,
+                    'shipping_confirmed_by_name': picking.shipping_confirmed_by.name if getattr(picking, 'shipping_confirmed_by', False) else '',
                 })
             
             return {
@@ -307,6 +323,73 @@ class StockPickingDashboardAPI(http.Controller):
             return {
                 'status': 'error',
                 'message': str(e)
+            }
+
+    @http.route('/api/dashboard/stock_picking/shipping_users', type='json', auth='user', methods=['POST'], csrf=False, cors='*')
+    def get_shipping_users(self, **kwargs):
+        """Danh sách user active để chọn người gửi xe."""
+        try:
+            users = request.env['res.users'].sudo().search([
+                ('active', '=', True),
+                ('share', '=', False),
+            ], order='name')
+
+            return {
+                'status': 'success',
+                'data': [
+                    {'id': user.id, 'name': user.name}
+                    for user in users
+                ],
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e),
+            }
+
+    @http.route('/api/dashboard/stock_picking/confirm_received', type='json', auth='user', methods=['POST'], csrf=False, cors='*')
+    def confirm_shipping_received(self, **kwargs):
+        """Chọn người gửi xe và chuyển trạng thái giao vận sang Đã nhận."""
+        try:
+            picking_id = kwargs.get('picking_id')
+            user_id = kwargs.get('user_id')
+
+            if not picking_id or not user_id:
+                return {'status': 'error', 'message': 'Thiếu phiếu hoặc người gửi xe'}
+
+            picking = request.env['stock.picking'].sudo().browse(int(picking_id))
+            if not picking.exists():
+                return {'status': 'error', 'message': 'Phiếu không tồn tại'}
+
+            user = request.env['res.users'].sudo().browse(int(user_id))
+            if not user.exists():
+                return {'status': 'error', 'message': 'Người gửi xe không tồn tại'}
+
+            if picking.ship_inf_state != 'not_received':
+                return {
+                    'status': 'error',
+                    'message': 'Chỉ có thể xác nhận các đơn ở trạng thái Chưa nhận',
+                }
+
+            picking.write({
+                'shipping_confirmed_by': user.id,
+                'ship_inf_state': 'received',
+            })
+
+            picking.message_post(
+                body=f'<p><strong>✅ Đã chọn người gửi xe:</strong> {user.name}</p>',
+                subject='Xác nhận người gửi xe',
+                message_type='notification',
+            )
+
+            return {
+                'status': 'success',
+                'message': f'Đã chuyển đơn sang Đã nhận cho {user.name}',
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e),
             }
     
     @http.route('/api/dashboard/stock_picking/filters', type='json', auth='user', methods=['POST'], csrf=False, cors='*')

@@ -11,14 +11,14 @@
                     <group>
                         <group string="Thông tin gửi xe">
                             <field name="park_info" readonly="1"/>
-                            <field name="ship_inf_state" readonly="1" widget="badge" 
+                            <field name="ship_inf_state" widget="badge"
                                    decoration-muted="ship_inf_state == 'none'" 
                                    decoration-warning="ship_inf_state == 'not_received'" 
                                    decoration-info="ship_inf_state == 'received'" 
                                    decoration-success="ship_inf_state == 'completed'"/>
                         </group>
                         <group string="Thông tin gửi xe">
-                            <field name="shipping_confirmed_by" readonly="1"/>
+                            <field name="shipping_confirmed_by"/>
                         </group>
                     </group>
                     <group>
