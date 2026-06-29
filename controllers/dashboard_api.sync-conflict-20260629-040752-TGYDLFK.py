@@ -209,12 +209,8 @@ class StockPickingDashboardAPI(http.Controller):
             # Filter by stock picking state for shipping tabs:
             # - Chưa xuất: state != done
             # - Đã xuất: state = done, optionally combined with ship_inf_state = none
-            if filters.get('state') == 'not_printed':
-                domain.append(('sale_assigned_date', '!=', False))
-                domain.append(('warehouse_acknowledged', '=', False))
-                domain.append(('state', 'not in', ['done', 'cancel']))
-            elif filters.get('state') == 'not_done':
-                domain.append(('state', '!=', 'assigned'))
+            if filters.get('state') == 'not_done':
+                domain.append(('state', '!=', 'done'))
             elif filters.get('state'):
                 domain.append(('state', '=', filters['state']))
             
